@@ -46,3 +46,16 @@ class BaseScraper(ABC):
         external_id, author_name, rating, text, review_date
         """
         pass
+
+    def search(self, query: str, location: str | None = None) -> list[dict]:
+        """Search for businesses on this platform.
+
+        Args:
+            query: Business name to search for
+            location: Optional location to narrow results
+
+        Returns:
+            List of dicts with keys:
+            name, address, rating, review_count, url, thumbnail_url
+        """
+        raise NotImplementedError(f"{self.__class__.__name__} does not support search")

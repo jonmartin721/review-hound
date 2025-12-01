@@ -1,5 +1,7 @@
 import logging
+import re
 from datetime import datetime, date
+from urllib.parse import quote_plus
 
 import requests
 
@@ -128,3 +130,79 @@ class BBBScraper(BaseScraper):
         except ValueError:
             pass
         return None
+
+    def search(self, query: str, location: str | None = None) -> list[dict]:
+        """Search BBB for businesses matching the query."""
+        search_url = f"https://www.bbb.org/search?find_text={quote_plus(query)}"
+        if location:
+            search_url += f"&find_loc={quote_plus(location)}"
+
+        try:
+            soup = self.fetch(search_url)
+        except requests.RequestException:
+            return []
+
+        results = []
+        cards = soup.select("div.result-card")[:5]
+
+        for card in cards:
+            try:
+                result = self._parse_search_result(card)
+                if result:
+                    results.append(result)
+            except (AttributeError, ValueError):
+                continue
+
+        return results
+
+    def _parse_search_result(self, card) -> dict | None:
+        # Get URL from the business name link
+        name_heading = card.select_one("h3.result-business-name")
+        if not name_heading:
+            return None
+
+        link = name_heading.find("a")
+        if not link:
+            return None
+
+        url = link.get("href", "")
+        if not url:
+            return None
+
+        if url.startswith("/"):
+            url = f"https://www.bbb.org{url}"
+
+        name = link.get_text(strip=True)
+
+        # Address is in p.text-size-5 (contains street address)
+        address = ""
+        address_elem = card.select_one("p.text-size-5")
+        if address_elem:
+            address = address_elem.get_text(strip=True)
+
+        # BBB rating is in summary.result-rating
+        rating = None
+        rating_elem = card.select_one("summary.result-rating")
+        if rating_elem:
+            rating_text = rating_elem.get_text(strip=True)
+            match = re.search(r"BBB Rating:\s*([A-F][+-]?)", rating_text, re.IGNORECASE)
+            if match:
+                grade = match.group(1).upper()
+                grade_map = {"A+": 5.0, "A": 4.7, "A-": 4.3, "B+": 4.0, "B": 3.7, "B-": 3.3,
+                             "C+": 3.0, "C": 2.7, "C-": 2.3, "D+": 2.0, "D": 1.7, "D-": 1.3, "F": 1.0}
+                rating = grade_map.get(grade)
+
+        # BBB doesn't show review count in search results
+        review_count = 0
+
+        img_elem = card.select_one("img")
+        thumbnail_url = img_elem.get("src") if img_elem else None
+
+        return {
+            "name": name,
+            "address": address,
+            "rating": rating,
+            "review_count": review_count,
+            "url": url,
+            "thumbnail_url": thumbnail_url,
+        }
