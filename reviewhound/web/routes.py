@@ -1,11 +1,13 @@
-from flask import Blueprint, render_template, request, jsonify
-from datetime import datetime, timezone
+from collections import defaultdict
 import json
 
+from flask import Blueprint, render_template, request, jsonify
+
+from reviewhound.config import Config
 from reviewhound.database import get_session
 from reviewhound.models import Business, Review, ScrapeLog
 from reviewhound.scrapers import TrustPilotScraper, BBBScraper, YelpScraper
-from reviewhound.analysis import analyze_review
+from reviewhound.services import run_scraper_for_business, calculate_review_stats
 
 bp = Blueprint('main', __name__)
 
@@ -18,17 +20,14 @@ def dashboard():
         business_stats = []
         for b in businesses:
             reviews = session.query(Review).filter(Review.business_id == b.id).all()
-            total = len(reviews)
-            avg_rating = sum(r.rating for r in reviews if r.rating) / len([r for r in reviews if r.rating]) if any(r.rating for r in reviews) else 0
-            positive = len([r for r in reviews if r.sentiment_label == "positive"])
-            negative = len([r for r in reviews if r.sentiment_label == "negative"])
+            stats = calculate_review_stats(reviews)
 
             business_stats.append({
                 'business': b,
-                'total_reviews': total,
-                'avg_rating': avg_rating,
-                'positive_pct': (positive / total * 100) if total else 0,
-                'negative_pct': (negative / total * 100) if total else 0,
+                'total_reviews': stats["total"],
+                'avg_rating': stats["avg_rating"],
+                'positive_pct': stats["positive_pct"],
+                'negative_pct': stats["negative_pct"],
             })
 
         return render_template('dashboard.html', businesses=business_stats)
@@ -49,28 +48,22 @@ def business_detail(business_id):
             ScrapeLog.business_id == business_id
         ).order_by(ScrapeLog.started_at.desc()).all()
 
-        # Calculate stats
-        total = len(reviews)
-        avg_rating = sum(r.rating for r in reviews if r.rating) / len([r for r in reviews if r.rating]) if any(r.rating for r in reviews) else 0
-        positive = len([r for r in reviews if r.sentiment_label == "positive"])
-        negative = len([r for r in reviews if r.sentiment_label == "negative"])
-
+        review_stats = calculate_review_stats(reviews)
         stats = {
-            'total_reviews': total,
-            'avg_rating': avg_rating,
-            'positive_pct': (positive / total * 100) if total else 0,
-            'negative_pct': (negative / total * 100) if total else 0,
+            'total_reviews': review_stats["total"],
+            'avg_rating': review_stats["avg_rating"],
+            'positive_pct': review_stats["positive_pct"],
+            'negative_pct': review_stats["negative_pct"],
         }
 
         # Chart data - group by month
-        from collections import defaultdict
         monthly_ratings = defaultdict(list)
         for r in reviews:
             if r.rating and r.review_date:
                 key = r.review_date.strftime('%Y-%m')
                 monthly_ratings[key].append(r.rating)
 
-        sorted_months = sorted(monthly_ratings.keys())[-12:]  # Last 12 months
+        sorted_months = sorted(monthly_ratings.keys())[-Config.CHART_MONTHS:]
         chart_labels = sorted_months
         chart_data = [sum(monthly_ratings[m])/len(monthly_ratings[m]) for m in sorted_months]
 
@@ -92,7 +85,7 @@ def business_reviews(business_id):
             return "Business not found", 404
 
         page = request.args.get('page', 1, type=int)
-        per_page = 20
+        per_page = Config.REVIEWS_PER_PAGE
         source = request.args.get('source', '')
         sentiment = request.args.get('sentiment', '')
 
@@ -133,53 +126,13 @@ def trigger_scrape(business_id):
 
         total_new = 0
         for scraper, url in scrapers:
-            log = ScrapeLog(
-                business_id=business.id,
-                source=scraper.source,
-                status="running",
-                started_at=datetime.now(timezone.utc),
-            )
-            session.add(log)
-            session.flush()
-
             try:
-                reviews = scraper.scrape(url)
-                new_count = 0
-
-                for review_data in reviews:
-                    existing = session.query(Review).filter(
-                        Review.source == scraper.source,
-                        Review.external_id == review_data["external_id"],
-                    ).first()
-
-                    if existing:
-                        continue
-
-                    score, label = analyze_review(review_data.get("text", ""))
-
-                    review = Review(
-                        business_id=business.id,
-                        source=scraper.source,
-                        external_id=review_data["external_id"],
-                        author_name=review_data.get("author_name"),
-                        rating=review_data.get("rating"),
-                        text=review_data.get("text"),
-                        review_date=review_data.get("review_date"),
-                        sentiment_score=score,
-                        sentiment_label=label,
-                    )
-                    session.add(review)
-                    new_count += 1
-
-                log.status = "success"
-                log.reviews_found = new_count
-                log.completed_at = datetime.now(timezone.utc)
+                log, new_count = run_scraper_for_business(
+                    session, business, scraper, url, send_alerts=False
+                )
                 total_new += new_count
-
-            except Exception as e:
-                log.status = "failed"
-                log.error_message = str(e)
-                log.completed_at = datetime.now(timezone.utc)
+            except Exception:
+                pass  # Error already logged by run_scraper_for_business
 
         return jsonify({'success': True, 'new_reviews': total_new})
 
@@ -189,14 +142,13 @@ def api_business_stats(business_id):
     with get_session() as session:
         reviews = session.query(Review).filter(Review.business_id == business_id).all()
 
-        from collections import defaultdict
         monthly_ratings = defaultdict(list)
         for r in reviews:
             if r.rating and r.review_date:
                 key = r.review_date.strftime('%Y-%m')
                 monthly_ratings[key].append(r.rating)
 
-        sorted_months = sorted(monthly_ratings.keys())[-12:]
+        sorted_months = sorted(monthly_ratings.keys())[-Config.CHART_MONTHS:]
 
         return jsonify({
             'labels': sorted_months,
