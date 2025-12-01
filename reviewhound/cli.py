@@ -393,6 +393,14 @@ def watch(interval):
 
 
 @cli.command()
+def tui():
+    """Launch the TUI dashboard."""
+    from reviewhound.tui import ReviewHoundApp
+    app = ReviewHoundApp()
+    app.run()
+
+
+@cli.command()
 @click.option("--host", default="127.0.0.1", help="Host to bind to")
 @click.option("--port", default=5000, help="Port to bind to")
 @click.option("--debug", is_flag=True, help="Enable debug mode")

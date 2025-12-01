@@ -59,6 +59,9 @@ instance/
 .DS_Store
 Thumbs.db
 
+# Shell redirect artifacts (e.g. pip install foo>=1.0 without quotes)
+=*
+
 # AI assistants / code agents
 .claude/
 .cursor/
