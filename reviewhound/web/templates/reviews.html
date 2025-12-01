@@ -1,0 +1,72 @@
+{% extends "base.html" %}
+
+{% block title %}Reviews - {{ business.name }}{% endblock %}
+
+{% block content %}
+<div class="mb-6">
+    <a href="{{ url_for('main.business_detail', business_id=business.id) }}" class="text-indigo-600 hover:text-indigo-800">← Back to {{ business.name }}</a>
+</div>
+
+<h1 class="text-3xl font-bold text-gray-800 mb-6">Reviews for {{ business.name }}</h1>
+
+<!-- Filters -->
+<div class="bg-white rounded-lg shadow-md p-4 mb-6">
+    <form method="GET" class="flex flex-wrap gap-4 items-end">
+        <div>
+            <label class="block text-sm text-gray-600 mb-1">Source</label>
+            <select name="source" class="border rounded px-3 py-2">
+                <option value="">All Sources</option>
+                <option value="trustpilot" {{ 'selected' if request.args.get('source') == 'trustpilot' }}>TrustPilot</option>
+                <option value="bbb" {{ 'selected' if request.args.get('source') == 'bbb' }}>BBB</option>
+                <option value="yelp" {{ 'selected' if request.args.get('source') == 'yelp' }}>Yelp</option>
+            </select>
+        </div>
+        <div>
+            <label class="block text-sm text-gray-600 mb-1">Sentiment</label>
+            <select name="sentiment" class="border rounded px-3 py-2">
+                <option value="">All Sentiments</option>
+                <option value="positive" {{ 'selected' if request.args.get('sentiment') == 'positive' }}>Positive</option>
+                <option value="neutral" {{ 'selected' if request.args.get('sentiment') == 'neutral' }}>Neutral</option>
+                <option value="negative" {{ 'selected' if request.args.get('sentiment') == 'negative' }}>Negative</option>
+            </select>
+        </div>
+        <button type="submit" class="bg-indigo-600 text-white px-4 py-2 rounded hover:bg-indigo-700">Filter</button>
+    </form>
+</div>
+
+<!-- Reviews List -->
+<div class="space-y-4">
+    {% for r in reviews %}
+    <div class="bg-white rounded-lg shadow-md p-6">
+        <div class="flex justify-between items-start mb-3">
+            <div class="flex items-center space-x-3">
+                <span class="font-semibold text-gray-800">{{ r.author_name or 'Anonymous' }}</span>
+                <span class="text-yellow-500 text-lg">{{ '★' * (r.rating|int) }}{{ '☆' * (5 - r.rating|int) if r.rating else '' }}</span>
+                <span class="px-2 py-1 text-sm rounded {% if r.sentiment_label == 'positive' %}bg-green-100 text-green-700{% elif r.sentiment_label == 'negative' %}bg-red-100 text-red-700{% else %}bg-yellow-100 text-yellow-700{% endif %}">
+                    {{ r.sentiment_label or 'neutral' }} ({{ "%.2f"|format(r.sentiment_score) if r.sentiment_score else '0.00' }})
+                </span>
+            </div>
+            <span class="px-2 py-1 bg-gray-100 text-gray-600 rounded text-sm">{{ r.source }}</span>
+        </div>
+        <p class="text-gray-700 leading-relaxed">{{ r.text or 'No review text' }}</p>
+        <p class="text-sm text-gray-400 mt-3">{{ r.review_date or r.scraped_at.strftime('%Y-%m-%d') }}</p>
+    </div>
+    {% else %}
+    <div class="bg-white rounded-lg shadow-md p-8 text-center">
+        <p class="text-gray-500">No reviews found matching your filters.</p>
+    </div>
+    {% endfor %}
+</div>
+
+<!-- Pagination -->
+{% if total_pages > 1 %}
+<div class="flex justify-center space-x-2 mt-6">
+    {% for p in range(1, total_pages + 1) %}
+    <a href="?page={{ p }}&source={{ request.args.get('source', '') }}&sentiment={{ request.args.get('sentiment', '') }}"
+       class="px-3 py-1 rounded {{ 'bg-indigo-600 text-white' if p == page else 'bg-gray-200 text-gray-700 hover:bg-gray-300' }}">
+        {{ p }}
+    </a>
+    {% endfor %}
+</div>
+{% endif %}
+{% endblock %}
