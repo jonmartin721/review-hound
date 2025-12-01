@@ -3,7 +3,13 @@
 {% block title %}Dashboard - Review Hound{% endblock %}
 
 {% block content %}
-<h1 class="text-3xl font-bold text-gray-800 mb-6">Business Dashboard</h1>
+<div class="flex justify-between items-center mb-6">
+    <h1 class="text-3xl font-bold text-gray-800">Business Dashboard</h1>
+    <button onclick="openAddModal()" class="bg-indigo-600 text-white px-4 py-2 rounded hover:bg-indigo-700 transition flex items-center gap-2">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+        Add Business
+    </button>
+</div>
 
 {% if businesses %}
 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -35,9 +41,6 @@
             {% if item.business.bbb_url %}
             <span class="px-2 py-1 bg-blue-100 text-blue-700 rounded">BBB</span>
             {% endif %}
-            {% if item.business.yelp_url %}
-            <span class="px-2 py-1 bg-red-100 text-red-700 rounded">Yelp</span>
-            {% endif %}
         </div>
 
         <a href="{{ url_for('main.business_detail', business_id=item.business.id) }}"
@@ -50,7 +53,303 @@
 {% else %}
 <div class="bg-white rounded-lg shadow-md p-8 text-center">
     <p class="text-gray-500 text-lg">No businesses tracked yet.</p>
-    <p class="text-gray-400 mt-2">Use the CLI to add businesses: <code class="bg-gray-100 px-2 py-1 rounded">reviewhound add "Business Name"</code></p>
+    <p class="text-gray-400 mt-2">Click "Add Business" above to get started.</p>
 </div>
 {% endif %}
+
+<!-- Step 1: Add Business Modal (Name & Address) -->
+<div id="businessModal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50">
+    <div class="bg-white rounded-lg shadow-xl p-6 w-full max-w-md mx-4">
+        <div class="flex justify-between items-center mb-4">
+            <h2 class="text-xl font-bold text-gray-800">Add Business</h2>
+            <button onclick="closeModal()" class="text-gray-500 hover:text-gray-700">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+            </button>
+        </div>
+        <form id="businessForm" onsubmit="submitBusinessStep1(event)">
+            <div class="space-y-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Business Name *</label>
+                    <input type="text" id="businessName" required class="w-full border rounded px-3 py-2 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Location (optional)</label>
+                    <input type="text" id="businessLocation" placeholder="City, State" class="w-full border rounded px-3 py-2 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
+                    <p class="text-xs text-gray-500 mt-1">Helps find the right business on review sites</p>
+                </div>
+            </div>
+            <div class="flex justify-end gap-3 mt-6">
+                <button type="button" onclick="closeModal()" class="px-4 py-2 border rounded text-gray-700 hover:bg-gray-50">Cancel</button>
+                <button type="submit" id="step1SubmitBtn" class="px-4 py-2 bg-indigo-600 text-white rounded hover:bg-indigo-700">Next: Find Sources</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Step 2: Source Selection Modal -->
+<div id="sourceModal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50 overflow-y-auto">
+    <div class="bg-white rounded-lg shadow-xl p-6 w-full max-w-2xl mx-4 my-8">
+        <div class="flex justify-between items-center mb-4">
+            <h2 class="text-xl font-bold text-gray-800">Find Review Sources for "<span id="sourceModalBusinessName"></span>"</h2>
+            <button onclick="closeSourceModal()" class="text-gray-500 hover:text-gray-700">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+            </button>
+        </div>
+
+        <p class="text-gray-600 mb-4">Select the correct business listing from each platform, or enter URLs manually.</p>
+
+        <!-- TrustPilot Section -->
+        <div class="mb-6">
+            <h3 class="font-semibold text-gray-800 mb-2 flex items-center">
+                <span class="w-3 h-3 bg-green-500 rounded-full mr-2"></span>
+                TrustPilot
+            </h3>
+            <div id="trustpilotResults" class="border rounded p-3 bg-gray-50">
+                <div class="text-center text-gray-500 py-4">
+                    <div class="animate-spin inline-block w-5 h-5 border-2 border-indigo-600 border-t-transparent rounded-full"></div>
+                    <span class="ml-2">Searching...</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- BBB Section -->
+        <div class="mb-6">
+            <h3 class="font-semibold text-gray-800 mb-2 flex items-center">
+                <span class="w-3 h-3 bg-blue-500 rounded-full mr-2"></span>
+                BBB
+            </h3>
+            <div id="bbbResults" class="border rounded p-3 bg-gray-50">
+                <div class="text-center text-gray-500 py-4">
+                    <div class="animate-spin inline-block w-5 h-5 border-2 border-indigo-600 border-t-transparent rounded-full"></div>
+                    <span class="ml-2">Searching...</span>
+                </div>
+            </div>
+        </div>
+
+
+        <div class="flex justify-end gap-3 mt-6 border-t pt-4">
+            <button type="button" onclick="skipSources()" class="px-4 py-2 border rounded text-gray-700 hover:bg-gray-50">Skip for now</button>
+            <button type="button" onclick="saveBusiness()" id="saveBusinessBtn" class="px-4 py-2 bg-indigo-600 text-white rounded hover:bg-indigo-700">Save Business</button>
+        </div>
+    </div>
+</div>
+
+<script>
+let pendingBusiness = { name: '', location: '' };
+let selectedSources = { trustpilot: null, bbb: null };
+
+function openAddModal() {
+    document.getElementById('businessForm').reset();
+    document.getElementById('businessModal').classList.remove('hidden');
+    document.getElementById('businessModal').classList.add('flex');
+}
+
+function closeModal() {
+    document.getElementById('businessModal').classList.add('hidden');
+    document.getElementById('businessModal').classList.remove('flex');
+}
+
+function closeSourceModal() {
+    document.getElementById('sourceModal').classList.add('hidden');
+    document.getElementById('sourceModal').classList.remove('flex');
+}
+
+async function submitBusinessStep1(event) {
+    event.preventDefault();
+
+    pendingBusiness.name = document.getElementById('businessName').value;
+    pendingBusiness.location = document.getElementById('businessLocation').value;
+
+    const btn = document.getElementById('step1SubmitBtn');
+    btn.disabled = true;
+    btn.textContent = 'Searching...';
+
+    // Close step 1 modal, open step 2
+    closeModal();
+    document.getElementById('sourceModalBusinessName').textContent = pendingBusiness.name;
+    document.getElementById('sourceModal').classList.remove('hidden');
+    document.getElementById('sourceModal').classList.add('flex');
+
+    // Reset selected sources
+    selectedSources = { trustpilot: null, bbb: null };
+
+    // Reset results to loading state
+    ['trustpilot', 'bbb'].forEach(source => {
+        document.getElementById(`${source}Results`).innerHTML = `
+            <div class="text-center text-gray-500 py-4">
+                <div class="animate-spin inline-block w-5 h-5 border-2 border-indigo-600 border-t-transparent rounded-full"></div>
+                <span class="ml-2">Searching...</span>
+            </div>
+        `;
+    });
+
+    // Search for sources
+    try {
+        const response = await fetch('/api/search-sources', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({
+                query: pendingBusiness.name,
+                location: pendingBusiness.location || null
+            })
+        });
+
+        const data = await response.json();
+
+        if (data.success) {
+            renderSourceResults('trustpilot', data.results.trustpilot);
+            renderSourceResults('bbb', data.results.bbb);
+        } else {
+            ['trustpilot', 'bbb'].forEach(source => {
+                document.getElementById(`${source}Results`).innerHTML = `
+                    <p class="text-red-500 py-2">Search failed. ${renderManualEntry(source)}</p>
+                `;
+            });
+        }
+    } catch (e) {
+        ['trustpilot', 'bbb'].forEach(source => {
+            document.getElementById(`${source}Results`).innerHTML = `
+                <p class="text-red-500 py-2">Search failed. ${renderManualEntry(source)}</p>
+            `;
+        });
+    }
+
+    btn.disabled = false;
+    btn.textContent = 'Next: Find Sources';
+}
+
+function renderSourceResults(source, results) {
+    const container = document.getElementById(`${source}Results`);
+
+    if (!results || results.length === 0) {
+        container.innerHTML = `
+            <p class="text-gray-500 py-2">No results found.</p>
+            ${renderManualEntry(source)}
+        `;
+        return;
+    }
+
+    let html = '<div class="space-y-2">';
+
+    results.forEach((result, index) => {
+        const stars = result.rating ? '★'.repeat(Math.round(result.rating)) + '☆'.repeat(5 - Math.round(result.rating)) : '';
+        const ratingText = result.rating ? `${result.rating.toFixed(1)}` : '';
+        const reviewText = result.review_count ? `(${result.review_count} reviews)` : '';
+
+        html += `
+            <label class="flex items-start p-2 rounded hover:bg-gray-100 cursor-pointer">
+                <input type="radio" name="${source}Source" value="${result.url}"
+                       onchange="selectSource('${source}', '${result.url}')"
+                       class="mt-1 mr-3">
+                <div class="flex-1">
+                    <div class="font-medium text-gray-800">${escapeHtml(result.name)}</div>
+                    ${result.address ? `<div class="text-sm text-gray-500">${escapeHtml(result.address)}</div>` : ''}
+                    ${ratingText ? `<div class="text-sm"><span class="text-yellow-500">${stars}</span> <span class="text-gray-600">${ratingText} ${reviewText}</span></div>` : ''}
+                </div>
+            </label>
+        `;
+    });
+
+    html += '</div>';
+    html += renderManualEntry(source);
+
+    container.innerHTML = html;
+}
+
+function renderManualEntry(source) {
+    return `
+        <div class="mt-3 pt-3 border-t">
+            <button type="button" onclick="toggleManualEntry('${source}')" class="text-indigo-600 hover:text-indigo-800 text-sm">
+                Enter URL manually
+            </button>
+            <div id="${source}ManualEntry" class="hidden mt-2">
+                <input type="url" id="${source}ManualUrl" placeholder="https://..."
+                       onchange="selectSource('${source}', this.value)"
+                       class="w-full border rounded px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-500">
+            </div>
+        </div>
+    `;
+}
+
+function toggleManualEntry(source) {
+    const container = document.getElementById(`${source}ManualEntry`);
+    container.classList.toggle('hidden');
+    if (!container.classList.contains('hidden')) {
+        document.getElementById(`${source}ManualUrl`).focus();
+    }
+}
+
+function selectSource(source, url) {
+    selectedSources[source] = url || null;
+
+    // Uncheck radio buttons if manual URL is being used
+    if (url && document.getElementById(`${source}ManualUrl`)?.value === url) {
+        const radios = document.querySelectorAll(`input[name="${source}Source"]`);
+        radios.forEach(r => r.checked = false);
+    }
+}
+
+function escapeHtml(text) {
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+}
+
+async function saveBusiness() {
+    const btn = document.getElementById('saveBusinessBtn');
+    btn.disabled = true;
+    btn.textContent = 'Saving...';
+
+    const data = {
+        name: pendingBusiness.name,
+        address: pendingBusiness.location || null,
+        trustpilot_url: selectedSources.trustpilot || null,
+        bbb_url: selectedSources.bbb || null,
+    };
+
+    try {
+        const response = await fetch('/api/business', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify(data)
+        });
+
+        const result = await response.json();
+
+        if (result.success) {
+            window.location.href = `/business/${result.business.id}`;
+        } else {
+            alert(result.error || 'Failed to save business');
+            btn.disabled = false;
+            btn.textContent = 'Save Business';
+        }
+    } catch (e) {
+        alert('Error saving business');
+        btn.disabled = false;
+        btn.textContent = 'Save Business';
+    }
+}
+
+async function skipSources() {
+    // Save business without any sources
+    selectedSources = { trustpilot: null, bbb: null };
+    await saveBusiness();
+}
+
+// Close modals on escape key
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') {
+        closeModal();
+        closeSourceModal();
+    }
+});
+
+// Close modals on backdrop click
+document.getElementById('businessModal').addEventListener('click', function(e) {
+    if (e.target === this) closeModal();
+});
+document.getElementById('sourceModal').addEventListener('click', function(e) {
+    if (e.target === this) closeSourceModal();
+});
+</script>
 {% endblock %}

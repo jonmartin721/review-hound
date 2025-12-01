@@ -14,16 +14,15 @@
     <form method="GET" class="flex flex-wrap gap-4 items-end">
         <div>
             <label class="block text-sm text-gray-600 mb-1">Source</label>
-            <select name="source" class="border rounded px-3 py-2">
+            <select name="source" id="filterSource" class="border rounded px-3 py-2">
                 <option value="">All Sources</option>
                 <option value="trustpilot" {{ 'selected' if request.args.get('source') == 'trustpilot' }}>TrustPilot</option>
                 <option value="bbb" {{ 'selected' if request.args.get('source') == 'bbb' }}>BBB</option>
-                <option value="yelp" {{ 'selected' if request.args.get('source') == 'yelp' }}>Yelp</option>
             </select>
         </div>
         <div>
             <label class="block text-sm text-gray-600 mb-1">Sentiment</label>
-            <select name="sentiment" class="border rounded px-3 py-2">
+            <select name="sentiment" id="filterSentiment" class="border rounded px-3 py-2">
                 <option value="">All Sentiments</option>
                 <option value="positive" {{ 'selected' if request.args.get('sentiment') == 'positive' }}>Positive</option>
                 <option value="neutral" {{ 'selected' if request.args.get('sentiment') == 'neutral' }}>Neutral</option>
@@ -31,8 +30,25 @@
             </select>
         </div>
         <button type="submit" class="bg-indigo-600 text-white px-4 py-2 rounded hover:bg-indigo-700">Filter</button>
+        <button type="button" onclick="exportCSV()" class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 flex items-center gap-2">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+            Export CSV
+        </button>
     </form>
 </div>
+
+<script>
+function exportCSV() {
+    const source = document.getElementById('filterSource').value;
+    const sentiment = document.getElementById('filterSentiment').value;
+    let url = '/business/{{ business.id }}/export';
+    const params = [];
+    if (source) params.push('source=' + encodeURIComponent(source));
+    if (sentiment) params.push('sentiment=' + encodeURIComponent(sentiment));
+    if (params.length > 0) url += '?' + params.join('&');
+    window.location.href = url;
+}
+</script>
 
 <!-- Reviews List -->
 <div class="space-y-4">
