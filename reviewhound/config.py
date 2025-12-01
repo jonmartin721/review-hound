@@ -30,6 +30,14 @@ class Config:
     # Scheduler
     SCRAPE_INTERVAL_HOURS = int(os.getenv("SCRAPE_INTERVAL_HOURS", "6"))
 
+    # UI Display
+    REVIEW_TEXT_PREVIEW_LENGTH = 200
+    REVIEWS_PER_PAGE = 20
+    CHART_MONTHS = 12
+
+    # BBB Complaints
+    COMPLAINT_DEFAULT_RATING = 1.0
+
     @classmethod
     def get_database_url(cls) -> str:
         db_path = cls.DATABASE_PATH

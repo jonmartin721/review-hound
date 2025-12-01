@@ -1,8 +1,11 @@
+import logging
 import smtplib
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 
 from reviewhound.config import Config
+
+logger = logging.getLogger(__name__)
 
 
 def send_alert(to_email: str, subject: str, body: str) -> bool:
@@ -11,6 +14,7 @@ def send_alert(to_email: str, subject: str, body: str) -> bool:
     Returns True if sent successfully, False otherwise.
     """
     if not Config.SMTP_USER or not Config.SMTP_PASSWORD:
+        logger.debug("SMTP not configured, skipping alert")
         return False
 
     try:
@@ -26,7 +30,8 @@ def send_alert(to_email: str, subject: str, body: str) -> bool:
             server.send_message(msg)
 
         return True
-    except Exception:
+    except Exception as e:
+        logger.error(f"Failed to send alert to {to_email}: {e}")
         return False
 
 
