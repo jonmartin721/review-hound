@@ -1,8 +1,12 @@
+import logging
 from datetime import datetime, date
 
 import requests
 
 from reviewhound.scrapers.base import BaseScraper
+from reviewhound.config import Config
+
+logger = logging.getLogger(__name__)
 
 
 class BBBScraper(BaseScraper):
@@ -18,8 +22,8 @@ class BBBScraper(BaseScraper):
             if include_complaints:
                 reviews.extend(self._parse_complaints(soup))
 
-        except requests.RequestException:
-            pass
+        except requests.RequestException as e:
+            logger.warning(f"BBB scrape failed for {url}: {e}")
 
         return reviews
 
@@ -112,7 +116,7 @@ class BBBScraper(BaseScraper):
         return {
             "external_id": complaint_id,
             "author_name": complaint_type,
-            "rating": 1.0,  # Complaints default to 1-star
+            "rating": Config.COMPLAINT_DEFAULT_RATING,
             "text": text,
             "review_date": complaint_date,
         }

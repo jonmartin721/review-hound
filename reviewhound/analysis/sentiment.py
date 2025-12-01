@@ -1,5 +1,7 @@
 from textblob import TextBlob
 
+SENTIMENT_THRESHOLD = 0.1
+
 
 def analyze_review(text: str) -> tuple[float, str]:
     """Analyze sentiment of review text.
@@ -15,9 +17,9 @@ def analyze_review(text: str) -> tuple[float, str]:
     blob = TextBlob(text)
     score = blob.sentiment.polarity
 
-    if score > 0.1:
+    if score > SENTIMENT_THRESHOLD:
         label = "positive"
-    elif score < -0.1:
+    elif score < -SENTIMENT_THRESHOLD:
         label = "negative"
     else:
         label = "neutral"
