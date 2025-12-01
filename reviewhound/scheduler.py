@@ -1,3 +1,5 @@
+from datetime import datetime
+
 from apscheduler.schedulers.background import BackgroundScheduler
 from apscheduler.schedulers.blocking import BlockingScheduler
 
@@ -5,10 +7,7 @@ from reviewhound.config import Config
 from reviewhound.database import get_session
 from reviewhound.models import Business
 from reviewhound.scrapers import TrustPilotScraper, BBBScraper, YelpScraper
-from reviewhound.analysis import analyze_review
-from reviewhound.alerts import check_and_send_alerts
-from reviewhound.models import Review, ScrapeLog
-from datetime import datetime, timezone
+from reviewhound.services import run_scraper_for_business
 
 
 def scrape_all_businesses():
@@ -41,63 +40,12 @@ def _scrape_business_job(session, business):
         return
 
     for scraper, url in scrapers:
-        _run_scraper_job(session, business, scraper, url)
-
-
-def _run_scraper_job(session, business, scraper, url: str):
-    """Run a single scraper (called by scheduler)."""
-    source = scraper.source
-
-    log = ScrapeLog(
-        business_id=business.id,
-        source=source,
-        status="running",
-        started_at=datetime.now(timezone.utc),
-    )
-    session.add(log)
-    session.flush()
-
-    try:
-        reviews = scraper.scrape(url)
-        new_count = 0
-
-        for review_data in reviews:
-            existing = session.query(Review).filter(
-                Review.source == source,
-                Review.external_id == review_data["external_id"],
-            ).first()
-
-            if existing:
-                continue
-
-            score, label = analyze_review(review_data.get("text", ""))
-
-            review = Review(
-                business_id=business.id,
-                source=source,
-                external_id=review_data["external_id"],
-                author_name=review_data.get("author_name"),
-                rating=review_data.get("rating"),
-                text=review_data.get("text"),
-                review_date=review_data.get("review_date"),
-                sentiment_score=score,
-                sentiment_label=label,
-            )
-            session.add(review)
-            session.flush()  # Flush to ensure review has an ID before checking alerts
-            check_and_send_alerts(session, business, review)
-            new_count += 1
-
-        log.status = "success"
-        log.reviews_found = new_count
-        log.completed_at = datetime.now(timezone.utc)
-        print(f"[Scheduler]   {source}: {new_count} new reviews")
-
-    except Exception as e:
-        log.status = "failed"
-        log.error_message = str(e)
-        log.completed_at = datetime.now(timezone.utc)
-        print(f"[Scheduler]   {source}: Failed - {e}")
+        source = scraper.source
+        try:
+            log, new_count = run_scraper_for_business(session, business, scraper, url)
+            print(f"[Scheduler]   {source}: {new_count} new reviews")
+        except Exception as e:
+            print(f"[Scheduler]   {source}: Failed - {e}")
 
 
 def create_scheduler(blocking: bool = True) -> BackgroundScheduler | BlockingScheduler:

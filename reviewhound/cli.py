@@ -1,5 +1,4 @@
 import csv
-from datetime import datetime, timezone
 from pathlib import Path
 
 import click
@@ -10,8 +9,7 @@ from reviewhound.config import Config
 from reviewhound.database import init_db, get_session
 from reviewhound.models import Business, Review, ScrapeLog, AlertConfig
 from reviewhound.scrapers import TrustPilotScraper, BBBScraper, YelpScraper
-from reviewhound.analysis import analyze_review
-from reviewhound.alerts import check_and_send_alerts
+from reviewhound.services import run_scraper_for_business, calculate_review_stats
 
 console = Console()
 
@@ -126,57 +124,10 @@ def _run_scraper(session, business: Business, scraper, url: str):
     source = scraper.source
     console.print(f"  [blue]{source}:[/blue] ", end="")
 
-    log = ScrapeLog(
-        business_id=business.id,
-        source=source,
-        status="running",
-        started_at=datetime.now(timezone.utc),
-    )
-    session.add(log)
-    session.flush()
-
     try:
-        reviews = scraper.scrape(url)
-        new_count = 0
-
-        for review_data in reviews:
-            existing = session.query(Review).filter(
-                Review.source == source,
-                Review.external_id == review_data["external_id"],
-            ).first()
-
-            if existing:
-                continue
-
-            score, label = analyze_review(review_data.get("text", ""))
-
-            review = Review(
-                business_id=business.id,
-                source=source,
-                external_id=review_data["external_id"],
-                author_name=review_data.get("author_name"),
-                rating=review_data.get("rating"),
-                text=review_data.get("text"),
-                review_date=review_data.get("review_date"),
-                sentiment_score=score,
-                sentiment_label=label,
-            )
-            session.add(review)
-            new_count += 1
-
-            # Check and send alerts for this review
-            session.flush()  # Ensure review has an ID
-            check_and_send_alerts(session, business, review)
-
-        log.status = "success"
-        log.reviews_found = new_count
-        log.completed_at = datetime.now(timezone.utc)
+        log, new_count = run_scraper_for_business(session, business, scraper, url)
         console.print(f"[green]{new_count} new reviews[/green]")
-
     except Exception as e:
-        log.status = "failed"
-        log.error_message = str(e)
-        log.completed_at = datetime.now(timezone.utc)
         console.print(f"[red]Failed: {e}[/red]")
 
 
@@ -209,11 +160,12 @@ def reviews(business_id, limit, source, sentiment):
 
         console.print(f"\n[bold]{business.name}[/bold] - Reviews\n")
 
+        preview_len = Config.REVIEW_TEXT_PREVIEW_LENGTH
         for r in reviews:
             sentiment_color = {"positive": "green", "negative": "red", "neutral": "yellow"}.get(r.sentiment_label, "white")
             console.print(f"[cyan]{r.source}[/cyan] | [bold]{r.author_name or 'Anonymous'}[/bold] | ★{r.rating or '-'}")
             console.print(f"[{sentiment_color}]{r.sentiment_label}[/{sentiment_color}] ({r.sentiment_score:.2f})" if r.sentiment_score else "")
-            console.print(f"{r.text[:200]}..." if r.text and len(r.text) > 200 else r.text or "")
+            console.print(f"{r.text[:preview_len]}..." if r.text and len(r.text) > preview_len else r.text or "")
             console.print(f"[dim]{r.review_date or r.scraped_at.date()}[/dim]")
             console.print("─" * 60)
 
@@ -234,16 +186,7 @@ def stats(business_id):
             console.print(f"[yellow]No reviews for {business.name}[/yellow]")
             return
 
-        total = len(reviews)
-        avg_rating = sum(r.rating for r in reviews if r.rating) / len([r for r in reviews if r.rating]) if any(r.rating for r in reviews) else 0
-
-        positive = len([r for r in reviews if r.sentiment_label == "positive"])
-        negative = len([r for r in reviews if r.sentiment_label == "negative"])
-        neutral = len([r for r in reviews if r.sentiment_label == "neutral"])
-
-        by_source = {}
-        for r in reviews:
-            by_source[r.source] = by_source.get(r.source, 0) + 1
+        s = calculate_review_stats(reviews)
 
         console.print(f"\n[bold]{business.name}[/bold] - Statistics\n")
 
@@ -251,13 +194,13 @@ def stats(business_id):
         table.add_column("Metric", style="cyan")
         table.add_column("Value", style="green")
 
-        table.add_row("Total Reviews", str(total))
-        table.add_row("Average Rating", f"{avg_rating:.1f} ★")
-        table.add_row("Positive", f"{positive} ({positive/total*100:.0f}%)")
-        table.add_row("Neutral", f"{neutral} ({neutral/total*100:.0f}%)")
-        table.add_row("Negative", f"{negative} ({negative/total*100:.0f}%)")
+        table.add_row("Total Reviews", str(s["total"]))
+        table.add_row("Average Rating", f"{s['avg_rating']:.1f} ★")
+        table.add_row("Positive", f"{s['positive']} ({s['positive_pct']:.0f}%)")
+        table.add_row("Neutral", f"{s['neutral']} ({s['neutral_pct']:.0f}%)")
+        table.add_row("Negative", f"{s['negative']} ({s['negative_pct']:.0f}%)")
 
-        for source, count in by_source.items():
+        for source, count in s["by_source"].items():
             table.add_row(f"From {source}", str(count))
 
         console.print(table)
