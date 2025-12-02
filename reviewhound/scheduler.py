@@ -5,9 +5,21 @@ from apscheduler.schedulers.blocking import BlockingScheduler
 
 from reviewhound.config import Config
 from reviewhound.database import get_session
-from reviewhound.models import Business
-from reviewhound.scrapers import TrustPilotScraper, BBBScraper, YelpScraper
+from reviewhound.models import Business, APIConfig
+from reviewhound.scrapers import (
+    TrustPilotScraper, BBBScraper, YelpScraper,
+    GooglePlacesScraper, YelpAPIScraper
+)
 from reviewhound.services import run_scraper_for_business
+
+
+def _get_api_config(session, provider: str):
+    """Get API config for a provider if it exists and is enabled."""
+    config = session.query(APIConfig).filter(
+        APIConfig.provider == provider,
+        APIConfig.enabled == True
+    ).first()
+    return config
 
 
 def scrape_all_businesses():
@@ -28,21 +40,39 @@ def _scrape_business_job(session, business):
     print(f"[Scheduler] Scraping: {business.name}")
 
     scrapers = []
+
+    # Google Places API (no web scraping fallback)
+    google_config = _get_api_config(session, 'google_places')
+    if google_config and business.google_place_id:
+        scrapers.append((
+            GooglePlacesScraper(google_config.api_key),
+            business.google_place_id
+        ))
+
+    # Yelp: prefer API, fall back to web scraping
+    yelp_config = _get_api_config(session, 'yelp_fusion')
+    if yelp_config and business.yelp_business_id:
+        scrapers.append((
+            YelpAPIScraper(yelp_config.api_key),
+            business.yelp_business_id
+        ))
+    elif business.yelp_url:
+        scrapers.append((YelpScraper(), business.yelp_url))
+
+    # Web scraping only sources
     if business.trustpilot_url:
         scrapers.append((TrustPilotScraper(), business.trustpilot_url))
     if business.bbb_url:
         scrapers.append((BBBScraper(), business.bbb_url))
-    if business.yelp_url:
-        scrapers.append((YelpScraper(), business.yelp_url))
 
     if not scrapers:
-        print(f"[Scheduler]   No URLs configured for {business.name}")
+        print(f"[Scheduler]   No sources configured for {business.name}")
         return
 
-    for scraper, url in scrapers:
+    for scraper, identifier in scrapers:
         source = scraper.source
         try:
-            log, new_count = run_scraper_for_business(session, business, scraper, url)
+            log, new_count = run_scraper_for_business(session, business, scraper, identifier)
             print(f"[Scheduler]   {source}: {new_count} new reviews")
         except Exception as e:
             print(f"[Scheduler]   {source}: Failed - {e}")
