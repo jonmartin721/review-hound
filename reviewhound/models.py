@@ -97,3 +97,16 @@ class APIConfig(Base):
         if not key or len(key) < 8:
             return "****"
         return f"{key[:4]}****{key[-4:]}"
+
+
+class SentimentConfig(Base):
+    __tablename__ = "sentiment_configs"
+
+    id = Column(Integer, primary_key=True)
+    # Weight for star rating component (0.0 to 1.0)
+    rating_weight = Column(Float, default=0.7)
+    # Weight for text analysis component (0.0 to 1.0)
+    text_weight = Column(Float, default=0.3)
+    # Threshold for positive/negative classification
+    threshold = Column(Float, default=0.1)
+    updated_at = Column(DateTime, default=utcnow, onupdate=utcnow)

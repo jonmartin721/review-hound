@@ -7,7 +7,7 @@ from flask import Blueprint, render_template, request, jsonify, Response
 
 from reviewhound.config import Config
 from reviewhound.database import get_session
-from reviewhound.models import Business, Review, ScrapeLog, AlertConfig, APIConfig
+from reviewhound.models import Business, Review, ScrapeLog, AlertConfig, APIConfig, SentimentConfig
 from reviewhound.scrapers import (
     TrustPilotScraper, BBBScraper, YelpScraper,
     GooglePlacesScraper, YelpAPIScraper
@@ -498,12 +498,27 @@ def export_reviews(business_id):
 
 # Settings Routes
 
+def get_sentiment_config(session):
+    """Get or create sentiment config with defaults."""
+    config = session.query(SentimentConfig).first()
+    if not config:
+        config = SentimentConfig(
+            rating_weight=Config.SENTIMENT_RATING_WEIGHT,
+            text_weight=Config.SENTIMENT_TEXT_WEIGHT,
+            threshold=Config.SENTIMENT_THRESHOLD,
+        )
+        session.add(config)
+        session.flush()
+    return config
+
+
 @bp.route('/settings')
 def settings():
     with get_session() as session:
         configs = session.query(APIConfig).all()
         api_keys = {c.provider: {'enabled': c.enabled, 'key_preview': APIConfig.mask_key(c.api_key)} for c in configs}
-        return render_template('settings.html', api_keys=api_keys)
+        sentiment_config = get_sentiment_config(session)
+        return render_template('settings.html', api_keys=api_keys, sentiment_config=sentiment_config)
 
 
 @bp.route('/api/settings/api-keys', methods=['GET'])
@@ -584,6 +599,57 @@ def api_toggle_api_key(provider):
         return jsonify({
             'success': True,
             'enabled': config.enabled
+        })
+
+
+@bp.route('/api/settings/sentiment', methods=['GET'])
+def api_get_sentiment_settings():
+    """Get current sentiment analysis settings."""
+    with get_session() as session:
+        config = get_sentiment_config(session)
+        return jsonify({
+            'success': True,
+            'sentiment': {
+                'rating_weight': config.rating_weight,
+                'text_weight': config.text_weight,
+                'threshold': config.threshold,
+            }
+        })
+
+
+@bp.route('/api/settings/sentiment', methods=['POST'])
+def api_save_sentiment_settings():
+    """Save sentiment analysis settings."""
+    data = request.get_json()
+    if not data:
+        return jsonify({'success': False, 'error': 'No data provided'}), 400
+
+    rating_weight = data.get('rating_weight')
+    text_weight = data.get('text_weight')
+    threshold = data.get('threshold')
+
+    # Validate weights are between 0 and 1
+    for name, value in [('rating_weight', rating_weight), ('text_weight', text_weight), ('threshold', threshold)]:
+        if value is not None and (value < 0 or value > 1):
+            return jsonify({'success': False, 'error': f'{name} must be between 0 and 1'}), 400
+
+    with get_session() as session:
+        config = get_sentiment_config(session)
+
+        if rating_weight is not None:
+            config.rating_weight = rating_weight
+        if text_weight is not None:
+            config.text_weight = text_weight
+        if threshold is not None:
+            config.threshold = threshold
+
+        return jsonify({
+            'success': True,
+            'sentiment': {
+                'rating_weight': config.rating_weight,
+                'text_weight': config.text_weight,
+                'threshold': config.threshold,
+            }
         })
 
 
