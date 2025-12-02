@@ -51,12 +51,21 @@
         </div>
     </div>
 
-    <div class="flex space-x-2 mt-6">
+    <div class="flex flex-wrap gap-2 mt-6">
         {% if business.trustpilot_url %}
         <a href="{{ business.trustpilot_url }}" target="_blank" class="px-3 py-1 bg-green-100 text-green-700 rounded hover:bg-green-200">TrustPilot ↗</a>
         {% endif %}
         {% if business.bbb_url %}
         <a href="{{ business.bbb_url }}" target="_blank" class="px-3 py-1 bg-blue-100 text-blue-700 rounded hover:bg-blue-200">BBB ↗</a>
+        {% endif %}
+        {% if business.yelp_url %}
+        <a href="{{ business.yelp_url }}" target="_blank" class="px-3 py-1 bg-red-100 text-red-700 rounded hover:bg-red-200">Yelp ↗</a>
+        {% endif %}
+        {% if business.google_place_id %}
+        <span class="px-3 py-1 bg-yellow-100 text-yellow-700 rounded">Google (API)</span>
+        {% endif %}
+        {% if business.yelp_business_id %}
+        <span class="px-3 py-1 bg-red-100 text-red-700 rounded">Yelp (API)</span>
         {% endif %}
     </div>
 </div>
@@ -157,7 +166,7 @@
             </button>
         </div>
         <form id="editForm" onsubmit="submitEdit(event)">
-            <div class="space-y-4">
+            <div class="space-y-4 max-h-96 overflow-y-auto pr-2">
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-1">Business Name *</label>
                     <input type="text" id="editName" required class="w-full border rounded px-3 py-2 focus:ring-2 focus:ring-indigo-500">
@@ -166,6 +175,7 @@
                     <label class="block text-sm font-medium text-gray-700 mb-1">Address</label>
                     <input type="text" id="editAddress" class="w-full border rounded px-3 py-2 focus:ring-2 focus:ring-indigo-500">
                 </div>
+                <p class="text-sm font-medium text-gray-600 pt-2 border-t">Web Scraping Sources</p>
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-1">TrustPilot URL</label>
                     <input type="url" id="editTrustpilot" class="w-full border rounded px-3 py-2 focus:ring-2 focus:ring-indigo-500">
@@ -174,12 +184,36 @@
                     <label class="block text-sm font-medium text-gray-700 mb-1">BBB URL</label>
                     <input type="url" id="editBbb" class="w-full border rounded px-3 py-2 focus:ring-2 focus:ring-indigo-500">
                 </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Yelp URL</label>
+                    <input type="url" id="editYelp" class="w-full border rounded px-3 py-2 focus:ring-2 focus:ring-indigo-500">
+                </div>
+                <p class="text-sm font-medium text-gray-600 pt-2 border-t">API Sources (requires API keys in Settings)</p>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Google Place ID</label>
+                    <div class="flex gap-2">
+                        <input type="text" id="editGooglePlaceId" class="flex-1 border rounded px-3 py-2 focus:ring-2 focus:ring-indigo-500" placeholder="e.g., ChIJN1t_tDeuEmsRUsoyG83frY4">
+                        <button type="button" onclick="searchGooglePlaces()" class="px-3 py-2 bg-gray-100 text-gray-700 rounded hover:bg-gray-200 text-sm">Search</button>
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Yelp Business ID</label>
+                    <div class="flex gap-2">
+                        <input type="text" id="editYelpBusinessId" class="flex-1 border rounded px-3 py-2 focus:ring-2 focus:ring-indigo-500" placeholder="e.g., gary-danko-san-francisco">
+                        <button type="button" onclick="searchYelpBusiness()" class="px-3 py-2 bg-gray-100 text-gray-700 rounded hover:bg-gray-200 text-sm">Search</button>
+                    </div>
+                </div>
             </div>
-            <div class="flex justify-end gap-3 mt-6">
+            <div class="flex justify-end gap-3 mt-6 pt-4 border-t">
                 <button type="button" onclick="closeEditModal()" class="px-4 py-2 border rounded text-gray-700 hover:bg-gray-50">Cancel</button>
                 <button type="submit" id="editSubmitBtn" class="px-4 py-2 bg-indigo-600 text-white rounded hover:bg-indigo-700">Save Changes</button>
             </div>
         </form>
+        <!-- Search Results Panel -->
+        <div id="searchResultsPanel" class="hidden mt-4 border-t pt-4">
+            <h3 id="searchResultsTitle" class="font-medium text-gray-800 mb-2">Search Results</h3>
+            <div id="searchResultsList" class="max-h-48 overflow-y-auto space-y-2"></div>
+        </div>
     </div>
 </div>
 
@@ -275,7 +309,11 @@ async function openEditModal() {
         document.getElementById('editAddress').value = data.business.address || '';
         document.getElementById('editTrustpilot').value = data.business.trustpilot_url || '';
         document.getElementById('editBbb').value = data.business.bbb_url || '';
+        document.getElementById('editYelp').value = data.business.yelp_url || '';
+        document.getElementById('editGooglePlaceId').value = data.business.google_place_id || '';
+        document.getElementById('editYelpBusinessId').value = data.business.yelp_business_id || '';
     }
+    document.getElementById('searchResultsPanel').classList.add('hidden');
     document.getElementById('editModal').classList.remove('hidden');
     document.getElementById('editModal').classList.add('flex');
 }
@@ -300,6 +338,9 @@ async function submitEdit(event) {
                 address: document.getElementById('editAddress').value || null,
                 trustpilot_url: document.getElementById('editTrustpilot').value || null,
                 bbb_url: document.getElementById('editBbb').value || null,
+                yelp_url: document.getElementById('editYelp').value || null,
+                google_place_id: document.getElementById('editGooglePlaceId').value || null,
+                yelp_business_id: document.getElementById('editYelpBusinessId').value || null,
             })
         });
         const result = await response.json();
@@ -315,6 +356,96 @@ async function submitEdit(event) {
         btn.disabled = false;
         btn.textContent = 'Save Changes';
     }
+}
+
+// API Search Functions
+async function searchGooglePlaces() {
+    const name = document.getElementById('editName').value;
+    const address = document.getElementById('editAddress').value;
+    if (!name) {
+        alert('Enter a business name first');
+        return;
+    }
+
+    document.getElementById('searchResultsTitle').textContent = 'Google Places Results';
+    document.getElementById('searchResultsList').innerHTML = '<p class="text-gray-500">Searching...</p>';
+    document.getElementById('searchResultsPanel').classList.remove('hidden');
+
+    try {
+        const response = await fetch('/api/search-google-places', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({ query: name, location: address })
+        });
+        const data = await response.json();
+
+        if (data.success && data.results.length > 0) {
+            document.getElementById('searchResultsList').innerHTML = data.results.map(r => `
+                <div class="p-2 border rounded hover:bg-gray-50 cursor-pointer" onclick="selectGooglePlace('${r.place_id}')">
+                    <div class="font-medium">${escapeHtml(r.name)}</div>
+                    <div class="text-sm text-gray-500">${escapeHtml(r.address || '')}</div>
+                    ${r.rating ? `<div class="text-sm text-yellow-600">${r.rating}★ (${r.review_count} reviews)</div>` : ''}
+                </div>
+            `).join('');
+        } else {
+            document.getElementById('searchResultsList').innerHTML = `<p class="text-gray-500">${data.error || 'No results found'}</p>`;
+        }
+    } catch (e) {
+        document.getElementById('searchResultsList').innerHTML = '<p class="text-red-500">Search failed</p>';
+    }
+}
+
+async function searchYelpBusiness() {
+    const name = document.getElementById('editName').value;
+    const address = document.getElementById('editAddress').value;
+    if (!name) {
+        alert('Enter a business name first');
+        return;
+    }
+
+    document.getElementById('searchResultsTitle').textContent = 'Yelp Results';
+    document.getElementById('searchResultsList').innerHTML = '<p class="text-gray-500">Searching...</p>';
+    document.getElementById('searchResultsPanel').classList.remove('hidden');
+
+    try {
+        const response = await fetch('/api/search-yelp', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({ query: name, location: address || 'United States' })
+        });
+        const data = await response.json();
+
+        if (data.success && data.results.length > 0) {
+            document.getElementById('searchResultsList').innerHTML = data.results.map(r => `
+                <div class="p-2 border rounded hover:bg-gray-50 cursor-pointer" onclick="selectYelpBusiness('${r.business_id}')">
+                    <div class="font-medium">${escapeHtml(r.name)}</div>
+                    <div class="text-sm text-gray-500">${escapeHtml(r.address || '')}</div>
+                    ${r.rating ? `<div class="text-sm text-yellow-600">${r.rating}★ (${r.review_count} reviews)</div>` : ''}
+                </div>
+            `).join('');
+        } else {
+            document.getElementById('searchResultsList').innerHTML = `<p class="text-gray-500">${data.error || 'No results found'}</p>`;
+        }
+    } catch (e) {
+        document.getElementById('searchResultsList').innerHTML = '<p class="text-red-500">Search failed</p>';
+    }
+}
+
+function selectGooglePlace(placeId) {
+    document.getElementById('editGooglePlaceId').value = placeId;
+    document.getElementById('searchResultsPanel').classList.add('hidden');
+}
+
+function selectYelpBusiness(businessId) {
+    document.getElementById('editYelpBusinessId').value = businessId;
+    document.getElementById('searchResultsPanel').classList.add('hidden');
+}
+
+function escapeHtml(text) {
+    if (!text) return '';
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
 }
 
 // Delete Modal

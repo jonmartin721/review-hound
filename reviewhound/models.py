@@ -21,6 +21,9 @@ class Business(Base):
     trustpilot_url = Column(String(500))
     bbb_url = Column(String(500))
     yelp_url = Column(String(500))
+    # API-based platform IDs
+    google_place_id = Column(String(100))
+    yelp_business_id = Column(String(100))
     created_at = Column(DateTime, default=utcnow)
     updated_at = Column(DateTime, default=utcnow, onupdate=utcnow)
 
@@ -76,3 +79,21 @@ class AlertConfig(Base):
     enabled = Column(Boolean, default=True)
 
     business = relationship("Business", back_populates="alert_configs")
+
+
+class APIConfig(Base):
+    __tablename__ = "api_configs"
+
+    id = Column(Integer, primary_key=True)
+    provider = Column(String(50), unique=True, nullable=False)  # 'google_places', 'yelp_fusion'
+    api_key = Column(String(500), nullable=False)
+    enabled = Column(Boolean, default=True)
+    created_at = Column(DateTime, default=utcnow)
+    updated_at = Column(DateTime, default=utcnow, onupdate=utcnow)
+
+    @staticmethod
+    def mask_key(key: str) -> str:
+        """Return masked version of API key for display."""
+        if not key or len(key) < 8:
+            return "****"
+        return f"{key[:4]}****{key[-4:]}"
