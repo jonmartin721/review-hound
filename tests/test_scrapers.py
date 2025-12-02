@@ -105,6 +105,49 @@ class TestTrustPilotScraper:
         scraper = TrustPilotScraper()
         assert scraper.source == "trustpilot"
 
+    @responses.activate
+    def test_scrape_json_ld_format(self):
+        """Test parsing reviews from JSON-LD structured data."""
+        html = load_fixture("trustpilot_jsonld.html")
+        responses.add(
+            responses.GET,
+            "https://www.trustpilot.com/review/example.com",
+            body=html,
+            status=200,
+        )
+        responses.add(
+            responses.GET,
+            "https://www.trustpilot.com/review/example.com?page=2",
+            body="<html><body></body></html>",
+            status=200,
+        )
+        responses.add(
+            responses.GET,
+            "https://www.trustpilot.com/review/example.com?page=3",
+            body="<html><body></body></html>",
+            status=200,
+        )
+
+        with patch.object(TrustPilotScraper, "rate_limit"):
+            scraper = TrustPilotScraper()
+            reviews = scraper.scrape("https://www.trustpilot.com/review/example.com")
+
+        assert len(reviews) == 2
+
+        # First review uses standard schema.org format
+        assert reviews[0]["external_id"] == "abc123def456"
+        assert reviews[0]["author_name"] == "John Reviewer"
+        assert reviews[0]["rating"] == 5.0
+        assert reviews[0]["text"] == "Excellent product and service!"
+        assert reviews[0]["review_date"] == date(2024, 12, 15)
+
+        # Second review uses TrustPilot-specific fields
+        assert reviews[1]["external_id"] == "xyz789uvw012"
+        assert reviews[1]["author_name"] == "Jane Customer"
+        assert reviews[1]["rating"] == 3.0
+        assert "Okay experience" in reviews[1]["text"]
+        assert reviews[1]["review_date"] == date(2024, 11, 20)
+
 
 class TestBBBScraper:
     @responses.activate
