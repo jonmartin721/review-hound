@@ -18,17 +18,34 @@ class BBBScraper(BaseScraper):
     def scrape(self, url: str, include_complaints: bool = False) -> list[dict]:
         reviews = []
 
+        # Normalize the URL to get the reviews page
+        reviews_url = self._normalize_url(url)
+
         try:
-            soup = self.fetch(url)
+            soup = self.fetch(reviews_url)
             reviews.extend(self._parse_reviews(soup))
 
             if include_complaints:
                 reviews.extend(self._parse_complaints(soup))
 
         except requests.RequestException as e:
-            logger.warning(f"BBB scrape failed for {url}: {e}")
+            logger.warning(f"BBB scrape failed for {reviews_url}: {e}")
 
         return reviews
+
+    def _normalize_url(self, url: str) -> str:
+        """Normalize BBB URL to point to the customer reviews page."""
+        # Remove query parameters
+        url = url.split("?")[0].rstrip("/")
+
+        # Remove /addressId/... suffix if present
+        url = re.sub(r"/addressId/\d+$", "", url)
+
+        # Remove /customer-reviews if present (we'll add it back)
+        url = re.sub(r"/customer-reviews$", "", url)
+
+        # Add /customer-reviews to get the reviews page
+        return url + "/customer-reviews"
 
     def _parse_reviews(self, soup) -> list[dict]:
         # Try JSON-LD first (modern format)
@@ -36,12 +53,17 @@ class BBBScraper(BaseScraper):
         if reviews:
             return reviews
 
-        # Fall back to HTML parsing
+        # Try current BBB HTML structure (li.card.bpr-review)
+        reviews = self._parse_bpr_reviews(soup)
+        if reviews:
+            return reviews
+
+        # Fall back to legacy HTML parsing
         reviews = []
         review_items = soup.find_all("div", class_="review-item")
 
         if not review_items:
-            logger.debug("BBB: No review-item elements found, page may use different structure")
+            logger.debug("BBB: No review elements found, page may use different structure")
 
         for item in review_items:
             try:
@@ -52,6 +74,81 @@ class BBBScraper(BaseScraper):
                 continue
 
         return reviews
+
+    def _parse_bpr_reviews(self, soup) -> list[dict]:
+        """Parse reviews from current BBB HTML structure."""
+        reviews = []
+
+        # Find li elements with both 'card' and 'bpr-review' classes
+        for elem in soup.find_all("li"):
+            classes = elem.get("class", [])
+            if "card" in classes and "bpr-review" in classes:
+                try:
+                    review = self._parse_bpr_review(elem)
+                    if review:
+                        reviews.append(review)
+                except (AttributeError, ValueError):
+                    continue
+
+        return reviews
+
+    def _parse_bpr_review(self, item) -> dict | None:
+        """Parse a single review from BBB's bpr-review card."""
+        # ID from element id attribute (e.g., "1296_7039385_834877")
+        review_id = item.get("id")
+        if not review_id:
+            return None
+
+        # Author name from h3.bpr-review-title span
+        author_name = "Anonymous"
+        title_elem = item.find("h3", class_="bpr-review-title")
+        if title_elem:
+            # The author name is in the last span (after visually-hidden "Review from")
+            spans = title_elem.find_all("span")
+            for span in spans:
+                classes = span.get("class", [])
+                if "visually-hidden" not in classes:
+                    name = span.get_text(strip=True)
+                    if name:
+                        # Remove any "Review from" prefix if present
+                        name = name.replace("Review from", "").strip()
+                        if name:
+                            author_name = name
+                        break
+
+        # Date from p containing "Date:"
+        review_date = None
+        for p in item.find_all("p"):
+            text = p.get_text(strip=True)
+            if text.startswith("Date:"):
+                date_str = text.replace("Date:", "").strip()
+                review_date = self._parse_date(date_str)
+                break
+
+        # Rating from filled stars (data-filled attribute)
+        rating = None
+        star_container = item.find("div", class_="star-rating")
+        if star_container:
+            filled_stars = star_container.find_all("svg", attrs={"data-filled": True})
+            rating = float(len(filled_stars)) if filled_stars else None
+
+        # Review text - in a classless div element
+        text = ""
+        for div in item.find_all("div"):
+            # Look for divs without a class attribute (or empty class)
+            if not div.get("class"):
+                div_text = div.get_text(strip=True)
+                if div_text and len(div_text) > 10:  # Skip tiny fragments
+                    text = div_text
+                    break
+
+        return {
+            "external_id": review_id,
+            "author_name": author_name,
+            "rating": rating,
+            "text": text,
+            "review_date": review_date,
+        }
 
     def _parse_json_ld_reviews(self, soup) -> list[dict]:
         """Parse reviews from JSON-LD structured data."""
