@@ -153,9 +153,10 @@ class TestBBBScraper:
     @responses.activate
     def test_scrape_extracts_reviews(self):
         html = load_fixture("bbb_page1.html")
+        # BBB scraper normalizes URLs to /customer-reviews
         responses.add(
             responses.GET,
-            "https://www.bbb.org/us/ca/los-angeles/profile/pizza/test-company-1234",
+            "https://www.bbb.org/us/ca/los-angeles/profile/pizza/test-company-1234/customer-reviews",
             body=html,
             status=200,
         )
@@ -197,9 +198,10 @@ class TestBBBScraper:
     @responses.activate
     def test_scrape_includes_complaints(self):
         html = load_fixture("bbb_page1.html")
+        # BBB scraper normalizes URLs to /customer-reviews
         responses.add(
             responses.GET,
-            "https://www.bbb.org/us/ca/test/profile/test-1234",
+            "https://www.bbb.org/us/ca/test/profile/test-1234/customer-reviews",
             body=html,
             status=200,
         )

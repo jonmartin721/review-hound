@@ -31,7 +31,12 @@ class TrustPilotScraper(BaseScraper):
         return reviews
 
     def _parse_reviews(self, soup) -> list[dict]:
-        # Try JSON-LD first (TrustPilot's current format)
+        # Try Next.js __NEXT_DATA__ first (TrustPilot's current format)
+        reviews = self._parse_next_data_reviews(soup)
+        if reviews:
+            return reviews
+
+        # Try JSON-LD as fallback
         reviews = self._parse_json_ld_reviews(soup)
         if reviews:
             return reviews
@@ -49,6 +54,66 @@ class TrustPilotScraper(BaseScraper):
                 continue
 
         return reviews
+
+    def _parse_next_data_reviews(self, soup) -> list[dict]:
+        """Parse reviews from Next.js __NEXT_DATA__ script."""
+        script = soup.find("script", id="__NEXT_DATA__")
+        if not script:
+            return []
+
+        try:
+            data = json.loads(script.string)
+            review_list = data.get("props", {}).get("pageProps", {}).get("reviews", [])
+        except (json.JSONDecodeError, TypeError, AttributeError):
+            return []
+
+        reviews = []
+        for item in review_list:
+            review = self._parse_next_data_review(item)
+            if review:
+                reviews.append(review)
+
+        return reviews
+
+    def _parse_next_data_review(self, data: dict) -> dict | None:
+        """Parse a single review from Next.js data."""
+        review_id = data.get("id")
+        if not review_id:
+            return None
+
+        # Author name from consumer object
+        author_name = "Anonymous"
+        consumer = data.get("consumer", {})
+        if isinstance(consumer, dict):
+            author_name = consumer.get("displayName") or "Anonymous"
+
+        # Rating (integer 1-5)
+        rating = data.get("rating")
+        if rating is not None:
+            rating = float(rating)
+
+        # Text - combine title and text if both present
+        title = data.get("title", "")
+        text = data.get("text", "")
+        if title and text:
+            text = f"{title}\n\n{text}"
+        elif title:
+            text = title
+
+        # Date from dates object
+        review_date = None
+        dates = data.get("dates", {})
+        date_str = dates.get("publishedDate")
+        if date_str:
+            review_date = self._parse_iso_date(date_str)
+
+        return {
+            "external_id": str(review_id),
+            "author_name": author_name,
+            "rating": rating,
+            "text": text,
+            "review_date": review_date,
+        }
 
     def _parse_json_ld_reviews(self, soup) -> list[dict]:
         """Parse reviews from JSON-LD structured data."""
