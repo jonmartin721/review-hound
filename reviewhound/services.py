@@ -3,11 +3,24 @@
 import logging
 from datetime import datetime, timezone
 
-from reviewhound.models import Review, ScrapeLog, Business
+from reviewhound.config import Config
+from reviewhound.models import Review, ScrapeLog, Business, SentimentConfig
 from reviewhound.analysis import analyze_review
 from reviewhound.alerts import check_and_send_alerts
 
 logger = logging.getLogger(__name__)
+
+
+def get_sentiment_weights(session) -> tuple[float, float, float]:
+    """Get sentiment weights from database or defaults.
+
+    Returns:
+        Tuple of (rating_weight, text_weight, threshold)
+    """
+    config = session.query(SentimentConfig).first()
+    if config:
+        return config.rating_weight, config.text_weight, config.threshold
+    return Config.SENTIMENT_RATING_WEIGHT, Config.SENTIMENT_TEXT_WEIGHT, Config.SENTIMENT_THRESHOLD
 
 
 def save_scraped_reviews(
@@ -39,6 +52,7 @@ def save_scraped_reviews(
     session.flush()
 
     new_count = 0
+    rating_weight, text_weight, threshold = get_sentiment_weights(session)
 
     for review_data in reviews_data:
         existing = session.query(Review).filter(
@@ -49,14 +63,21 @@ def save_scraped_reviews(
         if existing:
             continue
 
-        score, label = analyze_review(review_data.get("text", ""))
+        rating = review_data.get("rating")
+        score, label = analyze_review(
+            review_data.get("text", ""),
+            rating,
+            rating_weight=rating_weight,
+            text_weight=text_weight,
+            threshold=threshold,
+        )
 
         review = Review(
             business_id=business.id,
             source=source,
             external_id=review_data["external_id"],
             author_name=review_data.get("author_name"),
-            rating=review_data.get("rating"),
+            rating=rating,
             text=review_data.get("text"),
             review_date=review_data.get("review_date"),
             sentiment_score=score,
@@ -109,6 +130,7 @@ def run_scraper_for_business(
     try:
         reviews_data = scraper.scrape(url)
         new_count = 0
+        rating_weight, text_weight, threshold = get_sentiment_weights(session)
 
         for review_data in reviews_data:
             existing = session.query(Review).filter(
@@ -119,14 +141,21 @@ def run_scraper_for_business(
             if existing:
                 continue
 
-            score, label = analyze_review(review_data.get("text", ""))
+            rating = review_data.get("rating")
+            score, label = analyze_review(
+                review_data.get("text", ""),
+                rating,
+                rating_weight=rating_weight,
+                text_weight=text_weight,
+                threshold=threshold,
+            )
 
             review = Review(
                 business_id=business.id,
                 source=source,
                 external_id=review_data["external_id"],
                 author_name=review_data.get("author_name"),
-                rating=review_data.get("rating"),
+                rating=rating,
                 text=review_data.get("text"),
                 review_date=review_data.get("review_date"),
                 sentiment_score=score,

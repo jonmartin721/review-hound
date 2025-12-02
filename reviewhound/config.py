@@ -38,6 +38,11 @@ class Config:
     # BBB Complaints
     COMPLAINT_DEFAULT_RATING = 1.0
 
+    # Sentiment Analysis Defaults
+    SENTIMENT_RATING_WEIGHT = 0.7  # Weight for star rating (0.0-1.0)
+    SENTIMENT_TEXT_WEIGHT = 0.3   # Weight for text analysis (0.0-1.0)
+    SENTIMENT_THRESHOLD = 0.1     # Threshold for positive/negative classification
+
     @classmethod
     def get_database_url(cls) -> str:
         db_path = cls.DATABASE_PATH
