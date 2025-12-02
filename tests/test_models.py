@@ -2,7 +2,7 @@ from datetime import date
 import pytest
 from sqlalchemy.exc import IntegrityError
 
-from reviewhound.models import Business, Review, ScrapeLog, AlertConfig, utcnow
+from reviewhound.models import Business, Review, ScrapeLog, AlertConfig, APIConfig, utcnow
 
 
 class TestBusiness:
@@ -214,3 +214,53 @@ class TestAlertConfig:
 
         assert alert.negative_threshold == 2.5
         assert alert.enabled is False
+
+
+class TestAPIConfig:
+    def test_create_api_config(self, db_session):
+        config = APIConfig(
+            provider="google_places",
+            api_key="test-api-key-12345",
+            enabled=True,
+        )
+        db_session.add(config)
+        db_session.flush()
+
+        assert config.id is not None
+        assert config.provider == "google_places"
+        assert config.api_key == "test-api-key-12345"
+        assert config.enabled is True
+
+    def test_api_config_unique_provider(self, db_session):
+        config1 = APIConfig(provider="yelp_fusion", api_key="key1")
+        db_session.add(config1)
+        db_session.flush()
+
+        config2 = APIConfig(provider="yelp_fusion", api_key="key2")
+        db_session.add(config2)
+
+        with pytest.raises(IntegrityError):
+            db_session.flush()
+
+    def test_mask_key_short(self):
+        assert APIConfig.mask_key("abc") == "****"
+        assert APIConfig.mask_key("") == "****"
+        assert APIConfig.mask_key(None) == "****"
+
+    def test_mask_key_normal(self):
+        assert APIConfig.mask_key("AIzaSyC12345678901234567890abcdef") == "AIza****cdef"
+        assert APIConfig.mask_key("12345678") == "1234****5678"
+
+
+class TestBusinessAPIFields:
+    def test_business_with_api_ids(self, db_session):
+        business = Business(
+            name="Test Business",
+            google_place_id="ChIJN1t_tDeuEmsRUsoyG83frY4",
+            yelp_business_id="gary-danko-san-francisco",
+        )
+        db_session.add(business)
+        db_session.flush()
+
+        assert business.google_place_id == "ChIJN1t_tDeuEmsRUsoyG83frY4"
+        assert business.yelp_business_id == "gary-danko-san-francisco"
