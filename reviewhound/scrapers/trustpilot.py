@@ -1,3 +1,5 @@
+import json
+import logging
 import re
 from datetime import datetime, date
 from urllib.parse import quote_plus
@@ -6,6 +8,8 @@ import requests
 
 from reviewhound.scrapers.base import BaseScraper
 from reviewhound.config import Config
+
+logger = logging.getLogger(__name__)
 
 
 class TrustPilotScraper(BaseScraper):
@@ -27,6 +31,12 @@ class TrustPilotScraper(BaseScraper):
         return reviews
 
     def _parse_reviews(self, soup) -> list[dict]:
+        # Try JSON-LD first (TrustPilot's current format)
+        reviews = self._parse_json_ld_reviews(soup)
+        if reviews:
+            return reviews
+
+        # Fall back to HTML parsing for backwards compatibility with tests
         reviews = []
         articles = soup.find_all("article", attrs={"data-review-id": True})
 
@@ -39,6 +49,77 @@ class TrustPilotScraper(BaseScraper):
                 continue
 
         return reviews
+
+    def _parse_json_ld_reviews(self, soup) -> list[dict]:
+        """Parse reviews from JSON-LD structured data."""
+        reviews = []
+
+        for script in soup.find_all("script", type="application/ld+json"):
+            try:
+                data = json.loads(script.string)
+            except (json.JSONDecodeError, TypeError):
+                continue
+
+            # Handle both single objects and arrays
+            items = data if isinstance(data, list) else [data]
+
+            for item in items:
+                # Look for Review type or review arrays
+                if item.get("@type") == "Review":
+                    review = self._parse_json_ld_review(item)
+                    if review:
+                        reviews.append(review)
+                elif "review" in item:
+                    for review_data in item.get("review", []):
+                        review = self._parse_json_ld_review(review_data)
+                        if review:
+                            reviews.append(review)
+
+        return reviews
+
+    def _parse_json_ld_review(self, data: dict) -> dict | None:
+        """Parse a single review from JSON-LD data."""
+        review_id = data.get("id")
+        if not review_id:
+            return None
+
+        # Author name from nested author object or consumer object
+        author_name = "Anonymous"
+        author = data.get("author") or data.get("consumer")
+        if isinstance(author, dict):
+            author_name = author.get("displayName") or author.get("name") or "Anonymous"
+        elif isinstance(author, str):
+            author_name = author
+
+        # Rating
+        rating = None
+        rating_value = data.get("rating") or data.get("reviewRating")
+        if isinstance(rating_value, dict):
+            rating = float(rating_value.get("ratingValue", 0))
+        elif rating_value is not None:
+            rating = float(rating_value)
+
+        # Text - combine title and text if both present
+        title = data.get("title", "")
+        text = data.get("text", "") or data.get("reviewBody", "")
+        if title and text:
+            text = f"{title}\n\n{text}"
+        elif title:
+            text = title
+
+        # Date - try multiple fields
+        review_date = None
+        date_str = data.get("publishedDate") or data.get("datePublished")
+        if date_str:
+            review_date = self._parse_iso_date(date_str)
+
+        return {
+            "external_id": str(review_id),
+            "author_name": author_name,
+            "rating": rating,
+            "text": text,
+            "review_date": review_date,
+        }
 
     def _parse_review(self, article) -> dict | None:
         review_id = article.get("data-review-id")
@@ -84,6 +165,16 @@ class TrustPilotScraper(BaseScraper):
             except ValueError:
                 pass
         return None
+
+    def _parse_iso_date(self, date_str: str) -> date | None:
+        """Parse ISO 8601 date string."""
+        try:
+            # Handle formats like "2025-12-02T02:01:43.000Z"
+            if "T" in date_str:
+                return datetime.fromisoformat(date_str.replace("Z", "+00:00")).date()
+            return datetime.strptime(date_str, "%Y-%m-%d").date()
+        except ValueError:
+            return None
 
     def search(self, query: str, location: str | None = None) -> list[dict]:
         """Search TrustPilot for businesses matching the query."""

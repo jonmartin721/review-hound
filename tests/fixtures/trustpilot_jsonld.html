@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html>
+<head><title>Test Company Reviews</title></head>
+<body>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Organization",
+  "name": "Test Company",
+  "review": [
+    {
+      "@type": "Review",
+      "id": "abc123def456",
+      "author": {
+        "@type": "Person",
+        "name": "John Reviewer"
+      },
+      "reviewRating": {
+        "@type": "Rating",
+        "ratingValue": 5
+      },
+      "reviewBody": "Excellent product and service!",
+      "datePublished": "2024-12-15T10:30:00.000Z"
+    },
+    {
+      "@type": "Review",
+      "id": "xyz789uvw012",
+      "consumer": {
+        "displayName": "Jane Customer"
+      },
+      "rating": 3,
+      "title": "Okay experience",
+      "text": "Nothing special but gets the job done.",
+      "publishedDate": "2024-11-20T14:45:00.000Z"
+    }
+  ]
+}
+</script>
+<div>Page content here</div>
+</body>
+</html>

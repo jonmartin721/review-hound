@@ -1,3 +1,4 @@
+import json
 import logging
 import re
 from datetime import datetime, date
@@ -30,8 +31,17 @@ class BBBScraper(BaseScraper):
         return reviews
 
     def _parse_reviews(self, soup) -> list[dict]:
+        # Try JSON-LD first (modern format)
+        reviews = self._parse_json_ld_reviews(soup)
+        if reviews:
+            return reviews
+
+        # Fall back to HTML parsing
         reviews = []
         review_items = soup.find_all("div", class_="review-item")
+
+        if not review_items:
+            logger.debug("BBB: No review-item elements found, page may use different structure")
 
         for item in review_items:
             try:
@@ -42,6 +52,80 @@ class BBBScraper(BaseScraper):
                 continue
 
         return reviews
+
+    def _parse_json_ld_reviews(self, soup) -> list[dict]:
+        """Parse reviews from JSON-LD structured data."""
+        reviews = []
+
+        for script in soup.find_all("script", type="application/ld+json"):
+            try:
+                data = json.loads(script.string)
+            except (json.JSONDecodeError, TypeError):
+                continue
+
+            items = data if isinstance(data, list) else [data]
+
+            for item in items:
+                if item.get("@type") == "Review":
+                    review = self._parse_json_ld_review(item)
+                    if review:
+                        reviews.append(review)
+                elif "review" in item:
+                    for review_data in item.get("review", []):
+                        review = self._parse_json_ld_review(review_data)
+                        if review:
+                            reviews.append(review)
+
+        return reviews
+
+    def _parse_json_ld_review(self, data: dict) -> dict | None:
+        """Parse a single review from JSON-LD data."""
+        review_id = data.get("id") or data.get("@id")
+        if not review_id:
+            # Generate ID from content hash if not provided
+            text = data.get("reviewBody") or data.get("text") or ""
+            if text:
+                review_id = f"bbb_{hash(text) & 0xFFFFFFFF:08x}"
+            else:
+                return None
+
+        author_name = "Anonymous"
+        author = data.get("author")
+        if isinstance(author, dict):
+            author_name = author.get("name") or "Anonymous"
+        elif isinstance(author, str):
+            author_name = author
+
+        rating = None
+        rating_value = data.get("reviewRating")
+        if isinstance(rating_value, dict):
+            rating = float(rating_value.get("ratingValue", 0))
+        elif rating_value is not None:
+            rating = float(rating_value)
+
+        text = data.get("reviewBody") or data.get("text") or ""
+
+        review_date = None
+        date_str = data.get("datePublished")
+        if date_str:
+            review_date = self._parse_iso_date(date_str)
+
+        return {
+            "external_id": str(review_id),
+            "author_name": author_name,
+            "rating": rating,
+            "text": text,
+            "review_date": review_date,
+        }
+
+    def _parse_iso_date(self, date_str: str) -> date | None:
+        """Parse ISO 8601 date string."""
+        try:
+            if "T" in date_str:
+                return datetime.fromisoformat(date_str.replace("Z", "+00:00")).date()
+            return datetime.strptime(date_str, "%Y-%m-%d").date()
+        except ValueError:
+            return None
 
     def _parse_review(self, item) -> dict | None:
         review_id = item.get("data-review-id")
