@@ -42,6 +42,7 @@ class Review(Base):
     business_id = Column(Integer, ForeignKey("businesses.id"), nullable=False)
     source = Column(String(50), nullable=False)
     external_id = Column(String(255), nullable=False)
+    review_url = Column(String(500))
     author_name = Column(String(255))
     rating = Column(Float)
     text = Column(Text)

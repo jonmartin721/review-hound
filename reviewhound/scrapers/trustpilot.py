@@ -109,6 +109,7 @@ class TrustPilotScraper(BaseScraper):
 
         return {
             "external_id": str(review_id),
+            "review_url": f"https://www.trustpilot.com/reviews/{review_id}",
             "author_name": author_name,
             "rating": rating,
             "text": text,
@@ -180,6 +181,7 @@ class TrustPilotScraper(BaseScraper):
 
         return {
             "external_id": str(review_id),
+            "review_url": f"https://www.trustpilot.com/reviews/{review_id}",
             "author_name": author_name,
             "rating": rating,
             "text": text,
@@ -216,6 +218,7 @@ class TrustPilotScraper(BaseScraper):
 
         return {
             "external_id": review_id,
+            "review_url": f"https://www.trustpilot.com/reviews/{review_id}",
             "author_name": author_name,
             "rating": rating,
             "text": text,
