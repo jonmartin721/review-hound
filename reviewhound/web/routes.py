@@ -3,7 +3,7 @@ import csv
 import io
 import json
 
-from flask import Blueprint, render_template, request, jsonify, Response
+from flask import Blueprint, render_template, request, jsonify, Response, redirect, url_for
 
 from reviewhound.config import Config
 from reviewhound.database import get_session
@@ -22,6 +22,59 @@ def get_api_config(session, provider: str):
         APIConfig.enabled == True
     ).first()
     return config
+
+
+def get_scrape_health(session, business_id: int) -> dict:
+    """Calculate scrape health indicators for a business.
+
+    Returns dict with:
+        - has_issues: bool - True if there are any scrape problems
+        - issue_sources: list - Sources with problems
+        - issue_type: str - 'failed' or 'no_reviews' or None
+    """
+    # Get all scrape logs for this business, grouped by source
+    logs = session.query(ScrapeLog).filter(
+        ScrapeLog.business_id == business_id
+    ).order_by(ScrapeLog.started_at.desc()).all()
+
+    if not logs:
+        return {'has_issues': False, 'issue_sources': [], 'issue_type': None}
+
+    # Group logs by source
+    by_source = {}
+    for log in logs:
+        if log.source not in by_source:
+            by_source[log.source] = []
+        by_source[log.source].append(log)
+
+    issue_sources = []
+    issue_type = None
+
+    for source, source_logs in by_source.items():
+        # Check last 3 scrapes for this source
+        recent = source_logs[:3]
+
+        # Check for repeated failures (2+ failures in last 3 attempts)
+        recent_failures = sum(1 for log in recent if log.status == 'failed')
+        if recent_failures >= 2:
+            issue_sources.append(source)
+            issue_type = 'failed'
+            continue
+
+        # Check if source has NEVER returned reviews (all successful scrapes = 0)
+        successful = [log for log in source_logs if log.status == 'success']
+        if successful:
+            total_ever_found = sum(log.reviews_found or 0 for log in successful)
+            if total_ever_found == 0:
+                issue_sources.append(source)
+                if issue_type != 'failed':  # 'failed' takes priority
+                    issue_type = 'no_reviews'
+
+    return {
+        'has_issues': len(issue_sources) > 0,
+        'issue_sources': issue_sources,
+        'issue_type': issue_type
+    }
 
 
 def scrape_business_sources(session, business, send_alerts=False):
@@ -73,15 +126,25 @@ def scrape_business_sources(session, business, send_alerts=False):
 bp = Blueprint('main', __name__)
 
 
+@bp.route('/welcome')
+def welcome():
+    return render_template('welcome.html')
+
+
 @bp.route('/')
 def dashboard():
     with get_session() as session:
         businesses = session.query(Business).all()
 
+        # Redirect first-time users to welcome page
+        if not businesses:
+            return redirect(url_for('main.welcome'))
+
         business_stats = []
         for b in businesses:
             reviews = session.query(Review).filter(Review.business_id == b.id).all()
             stats = calculate_review_stats(reviews)
+            scrape_health = get_scrape_health(session, b.id)
 
             business_stats.append({
                 'business': b,
@@ -89,9 +152,25 @@ def dashboard():
                 'avg_rating': stats["avg_rating"],
                 'positive_pct': stats["positive_pct"],
                 'negative_pct': stats["negative_pct"],
+                'trend_direction': stats["trend_direction"],
+                'trend_delta': stats["trend_delta"],
+                'recent_count': stats["recent_count"],
+                'last_review_date': stats["last_review_date"],
+                'recent_negative_count': stats["recent_negative_count"],
+                'scrape_issues': scrape_health['has_issues'],
+                'scrape_issue_sources': scrape_health['issue_sources'],
+                'scrape_issue_type': scrape_health['issue_type'],
             })
 
-        return render_template('dashboard.html', businesses=business_stats)
+        # Check if API keys are configured
+        has_google_api = get_api_config(session, 'google_places') is not None
+        has_yelp_api = get_api_config(session, 'yelp_fusion') is not None
+
+        return render_template('dashboard.html',
+            businesses=business_stats,
+            has_google_api=has_google_api,
+            has_yelp_api=has_yelp_api
+        )
 
 
 @bp.route('/business/<int:business_id>')
@@ -128,13 +207,19 @@ def business_detail(business_id):
         chart_labels = sorted_months
         chart_data = [sum(monthly_ratings[m])/len(monthly_ratings[m]) for m in sorted_months]
 
+        # Check if API keys are configured
+        has_google_api = get_api_config(session, 'google_places') is not None
+        has_yelp_api = get_api_config(session, 'yelp_fusion') is not None
+
         return render_template('business.html',
             business=business,
             reviews=reviews,
             scrape_logs=scrape_logs,
             stats=stats,
             chart_labels=json.dumps(chart_labels),
-            chart_data=json.dumps(chart_data)
+            chart_data=json.dumps(chart_data),
+            has_google_api=has_google_api,
+            has_yelp_api=has_yelp_api
         )
 
 

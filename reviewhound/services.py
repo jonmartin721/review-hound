@@ -1,7 +1,7 @@
 """Shared business logic for Review Hound."""
 
 import logging
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta
 
 from reviewhound.config import Config
 from reviewhound.models import Review, ScrapeLog, Business, SentimentConfig
@@ -76,6 +76,7 @@ def save_scraped_reviews(
             business_id=business.id,
             source=source,
             external_id=review_data["external_id"],
+            review_url=review_data.get("review_url"),
             author_name=review_data.get("author_name"),
             rating=rating,
             text=review_data.get("text"),
@@ -154,6 +155,7 @@ def run_scraper_for_business(
                 business_id=business.id,
                 source=source,
                 external_id=review_data["external_id"],
+                review_url=review_data.get("review_url"),
                 author_name=review_data.get("author_name"),
                 rating=rating,
                 text=review_data.get("text"),
@@ -190,9 +192,15 @@ def calculate_review_stats(reviews: list[Review]) -> dict:
 
     Returns:
         Dict with keys: total, avg_rating, positive, negative, neutral,
-        positive_pct, negative_pct, neutral_pct, by_source
+        positive_pct, negative_pct, neutral_pct, by_source,
+        trend_direction, trend_delta, recent_count, last_review_date,
+        recent_negative_count
     """
     total = len(reviews)
+    now = datetime.now(timezone.utc)
+    seven_days_ago = now - timedelta(days=7)
+    thirty_days_ago = now - timedelta(days=30)
+    sixty_days_ago = now - timedelta(days=60)
 
     if total == 0:
         return {
@@ -205,6 +213,11 @@ def calculate_review_stats(reviews: list[Review]) -> dict:
             "negative_pct": 0.0,
             "neutral_pct": 0.0,
             "by_source": {},
+            "trend_direction": None,
+            "trend_delta": 0.0,
+            "recent_count": 0,
+            "last_review_date": None,
+            "recent_negative_count": 0,
         }
 
     rated_reviews = [r for r in reviews if r.rating is not None]
@@ -218,6 +231,42 @@ def calculate_review_stats(reviews: list[Review]) -> dict:
     for r in reviews:
         by_source[r.source] = by_source.get(r.source, 0) + 1
 
+    # Calculate trend: compare last 30 days vs previous 30 days
+    def get_review_date(r):
+        if r.review_date:
+            return datetime.combine(r.review_date, datetime.min.time(), tzinfo=timezone.utc)
+        return r.scraped_at
+
+    recent_rated = [r for r in rated_reviews if get_review_date(r) >= thirty_days_ago]
+    previous_rated = [r for r in rated_reviews
+                      if sixty_days_ago <= get_review_date(r) < thirty_days_ago]
+
+    trend_direction = None
+    trend_delta = 0.0
+    if recent_rated and previous_rated:
+        recent_avg = sum(r.rating for r in recent_rated) / len(recent_rated)
+        previous_avg = sum(r.rating for r in previous_rated) / len(previous_rated)
+        trend_delta = recent_avg - previous_avg
+        if trend_delta > 0.1:
+            trend_direction = "up"
+        elif trend_delta < -0.1:
+            trend_direction = "down"
+        else:
+            trend_direction = "stable"
+
+    # Recent activity: reviews in last 7 days
+    recent_reviews = [r for r in reviews if get_review_date(r) >= seven_days_ago]
+    recent_count = len(recent_reviews)
+
+    # Most recent review date
+    if reviews:
+        last_review_date = max(get_review_date(r) for r in reviews)
+    else:
+        last_review_date = None
+
+    # Negative reviews in last 7 days
+    recent_negative_count = len([r for r in recent_reviews if r.sentiment_label == "negative"])
+
     return {
         "total": total,
         "avg_rating": avg_rating,
@@ -228,4 +277,9 @@ def calculate_review_stats(reviews: list[Review]) -> dict:
         "negative_pct": (negative / total * 100) if total else 0.0,
         "neutral_pct": (neutral / total * 100) if total else 0.0,
         "by_source": by_source,
+        "trend_direction": trend_direction,
+        "trend_delta": trend_delta,
+        "recent_count": recent_count,
+        "last_review_date": last_review_date,
+        "recent_negative_count": recent_negative_count,
     }
