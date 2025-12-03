@@ -30,6 +30,7 @@ class YelpAPIScraper(BaseScraper):
         Returns:
             List of review dicts
         """
+        self._current_business_id = business_id  # Store for URL construction
         url = f"{self.BASE_URL}/businesses/{business_id}/reviews"
 
         try:
@@ -55,8 +56,17 @@ class YelpAPIScraper(BaseScraper):
             except ValueError:
                 pass
 
+        # Yelp API may include review URL, or construct one
+        review_url = data.get("url")
+        if not review_url:
+            business_id = getattr(self, '_current_business_id', None)
+            review_id = data.get("id")
+            if business_id and review_id:
+                review_url = f"https://www.yelp.com/biz/{business_id}?hrid={review_id}"
+
         return {
             "external_id": data.get("id", ""),
+            "review_url": review_url,
             "author_name": data.get("user", {}).get("name", "Anonymous"),
             "rating": float(data.get("rating", 0)) if data.get("rating") else None,
             "text": data.get("text", ""),

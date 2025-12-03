@@ -20,6 +20,7 @@ class BBBScraper(BaseScraper):
 
         # Normalize the URL to get the reviews page
         reviews_url = self._normalize_url(url)
+        self._current_reviews_url = reviews_url  # Store for URL construction
 
         try:
             soup = self.fetch(reviews_url)
@@ -142,8 +143,14 @@ class BBBScraper(BaseScraper):
                     text = div_text
                     break
 
+        # BBB reviews page with anchor to specific review
+        review_url = getattr(self, '_current_reviews_url', None)
+        if review_url and review_id:
+            review_url = f"{review_url}#{review_id}"
+
         return {
             "external_id": review_id,
+            "review_url": review_url,
             "author_name": author_name,
             "rating": rating,
             "text": text,
@@ -207,8 +214,14 @@ class BBBScraper(BaseScraper):
         if date_str:
             review_date = self._parse_iso_date(date_str)
 
+        # BBB reviews page with anchor to specific review
+        review_url = getattr(self, '_current_reviews_url', None)
+        if review_url and review_id:
+            review_url = f"{review_url}#{review_id}"
+
         return {
             "external_id": str(review_id),
+            "review_url": review_url,
             "author_name": author_name,
             "rating": rating,
             "text": text,
@@ -252,8 +265,14 @@ class BBBScraper(BaseScraper):
         if date_elem:
             review_date = self._parse_date(date_elem.get_text(strip=True))
 
+        # BBB reviews page with anchor to specific review
+        review_url = getattr(self, '_current_reviews_url', None)
+        if review_url and review_id:
+            review_url = f"{review_url}#{review_id}"
+
         return {
             "external_id": review_id,
+            "review_url": review_url,
             "author_name": author_name,
             "rating": rating,
             "text": text,
@@ -296,8 +315,14 @@ class BBBScraper(BaseScraper):
         if date_elem:
             complaint_date = self._parse_date(date_elem.get_text(strip=True))
 
+        # BBB reviews page with anchor to specific complaint
+        review_url = getattr(self, '_current_reviews_url', None)
+        if review_url and complaint_id:
+            review_url = f"{review_url}#{complaint_id}"
+
         return {
             "external_id": complaint_id,
+            "review_url": review_url,
             "author_name": complaint_type,
             "rating": Config.COMPLAINT_DEFAULT_RATING,
             "text": text,

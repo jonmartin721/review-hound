@@ -27,6 +27,7 @@ class GooglePlacesScraper(BaseScraper):
         Returns:
             List of review dicts
         """
+        self._current_place_id = place_id  # Store for URL construction
         url = f"{self.BASE_URL}/details/json"
         params = {
             "place_id": place_id,
@@ -60,8 +61,13 @@ class GooglePlacesScraper(BaseScraper):
             except (ValueError, OSError):
                 pass
 
+        # Google doesn't provide individual review URLs, link to reviews page
+        place_id = getattr(self, '_current_place_id', None)
+        review_url = f"https://search.google.com/local/reviews?placeid={place_id}" if place_id else None
+
         return {
             "external_id": f"google_{data.get('time', '')}_{hash(data.get('author_name', ''))}",
+            "review_url": review_url,
             "author_name": data.get("author_name", "Anonymous"),
             "rating": float(data.get("rating", 0)) if data.get("rating") else None,
             "text": data.get("text", ""),

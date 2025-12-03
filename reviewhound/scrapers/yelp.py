@@ -14,6 +14,7 @@ class YelpScraper(BaseScraper):
     def scrape(self, url: str) -> list[dict]:
         reviews = []
         base_url = url.split("?")[0]
+        self._current_base_url = base_url  # Store for URL construction
 
         for page in range(Config.MAX_PAGES_PER_SOURCE):
             page_url = base_url if page == 0 else f"{base_url}?start={page * 10}"
@@ -66,8 +67,13 @@ class YelpScraper(BaseScraper):
             date_text = date_elem.get_text(strip=True)
             review_date = self._parse_date(date_text)
 
+        # Yelp review URL with hrid parameter to highlight specific review
+        base_url = getattr(self, '_current_base_url', None)
+        review_url = f"{base_url}?hrid={review_id}" if base_url and review_id else None
+
         return {
             "external_id": review_id,
+            "review_url": review_url,
             "author_name": author_name,
             "rating": rating,
             "text": text,
