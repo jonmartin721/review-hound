@@ -25,7 +25,8 @@ class TrustPilotScraper(BaseScraper):
                 soup = self.fetch(page_url)
                 page_reviews = self._parse_reviews(soup)
                 reviews.extend(page_reviews)
-            except requests.RequestException:
+            except requests.RequestException as e:
+                logger.warning(f"TrustPilot scrape failed for {page_url}: {e}")
                 break
 
         return reviews
@@ -250,7 +251,8 @@ class TrustPilotScraper(BaseScraper):
 
         try:
             soup = self.fetch(search_url)
-        except requests.RequestException:
+        except requests.RequestException as e:
+            logger.warning(f"TrustPilot search failed for '{query}': {e}")
             return []
 
         results = []

@@ -2,29 +2,51 @@ from collections import defaultdict
 import csv
 import io
 import json
+import logging
+from urllib.parse import urlparse
 
 from flask import Blueprint, render_template, request, jsonify, Response, redirect, url_for
 
 from reviewhound.config import Config
 from reviewhound.database import get_session
 from reviewhound.models import Business, Review, ScrapeLog, AlertConfig, APIConfig, SentimentConfig
-from reviewhound.scrapers import (
-    TrustPilotScraper, BBBScraper, YelpScraper,
-    GooglePlacesScraper, YelpAPIScraper
-)
-from reviewhound.services import run_scraper_for_business, calculate_review_stats
+from reviewhound.scrapers import TrustPilotScraper, BBBScraper, GooglePlacesScraper, YelpAPIScraper
+from reviewhound.services import calculate_review_stats
+from reviewhound.common import get_api_config, scrape_business_sources
+
+logger = logging.getLogger(__name__)
+
+# Validation constants
+MAX_NAME_LENGTH = 200
+MAX_ADDRESS_LENGTH = 500
+MAX_URL_LENGTH = 2000
 
 
-def get_api_config(session, provider: str):
-    """Get API config for a provider if it exists and is enabled."""
-    config = session.query(APIConfig).filter(
-        APIConfig.provider == provider,
-        APIConfig.enabled == True
-    ).first()
-    return config
+def _validate_url(url: str | None, field_name: str) -> str | None:
+    """Validate URL format. Returns error message or None if valid."""
+    if not url:
+        return None
+    if len(url) > MAX_URL_LENGTH:
+        return f"{field_name} exceeds maximum length of {MAX_URL_LENGTH} characters"
+    try:
+        parsed = urlparse(url)
+        if not parsed.scheme or not parsed.netloc:
+            return f"{field_name} must be a valid URL with scheme (http/https)"
+    except Exception:
+        return f"{field_name} is not a valid URL"
+    return None
 
 
-def get_scrape_health(session, business_id: int) -> dict:
+def _validate_string(value: str | None, field_name: str, max_length: int) -> str | None:
+    """Validate string length. Returns error message or None if valid."""
+    if not value:
+        return None
+    if len(value) > max_length:
+        return f"{field_name} exceeds maximum length of {max_length} characters"
+    return None
+
+
+def _get_scrape_health(session, business_id: int) -> dict:
     """Calculate scrape health indicators for a business.
 
     Returns dict with:
@@ -77,52 +99,6 @@ def get_scrape_health(session, business_id: int) -> dict:
     }
 
 
-def scrape_business_sources(session, business, send_alerts=False):
-    """Run all configured scrapers for a business.
-
-    Returns:
-        tuple: (total_new_reviews, list_of_failed_sources)
-    """
-    scrapers = []
-
-    # Google Places API (no web scraping fallback)
-    google_config = get_api_config(session, 'google_places')
-    if google_config and business.google_place_id:
-        scrapers.append((
-            GooglePlacesScraper(google_config.api_key),
-            business.google_place_id
-        ))
-
-    # Yelp: prefer API, fall back to web scraping
-    yelp_config = get_api_config(session, 'yelp_fusion')
-    if yelp_config and business.yelp_business_id:
-        scrapers.append((
-            YelpAPIScraper(yelp_config.api_key),
-            business.yelp_business_id
-        ))
-    elif business.yelp_url:
-        scrapers.append((YelpScraper(), business.yelp_url))
-
-    # Web scraping only sources
-    if business.trustpilot_url:
-        scrapers.append((TrustPilotScraper(), business.trustpilot_url))
-    if business.bbb_url:
-        scrapers.append((BBBScraper(), business.bbb_url))
-
-    total_new = 0
-    failed_sources = []
-
-    for scraper, identifier in scrapers:
-        try:
-            log, new_count = run_scraper_for_business(
-                session, business, scraper, identifier, send_alerts=send_alerts
-            )
-            total_new += new_count
-        except Exception:
-            failed_sources.append(scraper.source)
-
-    return total_new, failed_sources
-
 bp = Blueprint('main', __name__)
 
 
@@ -144,7 +120,7 @@ def dashboard():
         for b in businesses:
             reviews = session.query(Review).filter(Review.business_id == b.id).all()
             stats = calculate_review_stats(reviews)
-            scrape_health = get_scrape_health(session, b.id)
+            scrape_health = _get_scrape_health(session, b.id)
 
             business_stats.append({
                 'business': b,
@@ -316,7 +292,8 @@ def api_search_sources():
     for source, scraper in scrapers:
         try:
             results[source] = scraper.search(query, location)
-        except Exception:
+        except Exception as e:
+            logger.error(f"Search failed for {source}: {e}")
             results[source] = []
 
     return jsonify({'success': True, 'results': results})
@@ -347,13 +324,35 @@ def api_create_business():
     if not data or not data.get('name'):
         return jsonify({'success': False, 'error': 'Name is required'}), 400
 
+    # Validate inputs
+    errors = []
+    if err := _validate_string(data['name'], 'name', MAX_NAME_LENGTH):
+        errors.append(err)
+    elif not data['name'].strip():
+        errors.append('name cannot be empty')
+    if data.get('address'):
+        if err := _validate_string(data['address'], 'address', MAX_ADDRESS_LENGTH):
+            errors.append(err)
+    if data.get('trustpilot_url'):
+        if err := _validate_url(data['trustpilot_url'], 'trustpilot_url'):
+            errors.append(err)
+    if data.get('bbb_url'):
+        if err := _validate_url(data['bbb_url'], 'bbb_url'):
+            errors.append(err)
+    if data.get('yelp_url'):
+        if err := _validate_url(data['yelp_url'], 'yelp_url'):
+            errors.append(err)
+
+    if errors:
+        return jsonify({'success': False, 'error': '; '.join(errors)}), 400
+
     with get_session() as session:
         business = Business(
-            name=data['name'],
-            address=data.get('address'),
-            trustpilot_url=data.get('trustpilot_url'),
-            bbb_url=data.get('bbb_url'),
-            yelp_url=data.get('yelp_url'),
+            name=data['name'].strip(),
+            address=data.get('address', '').strip() or None,
+            trustpilot_url=data.get('trustpilot_url') or None,
+            bbb_url=data.get('bbb_url') or None,
+            yelp_url=data.get('yelp_url') or None,
         )
         session.add(business)
         session.flush()
@@ -408,25 +407,48 @@ def api_update_business(business_id):
     if not data:
         return jsonify({'success': False, 'error': 'No data provided'}), 400
 
+    # Validate inputs
+    errors = []
+    if 'name' in data:
+        if err := _validate_string(data['name'], 'name', MAX_NAME_LENGTH):
+            errors.append(err)
+        elif not data['name'] or not data['name'].strip():
+            errors.append('name cannot be empty')
+    if 'address' in data:
+        if err := _validate_string(data['address'], 'address', MAX_ADDRESS_LENGTH):
+            errors.append(err)
+    if 'trustpilot_url' in data and data['trustpilot_url']:
+        if err := _validate_url(data['trustpilot_url'], 'trustpilot_url'):
+            errors.append(err)
+    if 'bbb_url' in data and data['bbb_url']:
+        if err := _validate_url(data['bbb_url'], 'bbb_url'):
+            errors.append(err)
+    if 'yelp_url' in data and data['yelp_url']:
+        if err := _validate_url(data['yelp_url'], 'yelp_url'):
+            errors.append(err)
+
+    if errors:
+        return jsonify({'success': False, 'error': '; '.join(errors)}), 400
+
     with get_session() as session:
         business = session.query(Business).get(business_id)
         if not business:
             return jsonify({'success': False, 'error': 'Business not found'}), 404
 
         if 'name' in data:
-            business.name = data['name']
+            business.name = data['name'].strip()
         if 'address' in data:
-            business.address = data['address']
+            business.address = data['address'].strip() if data['address'] else None
         if 'trustpilot_url' in data:
-            business.trustpilot_url = data['trustpilot_url']
+            business.trustpilot_url = data['trustpilot_url'] or None
         if 'bbb_url' in data:
-            business.bbb_url = data['bbb_url']
+            business.bbb_url = data['bbb_url'] or None
         if 'yelp_url' in data:
-            business.yelp_url = data['yelp_url']
+            business.yelp_url = data['yelp_url'] or None
         if 'google_place_id' in data:
-            business.google_place_id = data['google_place_id']
+            business.google_place_id = data['google_place_id'] or None
         if 'yelp_business_id' in data:
-            business.yelp_business_id = data['yelp_business_id']
+            business.yelp_business_id = data['yelp_business_id'] or None
 
         return jsonify({'success': True})
 
@@ -583,7 +605,7 @@ def export_reviews(business_id):
 
 # Settings Routes
 
-def get_sentiment_config(session):
+def __get_sentiment_config(session):
     """Get or create sentiment config with defaults."""
     config = session.query(SentimentConfig).first()
     if not config:
@@ -602,7 +624,7 @@ def settings():
     with get_session() as session:
         configs = session.query(APIConfig).all()
         api_keys = {c.provider: {'enabled': c.enabled, 'key_preview': APIConfig.mask_key(c.api_key)} for c in configs}
-        sentiment_config = get_sentiment_config(session)
+        sentiment_config = _get_sentiment_config(session)
         return render_template('settings.html', api_keys=api_keys, sentiment_config=sentiment_config)
 
 
@@ -691,7 +713,7 @@ def api_toggle_api_key(provider):
 def api_get_sentiment_settings():
     """Get current sentiment analysis settings."""
     with get_session() as session:
-        config = get_sentiment_config(session)
+        config = _get_sentiment_config(session)
         return jsonify({
             'success': True,
             'sentiment': {
@@ -719,7 +741,7 @@ def api_save_sentiment_settings():
             return jsonify({'success': False, 'error': f'{name} must be between 0 and 1'}), 400
 
     with get_session() as session:
-        config = get_sentiment_config(session)
+        config = _get_sentiment_config(session)
 
         if rating_weight is not None:
             config.rating_weight = rating_weight

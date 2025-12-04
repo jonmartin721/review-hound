@@ -85,6 +85,7 @@ class ConfigPanel(Widget):
         else:
             size_str = "Not found"
 
+        db_error = False
         try:
             with get_session() as session:
                 review_count = session.query(Review).count()
@@ -92,12 +93,13 @@ class ConfigPanel(Widget):
         except Exception:
             review_count = 0
             business_count = 0
+            db_error = True
 
         db_table.add_rows([
             ("Path", str(Config.DATABASE_PATH)),
             ("Size", size_str),
-            ("Reviews", str(review_count)),
-            ("Businesses", str(business_count)),
+            ("Reviews", "(error)" if db_error else str(review_count)),
+            ("Businesses", "(error)" if db_error else str(business_count)),
         ])
 
         # Scraping config

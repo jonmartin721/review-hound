@@ -7,12 +7,10 @@ from rich.table import Table
 
 from reviewhound.config import Config
 from reviewhound.database import init_db, get_session
-from reviewhound.models import Business, Review, ScrapeLog, AlertConfig, APIConfig
-from reviewhound.scrapers import (
-    TrustPilotScraper, BBBScraper, YelpScraper,
-    GooglePlacesScraper, YelpAPIScraper
-)
+from reviewhound.models import Business, Review, ScrapeLog, AlertConfig
+from reviewhound.scrapers import TrustPilotScraper, BBBScraper, YelpScraper
 from reviewhound.services import run_scraper_for_business, calculate_review_stats
+from reviewhound.common import scrape_business_sources
 
 console = Console()
 
@@ -22,58 +20,6 @@ console = Console()
 def cli():
     """Review Hound - Business review aggregator"""
     init_db()
-
-
-def _get_api_config(session, provider: str):
-    """Get API config for a provider if it exists and is enabled."""
-    config = session.query(APIConfig).filter(
-        APIConfig.provider == provider,
-        APIConfig.enabled == True
-    ).first()
-    return config
-
-
-def _scrape_business_sources(session, business):
-    """Run all configured scrapers for a business."""
-    scrapers = []
-
-    # Google Places API (no web scraping fallback)
-    google_config = _get_api_config(session, 'google_places')
-    if google_config and business.google_place_id:
-        scrapers.append((
-            GooglePlacesScraper(google_config.api_key),
-            business.google_place_id
-        ))
-
-    # Yelp: prefer API, fall back to web scraping
-    yelp_config = _get_api_config(session, 'yelp_fusion')
-    if yelp_config and business.yelp_business_id:
-        scrapers.append((
-            YelpAPIScraper(yelp_config.api_key),
-            business.yelp_business_id
-        ))
-    elif business.yelp_url:
-        scrapers.append((YelpScraper(), business.yelp_url))
-
-    # Web scraping only sources
-    if business.trustpilot_url:
-        scrapers.append((TrustPilotScraper(), business.trustpilot_url))
-    if business.bbb_url:
-        scrapers.append((BBBScraper(), business.bbb_url))
-
-    total_new = 0
-    failed_sources = []
-
-    for scraper, identifier in scrapers:
-        try:
-            log, new_count = run_scraper_for_business(
-                session, business, scraper, identifier, send_alerts=False
-            )
-            total_new += new_count
-        except Exception:
-            failed_sources.append(scraper.source)
-
-    return total_new, failed_sources
 
 
 @cli.command()
@@ -100,7 +46,7 @@ def add(name, address, trustpilot, bbb, yelp):
         has_sources = trustpilot or bbb or yelp
         if has_sources:
             console.print("[cyan]Running initial scrape...[/cyan]")
-            new_reviews, failed_sources = _scrape_business_sources(session, business)
+            new_reviews, failed_sources = scrape_business_sources(session, business)
             if new_reviews > 0:
                 console.print(f"[green]Found {new_reviews} reviews[/green]")
             else:

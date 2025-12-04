@@ -35,7 +35,7 @@ def analyze_review(
     # Calculate rating score (convert 1-5 to -1.0 to 1.0)
     rating_score = None
     if rating is not None:
-        rating_score = (rating - 3) / 2
+        rating_score = (rating - Config.RATING_SCALE_CENTER) / Config.RATING_SCALE_DIVISOR
 
     # Calculate text score using TextBlob
     text_score = None
@@ -79,7 +79,7 @@ def rating_to_score(rating: float | None) -> float:
     """Convert 1-5 star rating to -1.0 to 1.0 score."""
     if rating is None:
         return 0.0
-    return (rating - 3) / 2
+    return (rating - Config.RATING_SCALE_CENTER) / Config.RATING_SCALE_DIVISOR
 
 
 def text_to_score(text: str | None) -> float:
