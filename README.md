@@ -1,16 +1,18 @@
 # 🐕 Review Hound
 
-A Python-based business review aggregator that scrapes reviews from multiple sources, performs sentiment analysis, and provides real-time alerts for negative feedback.
+Stop checking TrustPilot, BBB, and Yelp separately. Review Hound scrapes them all, flags negative reviews, and emails you before customers start talking.
+
+**Why?** Bad reviews spread. A 1-star complaint on Yelp can sit for days before you notice. Review Hound catches them within hours.
 
 ## Features
 
-- **Multi-Source Scraping**: Aggregates reviews from TrustPilot, BBB, and Yelp
-- **Sentiment Analysis**: Automatic sentiment scoring using TextBlob
-- **Web Dashboard**: Visual overview of all tracked businesses with charts
-- **Email Alerts**: Get notified when negative reviews are posted
-- **CLI Interface**: Full-featured command-line tool
-- **Scheduled Scraping**: Automatic periodic review collection
-- **CSV Export**: Export reviews for external analysis
+- **One command, three sources**: `reviewhound scrape --all` hits TrustPilot, BBB, and Yelp
+- **Sentiment scoring**: Flags negative reviews automatically so you know what needs attention
+- **Web dashboard**: See all your businesses, ratings, and trends in one place
+- **Email alerts**: Get notified when someone leaves a bad review
+- **CLI or web**: Use whichever fits your workflow
+- **Scheduled scraping**: Set it and forget it—runs every few hours
+- **CSV export**: Pull data out for spreadsheets or reporting
 
 ## Screenshots
 
@@ -20,7 +22,7 @@ Track all your businesses at a glance with ratings, sentiment breakdowns, and tr
 ![Dashboard](docs/screenshots/dashboard.png)
 
 ### Business Detail
-Dive into individual business metrics with rating trend charts and quick actions.
+See individual business metrics with rating trends and quick actions.
 
 ![Business Detail](docs/screenshots/business_detail.png)
 
@@ -87,12 +89,13 @@ reviewhound add "Acme Corp" \
 ### Scrape Reviews
 
 ```bash
-# Scrape a specific business (by ID or name)
-reviewhound scrape 1
+# Scrape one business
 reviewhound scrape "Acme"
+# → Scraped 47 reviews from 3 sources
 
-# Scrape all businesses
+# Scrape everything (grab coffee, this takes a minute)
 reviewhound scrape --all
+# → Scraped 203 reviews across 5 businesses
 ```
 
 ### View Reviews
@@ -224,9 +227,15 @@ pytest tests/ -v
 reviewhound web --debug
 ```
 
+## What's Next?
+
+- Set up email alerts: `reviewhound alert 1 you@email.com`
+- Run the scheduler for hands-off monitoring: `reviewhound watch`
+- Found a bug? [Open an issue](https://github.com/jonmartin721/review-hound/issues)
+
 ## Disclaimer
 
-This tool is intended for educational and personal use. Web scraping may violate the Terms of Service of some websites. Users are responsible for ensuring their use complies with applicable laws and website policies. Always respect rate limits and robots.txt directives.
+Web scraping may violate some websites' Terms of Service. Use responsibly and respect rate limits.
 
 ## License
 
