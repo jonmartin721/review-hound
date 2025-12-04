@@ -5,21 +5,9 @@ from apscheduler.schedulers.blocking import BlockingScheduler
 
 from reviewhound.config import Config
 from reviewhound.database import get_session
-from reviewhound.models import Business, APIConfig
-from reviewhound.scrapers import (
-    TrustPilotScraper, BBBScraper, YelpScraper,
-    GooglePlacesScraper, YelpAPIScraper
-)
+from reviewhound.models import Business
+from reviewhound.common import build_scrapers_for_business
 from reviewhound.services import run_scraper_for_business
-
-
-def _get_api_config(session, provider: str):
-    """Get API config for a provider if it exists and is enabled."""
-    config = session.query(APIConfig).filter(
-        APIConfig.provider == provider,
-        APIConfig.enabled == True
-    ).first()
-    return config
 
 
 def scrape_all_businesses():
@@ -39,31 +27,7 @@ def _scrape_business_job(session, business):
     """Scrape a single business (called by scheduler)."""
     print(f"[Scheduler] Scraping: {business.name}")
 
-    scrapers = []
-
-    # Google Places API (no web scraping fallback)
-    google_config = _get_api_config(session, 'google_places')
-    if google_config and business.google_place_id:
-        scrapers.append((
-            GooglePlacesScraper(google_config.api_key),
-            business.google_place_id
-        ))
-
-    # Yelp: prefer API, fall back to web scraping
-    yelp_config = _get_api_config(session, 'yelp_fusion')
-    if yelp_config and business.yelp_business_id:
-        scrapers.append((
-            YelpAPIScraper(yelp_config.api_key),
-            business.yelp_business_id
-        ))
-    elif business.yelp_url:
-        scrapers.append((YelpScraper(), business.yelp_url))
-
-    # Web scraping only sources
-    if business.trustpilot_url:
-        scrapers.append((TrustPilotScraper(), business.trustpilot_url))
-    if business.bbb_url:
-        scrapers.append((BBBScraper(), business.bbb_url))
+    scrapers = build_scrapers_for_business(session, business)
 
     if not scrapers:
         print(f"[Scheduler]   No sources configured for {business.name}")

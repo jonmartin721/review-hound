@@ -345,7 +345,8 @@ class BBBScraper(BaseScraper):
 
         try:
             soup = self.fetch(search_url)
-        except requests.RequestException:
+        except requests.RequestException as e:
+            logger.warning(f"BBB search failed for '{query}': {e}")
             return []
 
         results = []

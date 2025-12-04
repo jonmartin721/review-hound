@@ -11,6 +11,13 @@ from reviewhound.alerts import check_and_send_alerts
 logger = logging.getLogger(__name__)
 
 
+def _normalize_review_date(review) -> datetime:
+    """Get a datetime for a review, using review_date or scraped_at as fallback."""
+    if review.review_date:
+        return datetime.combine(review.review_date, datetime.min.time(), tzinfo=timezone.utc)
+    return review.scraped_at
+
+
 def get_sentiment_weights(session) -> tuple[float, float, float]:
     """Get sentiment weights from database or defaults.
 
@@ -23,14 +30,14 @@ def get_sentiment_weights(session) -> tuple[float, float, float]:
     return Config.SENTIMENT_RATING_WEIGHT, Config.SENTIMENT_TEXT_WEIGHT, Config.SENTIMENT_THRESHOLD
 
 
-def save_scraped_reviews(
+def _process_reviews(
     session,
     business: Business,
     source: str,
     reviews_data: list[dict],
-    send_alerts: bool = True,
-) -> tuple[ScrapeLog, int]:
-    """Save scraped reviews to the database.
+    send_alerts: bool,
+) -> int:
+    """Process and save reviews to the database.
 
     Args:
         session: Database session
@@ -40,17 +47,8 @@ def save_scraped_reviews(
         send_alerts: Whether to check and send alerts for new reviews
 
     Returns:
-        Tuple of (ScrapeLog, new_review_count)
+        Number of new reviews saved
     """
-    log = ScrapeLog(
-        business_id=business.id,
-        source=source,
-        status="running",
-        started_at=datetime.now(timezone.utc),
-    )
-    session.add(log)
-    session.flush()
-
     new_count = 0
     rating_weight, text_weight, threshold = get_sentiment_weights(session)
 
@@ -91,6 +89,39 @@ def save_scraped_reviews(
             session.flush()
             check_and_send_alerts(session, business, review)
 
+    return new_count
+
+
+def save_scraped_reviews(
+    session,
+    business: Business,
+    source: str,
+    reviews_data: list[dict],
+    send_alerts: bool = True,
+) -> tuple[ScrapeLog, int]:
+    """Save scraped reviews to the database.
+
+    Args:
+        session: Database session
+        business: Business the reviews belong to
+        source: Source name (e.g., 'trustpilot', 'bbb', 'yelp')
+        reviews_data: List of review dicts from scraper
+        send_alerts: Whether to check and send alerts for new reviews
+
+    Returns:
+        Tuple of (ScrapeLog, new_review_count)
+    """
+    log = ScrapeLog(
+        business_id=business.id,
+        source=source,
+        status="running",
+        started_at=datetime.now(timezone.utc),
+    )
+    session.add(log)
+    session.flush()
+
+    new_count = _process_reviews(session, business, source, reviews_data, send_alerts)
+
     log.status = "success"
     log.reviews_found = new_count
     log.completed_at = datetime.now(timezone.utc)
@@ -130,45 +161,7 @@ def run_scraper_for_business(
 
     try:
         reviews_data = scraper.scrape(url)
-        new_count = 0
-        rating_weight, text_weight, threshold = get_sentiment_weights(session)
-
-        for review_data in reviews_data:
-            existing = session.query(Review).filter(
-                Review.source == source,
-                Review.external_id == review_data["external_id"],
-            ).first()
-
-            if existing:
-                continue
-
-            rating = review_data.get("rating")
-            score, label = analyze_review(
-                review_data.get("text", ""),
-                rating,
-                rating_weight=rating_weight,
-                text_weight=text_weight,
-                threshold=threshold,
-            )
-
-            review = Review(
-                business_id=business.id,
-                source=source,
-                external_id=review_data["external_id"],
-                review_url=review_data.get("review_url"),
-                author_name=review_data.get("author_name"),
-                rating=rating,
-                text=review_data.get("text"),
-                review_date=review_data.get("review_date"),
-                sentiment_score=score,
-                sentiment_label=label,
-            )
-            session.add(review)
-            new_count += 1
-
-            if send_alerts:
-                session.flush()
-                check_and_send_alerts(session, business, review)
+        new_count = _process_reviews(session, business, source, reviews_data, send_alerts)
 
         log.status = "success"
         log.reviews_found = new_count
@@ -232,14 +225,9 @@ def calculate_review_stats(reviews: list[Review]) -> dict:
         by_source[r.source] = by_source.get(r.source, 0) + 1
 
     # Calculate trend: compare last 30 days vs previous 30 days
-    def get_review_date(r):
-        if r.review_date:
-            return datetime.combine(r.review_date, datetime.min.time(), tzinfo=timezone.utc)
-        return r.scraped_at
-
-    recent_rated = [r for r in rated_reviews if get_review_date(r) >= thirty_days_ago]
+    recent_rated = [r for r in rated_reviews if _normalize_review_date(r) >= thirty_days_ago]
     previous_rated = [r for r in rated_reviews
-                      if sixty_days_ago <= get_review_date(r) < thirty_days_ago]
+                      if sixty_days_ago <= _normalize_review_date(r) < thirty_days_ago]
 
     trend_direction = None
     trend_delta = 0.0
@@ -247,20 +235,20 @@ def calculate_review_stats(reviews: list[Review]) -> dict:
         recent_avg = sum(r.rating for r in recent_rated) / len(recent_rated)
         previous_avg = sum(r.rating for r in previous_rated) / len(previous_rated)
         trend_delta = recent_avg - previous_avg
-        if trend_delta > 0.1:
+        if trend_delta > Config.TREND_STABILITY_THRESHOLD:
             trend_direction = "up"
-        elif trend_delta < -0.1:
+        elif trend_delta < -Config.TREND_STABILITY_THRESHOLD:
             trend_direction = "down"
         else:
             trend_direction = "stable"
 
     # Recent activity: reviews in last 7 days
-    recent_reviews = [r for r in reviews if get_review_date(r) >= seven_days_ago]
+    recent_reviews = [r for r in reviews if _normalize_review_date(r) >= seven_days_ago]
     recent_count = len(recent_reviews)
 
     # Most recent review date
     if reviews:
-        last_review_date = max(get_review_date(r) for r in reviews)
+        last_review_date = max(_normalize_review_date(r) for r in reviews)
     else:
         last_review_date = None
 
