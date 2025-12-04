@@ -1,5 +1,6 @@
 # 🐕 Review Hound
 
+[![PyPI](https://img.shields.io/pypi/v/reviewhound?style=flat)](https://pypi.org/project/reviewhound/)
 [![CI](https://img.shields.io/github/actions/workflow/status/jonmartin721/review-hound/ci.yml?branch=main&style=flat)](https://github.com/jonmartin721/review-hound/actions)
 [![Python 3.11+](https://img.shields.io/badge/python-3.11+-3776ab?style=flat)](https://www.python.org)
 [![License: MIT](https://img.shields.io/badge/license-MIT-green?style=flat)](LICENSE)
@@ -43,37 +44,43 @@ Configure API keys for Google Places and Yelp Fusion, plus sentiment analysis tu
 
 ## Quick Start
 
-### Using Docker (Recommended)
+### Install from PyPI
 
 ```bash
-# Clone the repository
-git clone https://github.com/jonmartin721/review-hound.git
-cd review-hound
-
-# Start with Docker Compose
-docker-compose up -d
-
-# Access the web dashboard
-open http://localhost:5000
+pip install reviewhound
 ```
 
-### Manual Installation
+That's it. Now run the web dashboard:
 
 ```bash
-# Clone the repository
+reviewhound web
+# → Starting web dashboard at http://127.0.0.1:5000
+```
+
+Or use the CLI directly:
+
+```bash
+reviewhound add "Acme Corp" --trustpilot "https://trustpilot.com/review/acme.com"
+reviewhound scrape --all
+reviewhound list
+```
+
+### Using Docker
+
+```bash
 git clone https://github.com/jonmartin721/review-hound.git
 cd review-hound
+docker-compose up -d
+# → Access at http://localhost:5000
+```
 
-# Create virtual environment
-python -m venv venv
-source venv/bin/activate  # On Windows: venv\Scripts\activate
+### From Source
 
-# Install dependencies
-pip install -r requirements.txt
+```bash
+git clone https://github.com/jonmartin721/review-hound.git
+cd review-hound
 pip install -e .
-
-# Run the web dashboard
-python -m reviewhound web
+reviewhound web
 ```
 
 ## CLI Usage
@@ -225,6 +232,11 @@ review-hound/
 ## Development
 
 ```bash
+# Clone and install with dev dependencies
+git clone https://github.com/jonmartin721/review-hound.git
+cd review-hound
+pip install -e ".[dev]"
+
 # Run tests
 pytest tests/ -v
 
