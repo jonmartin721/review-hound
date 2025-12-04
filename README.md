@@ -12,6 +12,28 @@ A Python-based business review aggregator that scrapes reviews from multiple sou
 - **Scheduled Scraping**: Automatic periodic review collection
 - **CSV Export**: Export reviews for external analysis
 
+## Screenshots
+
+### Dashboard
+Track all your businesses at a glance with ratings, sentiment breakdowns, and trend indicators.
+
+![Dashboard](docs/screenshots/dashboard.png)
+
+### Business Detail
+Dive into individual business metrics with rating trend charts and quick actions.
+
+![Business Detail](docs/screenshots/business_detail.png)
+
+### Reviews
+Browse and filter reviews by source and sentiment, with CSV export support.
+
+![Reviews](docs/screenshots/reviews.png)
+
+### Settings
+Configure API keys for Google Places and Yelp Fusion, plus sentiment analysis tuning.
+
+![Settings](docs/screenshots/settings.png)
+
 ## Quick Start
 
 ### Using Docker (Recommended)

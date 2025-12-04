@@ -28,3 +28,6 @@ responses>=0.25.0
 
 # TUI
 textual>=0.40.0
+
+# Screenshots
+playwright>=1.40.0
