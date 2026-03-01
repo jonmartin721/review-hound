@@ -1,15 +1,17 @@
+from typing import ClassVar
+
 from textual.app import App, ComposeResult
 from textual.containers import Container
-from textual.widgets import Header, Footer
+from textual.widgets import Footer, Header
 
+from reviewhound.tui.services import ProcessManager
 from reviewhound.tui.widgets import (
-    Sidebar,
-    ServicesPanel,
-    LogsPanel,
     CommandsPanel,
     ConfigPanel,
+    LogsPanel,
+    ServicesPanel,
+    Sidebar,
 )
-from reviewhound.tui.services import ProcessManager
 
 
 class ReviewHoundApp(App):
@@ -34,7 +36,7 @@ class ReviewHoundApp(App):
     }
     """
 
-    BINDINGS = [
+    BINDINGS: ClassVar[list] = [
         ("q", "quit", "Quit"),
         ("1", "switch('services')", "Services"),
         ("2", "switch('logs')", "Logs"),

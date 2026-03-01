@@ -9,12 +9,11 @@ Usage:
 """
 
 import os
-import sys
-import time
 import random
 import subprocess
-import signal
-from datetime import datetime, date, timedelta
+import sys
+import time
+from datetime import date, datetime, timedelta
 from pathlib import Path
 
 # Add project root to path
@@ -25,11 +24,11 @@ sys.path.insert(0, str(PROJECT_ROOT))
 SCREENSHOT_DB = PROJECT_ROOT / "data" / "screenshots_demo.db"
 os.environ["DATABASE_PATH"] = str(SCREENSHOT_DB)
 
-from playwright.sync_api import sync_playwright
-from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker
+from playwright.sync_api import sync_playwright  # noqa: E402
+from sqlalchemy import create_engine  # noqa: E402
+from sqlalchemy.orm import sessionmaker  # noqa: E402
 
-from reviewhound.models import Base, Business, Review, ScrapeLog
+from reviewhound.models import Base, Business, Review, ScrapeLog  # noqa: E402
 
 
 def seed_demo_data():
@@ -89,9 +88,21 @@ def seed_demo_data():
     ]
 
     authors = [
-        "Sarah M.", "John D.", "Emily R.", "Michael T.", "Jessica L.",
-        "David K.", "Amanda S.", "Chris B.", "Rachel H.", "Kevin W.",
-        "Lisa P.", "Mark J.", "Nicole F.", "Brian C.", "Ashley G.",
+        "Sarah M.",
+        "John D.",
+        "Emily R.",
+        "Michael T.",
+        "Jessica L.",
+        "David K.",
+        "Amanda S.",
+        "Chris B.",
+        "Rachel H.",
+        "Kevin W.",
+        "Lisa P.",
+        "Mark J.",
+        "Nicole F.",
+        "Brian C.",
+        "Ashley G.",
     ]
 
     sources = ["trustpilot", "yelp", "bbb"]
@@ -199,7 +210,7 @@ def take_screenshots():
             ("settings", "/settings", "Settings page with API configuration"),
         ]
 
-        for name, path, description in screenshots:
+        for name, path, _description in screenshots:
             url = f"{base_url}{path}"
             print(f"Capturing {name}: {url}")
 

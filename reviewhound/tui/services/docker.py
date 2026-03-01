@@ -1,7 +1,6 @@
 import subprocess
 from enum import Enum
 from pathlib import Path
-from typing import Optional
 
 
 class ContainerStatus(Enum):
@@ -21,7 +20,7 @@ class DockerManager:
 
     def _run_command(
         self, args: list[str], capture_output: bool = True, timeout: int = 30
-    ) -> Optional[subprocess.CompletedProcess]:
+    ) -> subprocess.CompletedProcess | None:
         """Run a command and return the result."""
         try:
             return subprocess.run(
@@ -39,7 +38,7 @@ class DockerManager:
         result = self._run_command(["docker", "version"])
         return result is not None and result.returncode == 0
 
-    def get_container_status(self, name: Optional[str] = None) -> ContainerStatus:
+    def get_container_status(self, name: str | None = None) -> ContainerStatus:
         """Get the status of a container."""
         container = name or self.container_name
         result = self._run_command(
@@ -125,7 +124,7 @@ class DockerManager:
         # Combine stdout and stderr (logs go to both)
         return result.stdout + (result.stderr or "")
 
-    def stream_logs(self) -> Optional[subprocess.Popen]:
+    def stream_logs(self) -> subprocess.Popen | None:
         """Start streaming logs. Returns Popen object for reading."""
         try:
             return subprocess.Popen(

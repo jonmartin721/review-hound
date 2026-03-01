@@ -1,11 +1,11 @@
 """Tests for reviewhound.services module."""
 
-from datetime import date, datetime, timedelta, timezone
+from datetime import UTC, date, datetime, timedelta
 from unittest.mock import MagicMock, patch
 
 import pytest
 
-from reviewhound.models import Business, Review, ScrapeLog, SentimentConfig
+from reviewhound.models import Review, ScrapeLog
 from reviewhound.services import (
     calculate_review_stats,
     get_sentiment_weights,
@@ -115,7 +115,7 @@ class TestCalculateReviewStats:
 
     def test_trend_direction_up(self, db_session, sample_business):
         """Should detect upward trend when recent ratings are higher."""
-        now = datetime.now(timezone.utc)
+        now = datetime.now(UTC)
         reviews = []
 
         # Old reviews (31-60 days ago) with low ratings
@@ -152,7 +152,7 @@ class TestCalculateReviewStats:
 
     def test_trend_direction_down(self, db_session, sample_business):
         """Should detect downward trend when recent ratings are lower."""
-        now = datetime.now(timezone.utc)
+        now = datetime.now(UTC)
         reviews = []
 
         # Old reviews with high ratings
@@ -223,7 +223,9 @@ class TestSaveScrapedReviews:
 
     @patch("reviewhound.services.analyze_review")
     @patch("reviewhound.services.check_and_send_alerts")
-    def test_skips_duplicate_reviews(self, mock_alerts, mock_analyze, db_session, sample_business, sample_reviews):
+    def test_skips_duplicate_reviews(
+        self, mock_alerts, mock_analyze, db_session, sample_business, sample_reviews
+    ):
         """Should skip reviews that already exist."""
         mock_analyze.return_value = (0.8, "positive")
 
@@ -238,7 +240,7 @@ class TestSaveScrapedReviews:
             }
         ]
 
-        log, new_count = save_scraped_reviews(
+        _log, new_count = save_scraped_reviews(
             db_session, sample_business, "trustpilot", reviews_data, send_alerts=False
         )
 
@@ -260,9 +262,7 @@ class TestSaveScrapedReviews:
             }
         ]
 
-        save_scraped_reviews(
-            db_session, sample_business, "trustpilot", reviews_data, send_alerts=True
-        )
+        save_scraped_reviews(db_session, sample_business, "trustpilot", reviews_data, send_alerts=True)
 
         mock_alerts.assert_called_once()
 
@@ -274,9 +274,7 @@ class TestSaveScrapedReviews:
 
         reviews_data = [{"external_id": "log_001", "rating": 4.0}]
 
-        log, _ = save_scraped_reviews(
-            db_session, sample_business, "bbb", reviews_data, send_alerts=False
-        )
+        log, _ = save_scraped_reviews(db_session, sample_business, "bbb", reviews_data, send_alerts=False)
 
         assert log.business_id == sample_business.id
         assert log.source == "bbb"
@@ -310,15 +308,14 @@ class TestRunScraperForBusiness:
         scraper.scrape.side_effect = Exception("Network error")
 
         with pytest.raises(Exception, match="Network error"):
-            run_scraper_for_business(
-                db_session, sample_business, scraper, "https://example.com"
-            )
+            run_scraper_for_business(db_session, sample_business, scraper, "https://example.com")
 
         # Check that a failed log was created
-        log = db_session.query(ScrapeLog).filter_by(
-            business_id=sample_business.id,
-            source="failing_source"
-        ).first()
+        log = (
+            db_session.query(ScrapeLog)
+            .filter_by(business_id=sample_business.id, source="failing_source")
+            .first()
+        )
         assert log is not None
         assert log.status == "failed"
         assert "Network error" in log.error_message

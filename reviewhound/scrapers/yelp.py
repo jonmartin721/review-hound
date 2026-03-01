@@ -1,11 +1,11 @@
 import re
-from datetime import datetime, date
+from datetime import date, datetime
 from urllib.parse import quote_plus
 
 import requests
 
-from reviewhound.scrapers.base import BaseScraper
 from reviewhound.config import Config
+from reviewhound.scrapers.base import BaseScraper
 
 
 class YelpScraper(BaseScraper):
@@ -68,7 +68,7 @@ class YelpScraper(BaseScraper):
             review_date = self._parse_date(date_text)
 
         # Yelp review URL with hrid parameter to highlight specific review
-        base_url = getattr(self, '_current_base_url', None)
+        base_url = getattr(self, "_current_base_url", None)
         review_url = f"{base_url}?hrid={review_id}" if base_url and review_id else None
 
         return {

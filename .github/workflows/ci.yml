@@ -30,6 +30,11 @@ jobs:
       - name: Install Playwright browsers
         run: playwright install chromium --with-deps
 
+      - name: Lint
+        run: |
+          ruff check .
+          ruff format --check .
+
       - name: Run tests
         run: pytest --cov=reviewhound --cov-report=term-missing --cov-report=xml
 

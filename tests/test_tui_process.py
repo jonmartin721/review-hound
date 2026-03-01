@@ -1,10 +1,6 @@
-import subprocess
-import signal
-from unittest.mock import patch, MagicMock
+from unittest.mock import MagicMock, patch
 
-import pytest
-
-from reviewhound.tui.services.process import ProcessManager, ProcessInfo, ProcessType
+from reviewhound.tui.services.process import ProcessManager, ProcessType
 
 
 class TestProcessManager:

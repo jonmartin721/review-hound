@@ -1,7 +1,7 @@
 from textual.app import ComposeResult
-from textual.widgets import Static, ListItem, ListView
-from textual.widget import Widget
 from textual.message import Message
+from textual.widget import Widget
+from textual.widgets import ListItem, ListView, Static
 
 
 class MenuItem(ListItem):
