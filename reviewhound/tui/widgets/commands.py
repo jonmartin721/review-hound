@@ -3,9 +3,9 @@ import sys
 from pathlib import Path
 
 from textual.app import ComposeResult
-from textual.containers import Horizontal, Vertical, Container
-from textual.widgets import Static, Button, RichLog, Input
+from textual.containers import Container, Horizontal
 from textual.widget import Widget
+from textual.widgets import Button, RichLog, Static
 
 
 class CommandsPanel(Widget):
@@ -83,7 +83,7 @@ class CommandsPanel(Widget):
         output = self.query_one("#cmd-output", RichLog)
         output.clear()
 
-        cmd = [sys.executable, "-m", "reviewhound"] + args
+        cmd = [sys.executable, "-m", "reviewhound", *args]
         output.write(f"[dim]$ reviewhound {' '.join(args)}[/dim]\n")
 
         try:

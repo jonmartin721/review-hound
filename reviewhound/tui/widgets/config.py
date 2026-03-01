@@ -1,14 +1,12 @@
-import os
 from pathlib import Path
 
 from textual.app import ComposeResult
-from textual.containers import Vertical
-from textual.widgets import Static, Button, DataTable
 from textual.widget import Widget
+from textual.widgets import Button, DataTable, Static
 
 from reviewhound.config import Config
 from reviewhound.database import get_session
-from reviewhound.models import Review, Business
+from reviewhound.models import Business, Review
 
 
 class ConfigPanel(Widget):
@@ -95,32 +93,38 @@ class ConfigPanel(Widget):
             business_count = 0
             db_error = True
 
-        db_table.add_rows([
-            ("Path", str(Config.DATABASE_PATH)),
-            ("Size", size_str),
-            ("Reviews", "(error)" if db_error else str(review_count)),
-            ("Businesses", "(error)" if db_error else str(business_count)),
-        ])
+        db_table.add_rows(
+            [
+                ("Path", str(Config.DATABASE_PATH)),
+                ("Size", size_str),
+                ("Reviews", "(error)" if db_error else str(review_count)),
+                ("Businesses", "(error)" if db_error else str(business_count)),
+            ]
+        )
 
         # Scraping config
         scrape_table = self.query_one("#scrape-table", DataTable)
         scrape_table.clear(columns=True)
         scrape_table.add_columns("Setting", "Value")
-        scrape_table.add_rows([
-            ("Request Delay", f"{Config.REQUEST_DELAY_MIN} - {Config.REQUEST_DELAY_MAX} sec"),
-            ("Max Pages", str(Config.MAX_PAGES_PER_SOURCE)),
-            ("Interval", f"{Config.SCRAPE_INTERVAL_HOURS} hours"),
-        ])
+        scrape_table.add_rows(
+            [
+                ("Request Delay", f"{Config.REQUEST_DELAY_MIN} - {Config.REQUEST_DELAY_MAX} sec"),
+                ("Max Pages", str(Config.MAX_PAGES_PER_SOURCE)),
+                ("Interval", f"{Config.SCRAPE_INTERVAL_HOURS} hours"),
+            ]
+        )
 
         # Web config
         web_table = self.query_one("#web-table", DataTable)
         web_table.clear(columns=True)
         web_table.add_columns("Setting", "Value")
-        web_table.add_rows([
-            ("Host", "127.0.0.1"),
-            ("Port", "5000"),
-            ("Debug", "On" if Config.FLASK_DEBUG else "Off"),
-        ])
+        web_table.add_rows(
+            [
+                ("Host", "127.0.0.1"),
+                ("Port", "5000"),
+                ("Debug", "On" if Config.FLASK_DEBUG else "Off"),
+            ]
+        )
 
         # Email config
         email_table = self.query_one("#email-table", DataTable)
@@ -128,10 +132,12 @@ class ConfigPanel(Widget):
         email_table.add_columns("Setting", "Value")
 
         smtp_configured = bool(Config.SMTP_USER and Config.SMTP_PASSWORD)
-        email_table.add_rows([
-            ("SMTP Host", f"{Config.SMTP_HOST}:{Config.SMTP_PORT}"),
-            ("Status", "✓ Configured" if smtp_configured else "✗ Not configured"),
-        ])
+        email_table.add_rows(
+            [
+                ("SMTP Host", f"{Config.SMTP_HOST}:{Config.SMTP_PORT}"),
+                ("Status", "✓ Configured" if smtp_configured else "✗ Not configured"),
+            ]
+        )
 
         # Env path
         env_path = self.query_one("#env-path", Static)
@@ -143,6 +149,7 @@ class ConfigPanel(Widget):
         if event.button.id == "reload":
             # Reload dotenv
             from dotenv import load_dotenv
+
             load_dotenv(override=True)
             self._refresh_config()
             self.notify("Configuration reloaded")

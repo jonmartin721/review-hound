@@ -2,8 +2,6 @@
 
 from unittest.mock import MagicMock, patch
 
-import pytest
-
 from reviewhound.alerts.email import (
     check_and_send_alerts,
     format_review_alert,
@@ -234,9 +232,7 @@ class TestCheckAndSendAlerts:
         mock_send.assert_not_called()
 
     @patch("reviewhound.alerts.email.send_alert")
-    def test_respects_threshold_setting(
-        self, mock_send, db_session, sample_business, sample_alert_config
-    ):
+    def test_respects_threshold_setting(self, mock_send, db_session, sample_business, sample_alert_config):
         """Should only alert for ratings at or below threshold."""
         mock_send.return_value = True
 
@@ -256,9 +252,7 @@ class TestCheckAndSendAlerts:
         assert alerts_sent == 1
 
     @patch("reviewhound.alerts.email.send_alert")
-    def test_no_alert_for_positive_review(
-        self, mock_send, db_session, sample_business, sample_alert_config
-    ):
+    def test_no_alert_for_positive_review(self, mock_send, db_session, sample_business, sample_alert_config):
         """Should not alert for positive reviews above threshold."""
         review = Review(
             business_id=sample_business.id,
@@ -276,9 +270,7 @@ class TestCheckAndSendAlerts:
         mock_send.assert_not_called()
 
     @patch("reviewhound.alerts.email.send_alert")
-    def test_returns_count_of_alerts_sent(
-        self, mock_send, db_session, sample_business
-    ):
+    def test_returns_count_of_alerts_sent(self, mock_send, db_session, sample_business):
         """Should return accurate count of alerts sent."""
         # Create multiple alert configs
         for i in range(3):

@@ -1,5 +1,6 @@
+import contextlib
 import logging
-from datetime import datetime, date
+from datetime import datetime
 
 import requests
 
@@ -41,7 +42,9 @@ class GooglePlacesScraper(BaseScraper):
             data = response.json()
 
             if data.get("status") != "OK":
-                logger.warning(f"Google Places API error: {data.get('status')} - {data.get('error_message', '')}")
+                logger.warning(
+                    f"Google Places API error: {data.get('status')} - {data.get('error_message', '')}"
+                )
                 return []
 
             reviews_data = data.get("result", {}).get("reviews", [])
@@ -56,13 +59,11 @@ class GooglePlacesScraper(BaseScraper):
         # Google uses Unix timestamp
         review_date = None
         if data.get("time"):
-            try:
+            with contextlib.suppress(ValueError, OSError):
                 review_date = datetime.fromtimestamp(data["time"]).date()
-            except (ValueError, OSError):
-                pass
 
         # Google doesn't provide individual review URLs, link to reviews page
-        place_id = getattr(self, '_current_place_id', None)
+        place_id = getattr(self, "_current_place_id", None)
         review_url = f"https://search.google.com/local/reviews?placeid={place_id}" if place_id else None
 
         return {
@@ -102,15 +103,17 @@ class GooglePlacesScraper(BaseScraper):
 
             results = []
             for place in data.get("results", [])[:5]:
-                results.append({
-                    "name": place.get("name", ""),
-                    "address": place.get("formatted_address", ""),
-                    "rating": place.get("rating"),
-                    "review_count": place.get("user_ratings_total", 0),
-                    "place_id": place.get("place_id"),
-                    "url": None,  # Google doesn't provide direct URLs in API
-                    "thumbnail_url": None,
-                })
+                results.append(
+                    {
+                        "name": place.get("name", ""),
+                        "address": place.get("formatted_address", ""),
+                        "rating": place.get("rating"),
+                        "review_count": place.get("user_ratings_total", 0),
+                        "place_id": place.get("place_id"),
+                        "url": None,  # Google doesn't provide direct URLs in API
+                        "thumbnail_url": None,
+                    }
+                )
 
             return results
 

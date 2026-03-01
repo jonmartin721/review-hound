@@ -1,13 +1,14 @@
+import contextlib
 import json
 import logging
 import re
-from datetime import datetime, date
+from datetime import date, datetime
 from urllib.parse import quote_plus
 
 import requests
 
-from reviewhound.scrapers.base import BaseScraper
 from reviewhound.config import Config
+from reviewhound.scrapers.base import BaseScraper
 
 logger = logging.getLogger(__name__)
 
@@ -296,10 +297,8 @@ class TrustPilotScraper(BaseScraper):
         if rating_span:
             inner_span = rating_span.find("span")
             if inner_span:
-                try:
+                with contextlib.suppress(ValueError):
                     rating = float(inner_span.get_text(strip=True))
-                except ValueError:
-                    pass
 
         # Find review count - has data attribute
         review_count = 0

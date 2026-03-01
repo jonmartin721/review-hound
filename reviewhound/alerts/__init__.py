@@ -1,3 +1,3 @@
-from reviewhound.alerts.email import send_alert, format_review_alert, check_and_send_alerts
+from reviewhound.alerts.email import check_and_send_alerts, format_review_alert, send_alert
 
-__all__ = ["send_alert", "format_review_alert", "check_and_send_alerts"]
+__all__ = ["check_and_send_alerts", "format_review_alert", "send_alert"]

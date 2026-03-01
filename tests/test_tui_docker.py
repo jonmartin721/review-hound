@@ -1,9 +1,6 @@
-import subprocess
-from unittest.mock import patch, MagicMock
+from unittest.mock import MagicMock, patch
 
-import pytest
-
-from reviewhound.tui.services.docker import DockerManager, ContainerStatus
+from reviewhound.tui.services.docker import ContainerStatus, DockerManager
 
 
 class TestDockerManager:
@@ -56,7 +53,7 @@ class TestDockerManager:
         mock_result = MagicMock()
         mock_result.returncode = 0
 
-        with patch("subprocess.run", return_value=mock_result) as mock_run:
+        with patch("subprocess.run", return_value=mock_result):
             success = manager.stop()
 
         assert success is True
