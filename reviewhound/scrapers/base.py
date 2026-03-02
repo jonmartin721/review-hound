@@ -74,15 +74,12 @@ class BaseScraper(ABC):
                         attempt + 1,
                         max_retries,
                     )
-                    last_exception = requests.HTTPError(response=response)
                     if attempt < max_retries - 1:
                         delay = _backoff_delay(
                             attempt, Config.SCRAPE_RETRY_BASE_DELAY, Config.SCRAPE_RETRY_MAX_DELAY
                         )
                         time.sleep(delay)
                         continue
-                    # Final attempt — raise
-                    response.raise_for_status()
 
                 response.raise_for_status()
                 return BeautifulSoup(response.text, "html.parser")
@@ -107,9 +104,6 @@ class BaseScraper(ABC):
                     max_retries,
                     e,
                 )
-            except requests.HTTPError:
-                # Non-retryable HTTP errors (4xx except 429) — don't retry
-                raise
 
             # Backoff before next retry
             if attempt < max_retries - 1:
@@ -123,7 +117,9 @@ class BaseScraper(ABC):
             url,
             self.source,
         )
-        raise last_exception  # type: ignore[misc]
+        if last_exception is None:
+            raise RuntimeError(f"fetch failed for {url} with no recorded exception")
+        raise last_exception
 
     @abstractmethod
     def scrape(self, url: str) -> list[dict]:

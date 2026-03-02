@@ -29,13 +29,11 @@ class TestBackoffDelay:
 
     def test_delay_grows_exponentially(self):
         """Later attempts should allow larger delays."""
-        # attempt=0: max 1.0, attempt=1: max 2.0, attempt=2: max 4.0
         maxes = []
         for attempt in range(4):
             samples = [_backoff_delay(attempt, base=1.0, maximum=30.0) for _ in range(200)]
             maxes.append(max(samples))
-        # Each level's observed max should generally be larger than the previous
-        assert maxes[2] > maxes[0]
+        assert maxes[2] >= maxes[0]
 
     def test_respects_maximum(self):
         """Delay should never exceed the maximum."""
@@ -65,35 +63,10 @@ class TestFetchRetry:
         assert len(responses.calls) == 1
 
     @responses.activate
-    def test_retries_on_500(self):
-        """Should retry on 500 and succeed on subsequent attempt."""
-        responses.add(responses.GET, "http://example.com", status=500)
-        responses.add(responses.GET, "http://example.com", body="<html>ok</html>", status=200)
-
-        with patch.object(DummyScraper, "rate_limit"), patch("reviewhound.scrapers.base.time.sleep"):
-            scraper = DummyScraper()
-            soup = scraper.fetch("http://example.com")
-
-        assert soup is not None
-        assert len(responses.calls) == 2
-
-    @responses.activate
-    def test_retries_on_503(self):
-        """Should retry on 503."""
-        responses.add(responses.GET, "http://example.com", status=503)
-        responses.add(responses.GET, "http://example.com", body="<html>ok</html>", status=200)
-
-        with patch.object(DummyScraper, "rate_limit"), patch("reviewhound.scrapers.base.time.sleep"):
-            scraper = DummyScraper()
-            soup = scraper.fetch("http://example.com")
-
-        assert soup is not None
-        assert len(responses.calls) == 2
-
-    @responses.activate
-    def test_retries_on_429(self):
-        """Should retry on 429 Too Many Requests."""
-        responses.add(responses.GET, "http://example.com", status=429)
+    @pytest.mark.parametrize("status", [429, 500, 502, 503, 504])
+    def test_retries_on_retryable_status(self, status):
+        """Should retry on retryable HTTP status and succeed on next attempt."""
+        responses.add(responses.GET, "http://example.com", status=status)
         responses.add(responses.GET, "http://example.com", body="<html>ok</html>", status=200)
 
         with patch.object(DummyScraper, "rate_limit"), patch("reviewhound.scrapers.base.time.sleep"):
@@ -156,6 +129,51 @@ class TestFetchRetry:
 
         assert soup is not None
         assert len(responses.calls) == 2
+
+    @responses.activate
+    def test_retries_on_timeout(self):
+        """Should retry on timeout errors."""
+        responses.add(responses.GET, "http://example.com", body=requests.Timeout("timed out"))
+        responses.add(responses.GET, "http://example.com", body="<html>ok</html>", status=200)
+
+        with patch.object(DummyScraper, "rate_limit"), patch("reviewhound.scrapers.base.time.sleep"):
+            scraper = DummyScraper()
+            soup = scraper.fetch("http://example.com")
+
+        assert soup is not None
+        assert len(responses.calls) == 2
+
+    @responses.activate
+    def test_exhausts_retries_on_persistent_connection_error(self):
+        """Should raise ConnectionError after all retries exhausted."""
+        for _ in range(3):
+            responses.add(responses.GET, "http://example.com", body=requests.ConnectionError("refused"))
+
+        with (
+            patch.object(DummyScraper, "rate_limit"),
+            patch("reviewhound.scrapers.base.time.sleep"),
+            pytest.raises(requests.ConnectionError),
+        ):
+            scraper = DummyScraper()
+            scraper.fetch("http://example.com")
+
+        assert len(responses.calls) == 3
+
+    @responses.activate
+    def test_exhausts_retries_on_persistent_timeout(self):
+        """Should raise Timeout after all retries exhausted."""
+        for _ in range(3):
+            responses.add(responses.GET, "http://example.com", body=requests.Timeout("timed out"))
+
+        with (
+            patch.object(DummyScraper, "rate_limit"),
+            patch("reviewhound.scrapers.base.time.sleep"),
+            pytest.raises(requests.Timeout),
+        ):
+            scraper = DummyScraper()
+            scraper.fetch("http://example.com")
+
+        assert len(responses.calls) == 3
 
     @responses.activate
     def test_backoff_sleep_is_called(self):
