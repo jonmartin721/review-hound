@@ -9,7 +9,7 @@ import pytest
 # Set database path before importing app
 os.environ["DATABASE_PATH"] = ":memory:"
 
-from reviewhound.models import Business, Review, ScrapeLog
+from reviewhound.models import APIConfig, Business, Review, ScrapeLog
 from reviewhound.web.app import create_app
 
 
@@ -156,7 +156,6 @@ class TestExportReviews:
 class TestSettings:
     """Tests for settings route."""
 
-    @pytest.mark.skip(reason="Routes has bug: _get_sentiment_config undefined")
     def test_renders_settings_page(self, client):
         """Should render settings page."""
         response = client.get("/settings")
@@ -519,15 +518,13 @@ class TestApiSettings:
         assert response.status_code == 200
         assert response.json["success"] is True
 
-    @pytest.mark.skip(reason="Routes has bug: _get_sentiment_config undefined")
     def test_get_sentiment_settings(self, client):
         """Should return sentiment configuration."""
         response = client.get("/api/settings/sentiment")
         assert response.status_code == 200
         assert response.json["success"] is True
-        assert "rating_weight" in response.json
+        assert "rating_weight" in response.json["sentiment"]
 
-    @pytest.mark.skip(reason="Routes has bug: _get_sentiment_config undefined")
     def test_save_sentiment_settings(self, client):
         """Should save sentiment configuration."""
         response = client.post(
@@ -599,3 +596,506 @@ class TestScrapeHealth:
         with app.test_client() as client:
             response = client.get(f"/business/{business_id}")
             assert response.status_code == 200
+
+    def test_detects_no_reviews_found(self, app_with_business):
+        """Should detect when scrapes succeed but find zero reviews."""
+        app, business_id = app_with_business
+        from datetime import datetime
+
+        from reviewhound.database import get_session
+
+        with app.app_context(), get_session() as session:
+            for _i in range(2):
+                log = ScrapeLog(
+                    business_id=business_id,
+                    source="bbb",
+                    status="success",
+                    reviews_found=0,
+                    started_at=datetime.now(UTC),
+                    completed_at=datetime.now(UTC),
+                )
+                session.add(log)
+
+        with app.test_client() as client:
+            response = client.get(f"/business/{business_id}")
+            assert response.status_code == 200
+
+
+class TestApiDeleteApiKey:
+    """Tests for DELETE /api/settings/api-keys/<provider>."""
+
+    def test_rejects_invalid_provider(self, client):
+        """Should reject invalid provider name."""
+        response = client.delete("/api/settings/api-keys/invalid_provider")
+        assert response.status_code == 400
+
+    def test_returns_404_for_missing_key(self, app):
+        """Should return 404 when no key exists for provider."""
+        from reviewhound.database import get_session
+
+        # Ensure no key exists for this provider
+        with app.app_context(), get_session() as session:
+            existing = session.query(APIConfig).filter(APIConfig.provider == "google_places").first()
+            if existing:
+                session.delete(existing)
+
+        with app.test_client() as client:
+            response = client.delete("/api/settings/api-keys/google_places")
+            assert response.status_code == 404
+
+    def test_deletes_existing_key(self, client):
+        """Should delete an existing API key."""
+        # Create key first
+        client.post(
+            "/api/settings/api-keys",
+            json={"provider": "google_places", "api_key": "test-key-to-delete"},
+            content_type="application/json",
+        )
+        # Delete it
+        response = client.delete("/api/settings/api-keys/google_places")
+        assert response.status_code == 200
+        assert response.json["success"] is True
+
+        # Verify it's gone
+        response = client.delete("/api/settings/api-keys/google_places")
+        assert response.status_code == 404
+
+
+class TestApiToggleApiKeyValidation:
+    """Tests for toggle API key validation."""
+
+    def test_rejects_invalid_provider(self, client):
+        """Should reject invalid provider on toggle."""
+        response = client.post("/api/settings/api-keys/invalid_provider/toggle")
+        assert response.status_code == 400
+
+    def test_returns_404_for_missing_key(self, client):
+        """Should return 404 when toggling nonexistent key."""
+        response = client.post("/api/settings/api-keys/google_places/toggle")
+        assert response.status_code == 404
+
+
+class TestApiUpdateBusinessFields:
+    """Tests for updating additional business fields."""
+
+    def test_updates_google_place_id(self, app_with_business):
+        """Should update google_place_id field."""
+        app, business_id = app_with_business
+        with app.test_client() as client:
+            response = client.put(
+                f"/api/business/{business_id}",
+                json={"google_place_id": "ChIJtest123"},
+                content_type="application/json",
+            )
+            assert response.status_code == 200
+            get_resp = client.get(f"/api/business/{business_id}")
+            assert get_resp.json["business"]["google_place_id"] == "ChIJtest123"
+
+    def test_updates_yelp_business_id(self, app_with_business):
+        """Should update yelp_business_id field."""
+        app, business_id = app_with_business
+        with app.test_client() as client:
+            response = client.put(
+                f"/api/business/{business_id}",
+                json={"yelp_business_id": "test-biz-sf"},
+                content_type="application/json",
+            )
+            assert response.status_code == 200
+            get_resp = client.get(f"/api/business/{business_id}")
+            assert get_resp.json["business"]["yelp_business_id"] == "test-biz-sf"
+
+    def test_updates_multiple_fields(self, app_with_business):
+        """Should update address, bbb_url, and yelp_url together."""
+        app, business_id = app_with_business
+        with app.test_client() as client:
+            response = client.put(
+                f"/api/business/{business_id}",
+                json={
+                    "address": "456 Oak Ave",
+                    "bbb_url": "https://www.bbb.org/new-listing",
+                    "yelp_url": "https://www.yelp.com/biz/new-listing",
+                },
+                content_type="application/json",
+            )
+            assert response.status_code == 200
+
+    def test_clears_optional_fields_with_empty_string(self, app_with_business):
+        """Should clear optional URL fields when set to empty string."""
+        app, business_id = app_with_business
+        with app.test_client() as client:
+            response = client.put(
+                f"/api/business/{business_id}",
+                json={"bbb_url": "", "google_place_id": ""},
+                content_type="application/json",
+            )
+            assert response.status_code == 200
+            get_resp = client.get(f"/api/business/{business_id}")
+            assert get_resp.json["business"]["bbb_url"] is None
+            assert get_resp.json["business"]["google_place_id"] is None
+
+
+class TestApiSaveApiKeyUpdate:
+    """Tests for updating an existing API key."""
+
+    def test_updates_existing_key(self, client):
+        """Should update key when provider already has one saved."""
+        client.post(
+            "/api/settings/api-keys",
+            json={"provider": "google_places", "api_key": "initial-key-12345"},
+            content_type="application/json",
+        )
+        response = client.post(
+            "/api/settings/api-keys",
+            json={"provider": "google_places", "api_key": "updated-key-67890"},
+            content_type="application/json",
+        )
+        assert response.status_code == 200
+        assert response.json["success"] is True
+
+
+class TestTriggerScrapeAllFailed:
+    """Tests for trigger_scrape when all sources fail."""
+
+    @patch("reviewhound.web.routes.scrape_business_sources")
+    def test_returns_500_when_all_sources_fail(self, mock_scrape, app_with_business):
+        """Should return 500 when every configured source fails."""
+        app, business_id = app_with_business
+        mock_scrape.return_value = (0, ["trustpilot", "bbb", "yelp"])
+
+        with app.test_client() as client:
+            response = client.post(f"/business/{business_id}/scrape")
+            assert response.status_code == 500
+            assert "All scrapes failed" in response.json["error"]
+
+
+class TestApiSearchSourcesErrorHandling:
+    """Tests for search-sources scraper exception handling."""
+
+    @patch("reviewhound.web.routes.BBBScraper")
+    @patch("reviewhound.web.routes.TrustPilotScraper")
+    def test_handles_scraper_exception(self, mock_tp, mock_bbb, client):
+        """Should return empty results for source that throws exception."""
+        mock_tp_instance = MagicMock()
+        mock_tp_instance.search.side_effect = RuntimeError("Network timeout")
+        mock_tp.return_value = mock_tp_instance
+
+        mock_bbb_instance = MagicMock()
+        mock_bbb_instance.search.return_value = [{"name": "BBB Result"}]
+        mock_bbb.return_value = mock_bbb_instance
+
+        response = client.post("/api/search-sources", json={"query": "test"}, content_type="application/json")
+        assert response.status_code == 200
+        assert response.json["results"]["trustpilot"] == []
+        assert len(response.json["results"]["bbb"]) == 1
+
+
+class TestBusinessReviewsFiltering:
+    """Tests for review filtering by source and sentiment."""
+
+    def test_filters_by_source(self, app_with_business):
+        """Should filter reviews by source parameter."""
+        app, business_id = app_with_business
+        from reviewhound.database import get_session
+
+        with app.app_context(), get_session() as session:
+            session.add(
+                Review(
+                    business_id=business_id,
+                    source="trustpilot",
+                    external_id="filter_src_001",
+                    author_name="A",
+                    rating=5.0,
+                    text="Good",
+                    review_date=date.today(),
+                    sentiment_score=0.9,
+                    sentiment_label="positive",
+                )
+            )
+
+        with app.test_client() as client:
+            response = client.get(f"/business/{business_id}/reviews?source=trustpilot")
+            assert response.status_code == 200
+
+    def test_filters_by_sentiment(self, app_with_business):
+        """Should filter reviews by sentiment parameter."""
+        app, business_id = app_with_business
+        from reviewhound.database import get_session
+
+        with app.app_context(), get_session() as session:
+            session.add(
+                Review(
+                    business_id=business_id,
+                    source="bbb",
+                    external_id="filter_sent_001",
+                    author_name="B",
+                    rating=1.0,
+                    text="Bad",
+                    review_date=date.today(),
+                    sentiment_score=-0.8,
+                    sentiment_label="negative",
+                )
+            )
+
+        with app.test_client() as client:
+            response = client.get(f"/business/{business_id}/reviews?sentiment=negative")
+            assert response.status_code == 200
+
+
+class TestExportReviewsFiltering:
+    """Tests for export with source/sentiment filtering."""
+
+    def test_exports_filtered_by_source(self, app_with_business):
+        """Should export only reviews matching source filter."""
+        app, business_id = app_with_business
+        from reviewhound.database import get_session
+
+        with app.app_context(), get_session() as session:
+            session.add(
+                Review(
+                    business_id=business_id,
+                    source="trustpilot",
+                    external_id="export_src_001",
+                    author_name="C",
+                    rating=4.0,
+                    text="Decent",
+                    review_date=date.today(),
+                    sentiment_score=0.5,
+                    sentiment_label="positive",
+                )
+            )
+
+        with app.test_client() as client:
+            response = client.get(f"/business/{business_id}/export?source=trustpilot")
+            assert response.status_code == 200
+            assert "text/csv" in response.content_type
+
+    def test_exports_filtered_by_sentiment(self, app_with_business):
+        """Should export only reviews matching sentiment filter."""
+        app, business_id = app_with_business
+        from reviewhound.database import get_session
+
+        with app.app_context(), get_session() as session:
+            session.add(
+                Review(
+                    business_id=business_id,
+                    source="yelp",
+                    external_id="export_sent_001",
+                    author_name="D",
+                    rating=2.0,
+                    text="Meh",
+                    review_date=date.today(),
+                    sentiment_score=-0.3,
+                    sentiment_label="negative",
+                )
+            )
+
+        with app.test_client() as client:
+            response = client.get(f"/business/{business_id}/export?sentiment=negative")
+            assert response.status_code == 200
+            assert "text/csv" in response.content_type
+
+
+class TestSentimentSettingsValidation:
+    """Tests for sentiment settings validation."""
+
+    def test_rejects_weight_above_one(self, client):
+        """Should reject weight values above 1."""
+        response = client.post(
+            "/api/settings/sentiment",
+            json={"rating_weight": 1.5},
+            content_type="application/json",
+        )
+        assert response.status_code == 400
+        assert "between 0 and 1" in response.json["error"]
+
+    def test_rejects_negative_weight(self, client):
+        """Should reject negative weight values."""
+        response = client.post(
+            "/api/settings/sentiment",
+            json={"text_weight": -0.5},
+            content_type="application/json",
+        )
+        assert response.status_code == 400
+
+    def test_accepts_partial_update(self, client):
+        """Should update only provided fields."""
+        response = client.post(
+            "/api/settings/sentiment",
+            json={"threshold": 0.2},
+            content_type="application/json",
+        )
+        assert response.status_code == 200
+        assert response.json["sentiment"]["threshold"] == 0.2
+
+
+class TestApiSearchGooglePlaces:
+    """Tests for POST /api/search-google-places."""
+
+    def test_requires_query(self, client):
+        """Should require query parameter."""
+        response = client.post("/api/search-google-places", json={}, content_type="application/json")
+        assert response.status_code == 400
+
+    def test_returns_400_when_api_key_not_configured(self, app):
+        """Should return 400 when no Google Places API key is saved."""
+        from reviewhound.database import get_session
+
+        # Ensure no key exists (prior tests may have created one)
+        with app.app_context(), get_session() as session:
+            existing = session.query(APIConfig).filter(APIConfig.provider == "google_places").first()
+            if existing:
+                session.delete(existing)
+
+        with app.test_client() as client:
+            response = client.post(
+                "/api/search-google-places",
+                json={"query": "test business"},
+                content_type="application/json",
+            )
+            assert response.status_code == 400
+            assert "not configured" in response.json["error"]
+
+    @patch("reviewhound.web.routes.GooglePlacesScraper")
+    def test_returns_search_results(self, mock_scraper_class, app):
+        """Should return results when API key is configured."""
+        from reviewhound.database import get_session
+
+        with app.app_context(), get_session() as session:
+            existing = session.query(APIConfig).filter(APIConfig.provider == "google_places").first()
+            if not existing:
+                session.add(APIConfig(provider="google_places", api_key="test-key", enabled=True))
+
+        mock_instance = MagicMock()
+        mock_instance.search.return_value = [{"name": "Test Place", "place_id": "ChIJ123"}]
+        mock_scraper_class.return_value = mock_instance
+
+        with app.test_client() as client:
+            response = client.post(
+                "/api/search-google-places",
+                json={"query": "pizza", "location": "New York"},
+                content_type="application/json",
+            )
+            assert response.status_code == 200
+            assert response.json["success"] is True
+            assert len(response.json["results"]) == 1
+
+
+class TestApiSearchYelp:
+    """Tests for POST /api/search-yelp."""
+
+    def test_requires_query(self, client):
+        """Should require query parameter."""
+        response = client.post("/api/search-yelp", json={}, content_type="application/json")
+        assert response.status_code == 400
+
+    def test_returns_400_when_api_key_not_configured(self, app):
+        """Should return 400 when no Yelp API key is saved."""
+        from reviewhound.database import get_session
+
+        with app.app_context(), get_session() as session:
+            existing = session.query(APIConfig).filter(APIConfig.provider == "yelp_fusion").first()
+            if existing:
+                session.delete(existing)
+
+        with app.test_client() as client:
+            response = client.post(
+                "/api/search-yelp",
+                json={"query": "test business"},
+                content_type="application/json",
+            )
+            assert response.status_code == 400
+            assert "not configured" in response.json["error"]
+
+    @patch("reviewhound.web.routes.YelpAPIScraper")
+    def test_returns_search_results(self, mock_scraper_class, app):
+        """Should return results when API key is configured."""
+        from reviewhound.database import get_session
+
+        with app.app_context(), get_session() as session:
+            existing = session.query(APIConfig).filter(APIConfig.provider == "yelp_fusion").first()
+            if not existing:
+                session.add(APIConfig(provider="yelp_fusion", api_key="test-yelp-key", enabled=True))
+
+        mock_instance = MagicMock()
+        mock_instance.search.return_value = [{"name": "Test Biz", "business_id": "test-biz"}]
+        mock_scraper_class.return_value = mock_instance
+
+        with app.test_client() as client:
+            response = client.post(
+                "/api/search-yelp",
+                json={"query": "sushi"},
+                content_type="application/json",
+            )
+            assert response.status_code == 200
+            assert response.json["success"] is True
+            assert len(response.json["results"]) == 1
+
+
+class TestApiCreateAlertBusinessNotFound:
+    """Tests for create alert on nonexistent business."""
+
+    def test_returns_404_for_nonexistent_business(self, client):
+        """Should return 404 when business doesn't exist but email is provided."""
+        response = client.post(
+            "/api/business/9999/alerts",
+            json={"email": "test@example.com"},
+            content_type="application/json",
+        )
+        assert response.status_code == 404
+
+
+class TestApiUpdateAlertFields:
+    """Tests for updating alert email field."""
+
+    def test_updates_email(self, app_with_business):
+        """Should update alert email."""
+        app, business_id = app_with_business
+        with app.test_client() as client:
+            create_resp = client.post(
+                f"/api/business/{business_id}/alerts",
+                json={"email": "old@example.com"},
+                content_type="application/json",
+            )
+            alert_id = create_resp.json["alert"]["id"]
+
+            response = client.put(
+                f"/api/alerts/{alert_id}",
+                json={"email": "new@example.com"},
+                content_type="application/json",
+            )
+            assert response.status_code == 200
+            assert response.json["success"] is True
+
+
+class TestCreateBusinessValidation:
+    """Tests for additional validation branches in create business."""
+
+    def test_validates_address_length(self, client):
+        """Should reject overly long address."""
+        response = client.post(
+            "/api/business",
+            json={"name": "Test", "address": "x" * 501},
+            content_type="application/json",
+        )
+        assert response.status_code == 400
+        assert "length" in response.json["error"].lower()
+
+    def test_validates_bbb_url_format(self, client):
+        """Should validate BBB URL format."""
+        response = client.post(
+            "/api/business",
+            json={"name": "Test", "bbb_url": "not-a-url"},
+            content_type="application/json",
+        )
+        assert response.status_code == 400
+        assert "url" in response.json["error"].lower()
+
+    def test_validates_yelp_url_format(self, client):
+        """Should validate Yelp URL format."""
+        response = client.post(
+            "/api/business",
+            json={"name": "Test", "yelp_url": "not-a-url"},
+            content_type="application/json",
+        )
+        assert response.status_code == 400
+        assert "url" in response.json["error"].lower()
