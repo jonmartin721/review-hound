@@ -94,10 +94,31 @@ class APIConfig(Base):
 
     id = Column(Integer, primary_key=True)
     provider = Column(String(50), unique=True, nullable=False)  # 'google_places', 'yelp_fusion'
-    api_key = Column(String(500), nullable=False)
+    _api_key_encrypted = Column("api_key", String(500), nullable=False)
     enabled = Column(Boolean, default=True)
     created_at = Column(DateTime, default=utcnow)
     updated_at = Column(DateTime, default=utcnow, onupdate=utcnow)
+
+    @property
+    def api_key(self) -> str:
+        """Decrypt and return the API key."""
+        from reviewhound.crypto import decrypt
+
+        raw = self._api_key_encrypted
+        if not raw:
+            return ""
+        try:
+            return decrypt(raw)
+        except Exception:
+            # Fall back to plaintext for keys stored before encryption was added
+            return raw
+
+    @api_key.setter
+    def api_key(self, value: str) -> None:
+        """Encrypt and store the API key."""
+        from reviewhound.crypto import encrypt
+
+        self._api_key_encrypted = encrypt(value)
 
     @staticmethod
     def mask_key(key: str) -> str:
