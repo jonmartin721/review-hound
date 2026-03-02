@@ -1,3 +1,4 @@
+import logging
 import random
 import time
 from abc import ABC, abstractmethod
@@ -6,6 +7,11 @@ import requests
 from bs4 import BeautifulSoup
 
 from reviewhound.config import Config
+
+logger = logging.getLogger(__name__)
+
+# HTTP status codes that are safe to retry
+_RETRYABLE_STATUS_CODES = {429, 500, 502, 503, 504}
 
 USER_AGENTS = [
     "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",  # noqa: E501
@@ -19,6 +25,16 @@ USER_AGENTS = [
     "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.0.0 Safari/537.36",  # noqa: E501
     "Mozilla/5.0 (X11; Linux x86_64; rv:121.0) Gecko/20100101 Firefox/121.0",
 ]
+
+
+def _backoff_delay(attempt: int, base: float, maximum: float) -> float:
+    """Calculate exponential backoff delay with full jitter.
+
+    Uses the "full jitter" strategy: uniform random between 0 and the
+    exponential cap. This decorrelates retries across concurrent scrapers.
+    """
+    exp_delay = min(base * (2**attempt), maximum)
+    return random.uniform(0, exp_delay)
 
 
 class BaseScraper(ABC):
@@ -35,10 +51,79 @@ class BaseScraper(ABC):
         time.sleep(delay)
 
     def fetch(self, url: str) -> BeautifulSoup:
-        self.rate_limit()
-        response = self.session.get(url, headers=self.get_headers(), timeout=30)
-        response.raise_for_status()
-        return BeautifulSoup(response.text, "html.parser")
+        """Fetch a URL with retry on transient failures.
+
+        Retries on connection errors, timeouts, and 429/5xx status codes.
+        Uses exponential backoff with full jitter between retries.
+        Non-retryable errors (4xx except 429) raise immediately.
+        """
+        max_retries = Config.SCRAPE_MAX_RETRIES
+        last_exception: Exception | None = None
+
+        for attempt in range(max_retries):
+            self.rate_limit()
+            try:
+                response = self.session.get(url, headers=self.get_headers(), timeout=30)
+
+                if response.status_code in _RETRYABLE_STATUS_CODES:
+                    logger.warning(
+                        "Retryable HTTP %d from %s (source=%s, attempt=%d/%d)",
+                        response.status_code,
+                        url,
+                        self.source,
+                        attempt + 1,
+                        max_retries,
+                    )
+                    last_exception = requests.HTTPError(response=response)
+                    if attempt < max_retries - 1:
+                        delay = _backoff_delay(
+                            attempt, Config.SCRAPE_RETRY_BASE_DELAY, Config.SCRAPE_RETRY_MAX_DELAY
+                        )
+                        time.sleep(delay)
+                        continue
+                    # Final attempt — raise
+                    response.raise_for_status()
+
+                response.raise_for_status()
+                return BeautifulSoup(response.text, "html.parser")
+
+            except requests.ConnectionError as e:
+                last_exception = e
+                logger.warning(
+                    "Connection error fetching %s (source=%s, attempt=%d/%d): %s",
+                    url,
+                    self.source,
+                    attempt + 1,
+                    max_retries,
+                    e,
+                )
+            except requests.Timeout as e:
+                last_exception = e
+                logger.warning(
+                    "Timeout fetching %s (source=%s, attempt=%d/%d): %s",
+                    url,
+                    self.source,
+                    attempt + 1,
+                    max_retries,
+                    e,
+                )
+            except requests.HTTPError:
+                # Non-retryable HTTP errors (4xx except 429) — don't retry
+                raise
+
+            # Backoff before next retry
+            if attempt < max_retries - 1:
+                delay = _backoff_delay(attempt, Config.SCRAPE_RETRY_BASE_DELAY, Config.SCRAPE_RETRY_MAX_DELAY)
+                time.sleep(delay)
+
+        # All retries exhausted
+        logger.error(
+            "All %d attempts failed for %s (source=%s)",
+            max_retries,
+            url,
+            self.source,
+        )
+        raise last_exception  # type: ignore[misc]
 
     @abstractmethod
     def scrape(self, url: str) -> list[dict]:
