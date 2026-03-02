@@ -46,6 +46,7 @@ htmlcov/
 data/
 exports/
 *.log
+.encryption_key
 
 # Environment files
 .env

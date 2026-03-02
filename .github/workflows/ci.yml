@@ -36,6 +36,8 @@ jobs:
           ruff format --check .
 
       - name: Run tests
+        env:
+          ENCRYPTION_KEY: ci-test-encryption-key
         run: pytest --cov=reviewhound --cov-report=term-missing --cov-report=xml
 
       - name: Upload coverage
