@@ -2,7 +2,6 @@
 
 import os
 from datetime import date
-from pathlib import Path
 from unittest.mock import MagicMock, patch
 
 import pytest
@@ -12,7 +11,6 @@ from click.testing import CliRunner
 os.environ["DATABASE_PATH"] = ":memory:"
 
 from reviewhound.cli import cli
-from reviewhound.models import Business, Review, AlertConfig
 
 
 @pytest.fixture
@@ -69,10 +67,9 @@ class TestAddCommand:
         mock_get_session.return_value.__enter__.return_value = mock_session
         mock_scrape.return_value = (0, [])
 
-        result = runner.invoke(cli, [
-            "add", "New Business",
-            "--trustpilot", "https://trustpilot.com/review/test.com"
-        ])
+        result = runner.invoke(
+            cli, ["add", "New Business", "--trustpilot", "https://trustpilot.com/review/test.com"]
+        )
 
         assert result.exit_code == 0
         assert "Added business" in result.output
@@ -86,10 +83,9 @@ class TestAddCommand:
         mock_get_session.return_value.__enter__.return_value = mock_session
         mock_scrape.return_value = (5, [])
 
-        result = runner.invoke(cli, [
-            "add", "New Business",
-            "--trustpilot", "https://trustpilot.com/review/test.com"
-        ])
+        result = runner.invoke(
+            cli, ["add", "New Business", "--trustpilot", "https://trustpilot.com/review/test.com"]
+        )
 
         assert result.exit_code == 0
         assert "initial scrape" in result.output.lower()
@@ -161,7 +157,9 @@ class TestReviewsCommand:
         mock_session.query.return_value.get.return_value = mock_business
 
         # Empty reviews
-        mock_session.query.return_value.filter.return_value.order_by.return_value.limit.return_value.all.return_value = []
+        (
+            mock_session.query.return_value.filter.return_value.order_by.return_value.limit.return_value.all.return_value
+        ) = []
 
         result = runner.invoke(cli, ["reviews", "1"])
 
@@ -189,7 +187,9 @@ class TestReviewsCommand:
         mock_review.scraped_at = MagicMock()
         mock_review.scraped_at.date.return_value = date.today()
 
-        mock_session.query.return_value.filter.return_value.order_by.return_value.limit.return_value.all.return_value = [mock_review]
+        (
+            mock_session.query.return_value.filter.return_value.order_by.return_value.limit.return_value.all.return_value
+        ) = [mock_review]
 
         result = runner.invoke(cli, ["reviews", "1"])
 

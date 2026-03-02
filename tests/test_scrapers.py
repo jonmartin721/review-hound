@@ -1,14 +1,12 @@
 from datetime import date
-from unittest.mock import patch
 from pathlib import Path
+from unittest.mock import patch
 
-import pytest
 import responses
 
-from reviewhound.scrapers.trustpilot import TrustPilotScraper
 from reviewhound.scrapers.bbb import BBBScraper
+from reviewhound.scrapers.trustpilot import TrustPilotScraper
 from reviewhound.scrapers.yelp import YelpScraper
-
 
 FIXTURES_DIR = Path(__file__).parent / "fixtures"
 
@@ -208,11 +206,13 @@ class TestBBBScraper:
 
         with patch.object(BBBScraper, "rate_limit"):
             scraper = BBBScraper()
-            reviews = scraper.scrape("https://www.bbb.org/us/ca/test/profile/test-1234", include_complaints=True)
+            reviews = scraper.scrape(
+                "https://www.bbb.org/us/ca/test/profile/test-1234", include_complaints=True
+            )
 
         # 3 reviews + 1 complaint = 4 total
         assert len(reviews) == 4
-        complaint = [r for r in reviews if "complaint" in r["external_id"]][0]
+        complaint = next(r for r in reviews if "complaint" in r["external_id"])
         assert complaint["external_id"] == "bbb_complaint_001"
         assert complaint["rating"] == 1.0  # Complaints default to 1-star
 

@@ -1,13 +1,13 @@
 import json
 import logging
 import re
-from datetime import datetime, date
+from datetime import date, datetime
 from urllib.parse import quote_plus
 
 import requests
 
-from reviewhound.scrapers.base import BaseScraper
 from reviewhound.config import Config
+from reviewhound.scrapers.base import BaseScraper
 
 logger = logging.getLogger(__name__)
 
@@ -144,7 +144,7 @@ class BBBScraper(BaseScraper):
                     break
 
         # BBB reviews page with anchor to specific review
-        review_url = getattr(self, '_current_reviews_url', None)
+        review_url = getattr(self, "_current_reviews_url", None)
         if review_url and review_id:
             review_url = f"{review_url}#{review_id}"
 
@@ -215,7 +215,7 @@ class BBBScraper(BaseScraper):
             review_date = self._parse_iso_date(date_str)
 
         # BBB reviews page with anchor to specific review
-        review_url = getattr(self, '_current_reviews_url', None)
+        review_url = getattr(self, "_current_reviews_url", None)
         if review_url and review_id:
             review_url = f"{review_url}#{review_id}"
 
@@ -266,7 +266,7 @@ class BBBScraper(BaseScraper):
             review_date = self._parse_date(date_elem.get_text(strip=True))
 
         # BBB reviews page with anchor to specific review
-        review_url = getattr(self, '_current_reviews_url', None)
+        review_url = getattr(self, "_current_reviews_url", None)
         if review_url and review_id:
             review_url = f"{review_url}#{review_id}"
 
@@ -316,7 +316,7 @@ class BBBScraper(BaseScraper):
             complaint_date = self._parse_date(date_elem.get_text(strip=True))
 
         # BBB reviews page with anchor to specific complaint
-        review_url = getattr(self, '_current_reviews_url', None)
+        review_url = getattr(self, "_current_reviews_url", None)
         if review_url and complaint_id:
             review_url = f"{review_url}#{complaint_id}"
 
@@ -395,8 +395,21 @@ class BBBScraper(BaseScraper):
             match = re.search(r"BBB Rating:\s*([A-F][+-]?)", rating_text, re.IGNORECASE)
             if match:
                 grade = match.group(1).upper()
-                grade_map = {"A+": 5.0, "A": 4.7, "A-": 4.3, "B+": 4.0, "B": 3.7, "B-": 3.3,
-                             "C+": 3.0, "C": 2.7, "C-": 2.3, "D+": 2.0, "D": 1.7, "D-": 1.3, "F": 1.0}
+                grade_map = {
+                    "A+": 5.0,
+                    "A": 4.7,
+                    "A-": 4.3,
+                    "B+": 4.0,
+                    "B": 3.7,
+                    "B-": 3.3,
+                    "C+": 3.0,
+                    "C": 2.7,
+                    "C-": 2.3,
+                    "D+": 2.0,
+                    "D": 1.7,
+                    "D-": 1.3,
+                    "F": 1.0,
+                }
                 rating = grade_map.get(grade)
 
         # BBB doesn't show review count in search results

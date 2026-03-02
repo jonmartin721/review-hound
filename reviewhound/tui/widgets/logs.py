@@ -1,8 +1,10 @@
+from typing import ClassVar
+
 from textual.app import ComposeResult
-from textual.containers import Horizontal, Vertical
-from textual.widgets import Static, Button, Select, RichLog
-from textual.widget import Widget
+from textual.containers import Horizontal
 from textual.timer import Timer
+from textual.widget import Widget
+from textual.widgets import Button, RichLog, Select, Static
 
 from reviewhound.tui.services import DockerManager, ProcessManager, ProcessType
 
@@ -39,7 +41,7 @@ class LogsPanel(Widget):
     }
     """
 
-    SOURCES = [
+    SOURCES: ClassVar[list] = [
         ("All", "all"),
         ("Docker", "docker"),
         ("Web", "web"),

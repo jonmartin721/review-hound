@@ -1,5 +1,6 @@
 import os
 from pathlib import Path
+
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -40,12 +41,12 @@ class Config:
 
     # Sentiment Analysis Defaults
     SENTIMENT_RATING_WEIGHT = 0.7  # Weight for star rating (0.0-1.0)
-    SENTIMENT_TEXT_WEIGHT = 0.3   # Weight for text analysis (0.0-1.0)
-    SENTIMENT_THRESHOLD = 0.1     # Threshold for positive/negative classification
+    SENTIMENT_TEXT_WEIGHT = 0.3  # Weight for text analysis (0.0-1.0)
+    SENTIMENT_THRESHOLD = 0.1  # Threshold for positive/negative classification
 
     # Rating conversion (1-5 stars to -1.0 to 1.0 score)
-    RATING_SCALE_CENTER = 3       # Center point of 1-5 star scale
-    RATING_SCALE_DIVISOR = 2      # Divisor to normalize to -1.0 to 1.0
+    RATING_SCALE_CENTER = 3  # Center point of 1-5 star scale
+    RATING_SCALE_DIVISOR = 2  # Divisor to normalize to -1.0 to 1.0
 
     # Trend analysis
     TREND_STABILITY_THRESHOLD = 0.1  # Threshold for up/down/stable trend detection

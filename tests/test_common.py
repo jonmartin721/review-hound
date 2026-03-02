@@ -2,8 +2,6 @@
 
 from unittest.mock import MagicMock, patch
 
-import pytest
-
 from reviewhound.common import (
     build_scrapers_for_business,
     get_api_config,
@@ -64,7 +62,7 @@ class TestBuildScrapersForBusiness:
         scrapers = build_scrapers_for_business(db_session, business)
 
         assert len(scrapers) == 1
-        scraper, url = scrapers[0]
+        _scraper, url = scrapers[0]
         assert url == "https://trustpilot.com/review/test.com"
         mock_tp.assert_called_once()
 
@@ -82,7 +80,7 @@ class TestBuildScrapersForBusiness:
         scrapers = build_scrapers_for_business(db_session, business)
 
         assert len(scrapers) == 1
-        scraper, url = scrapers[0]
+        _scraper, url = scrapers[0]
         assert url == "https://bbb.org/test"
         mock_bbb.assert_called_once()
 
@@ -100,7 +98,7 @@ class TestBuildScrapersForBusiness:
         scrapers = build_scrapers_for_business(db_session, business)
 
         assert len(scrapers) == 1
-        scraper, url = scrapers[0]
+        _scraper, url = scrapers[0]
         assert url == "https://yelp.com/biz/test"
         mock_yelp.assert_called_once()
 

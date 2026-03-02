@@ -3,7 +3,7 @@ import sys
 from dataclasses import dataclass
 from enum import Enum
 from pathlib import Path
-from typing import Optional
+from typing import ClassVar
 
 
 class ProcessType(Enum):
@@ -14,23 +14,19 @@ class ProcessType(Enum):
 @dataclass
 class ProcessInfo:
     """Information about a managed process."""
+
     process_type: ProcessType
     running: bool
-    pid: Optional[int] = None
-    port: Optional[int] = None
+    pid: int | None = None
+    port: int | None = None
 
 
 class ProcessManager:
     """Manages Python subprocess operations."""
 
-    COMMANDS = {
-        ProcessType.WEB: [
-            sys.executable, "-m", "reviewhound", "web",
-            "--host", "0.0.0.0", "--port", "5000"
-        ],
-        ProcessType.SCHEDULER: [
-            sys.executable, "-m", "reviewhound", "watch"
-        ],
+    COMMANDS: ClassVar[dict] = {
+        ProcessType.WEB: [sys.executable, "-m", "reviewhound", "web", "--host", "0.0.0.0", "--port", "5000"],
+        ProcessType.SCHEDULER: [sys.executable, "-m", "reviewhound", "watch"],
     }
 
     def __init__(self):
@@ -118,7 +114,7 @@ class ProcessManager:
         """Check if a process is running."""
         return self.get_info(process_type).running
 
-    def read_output(self, process_type: ProcessType) -> Optional[str]:
+    def read_output(self, process_type: ProcessType) -> str | None:
         """Read a line of output from a process (non-blocking)."""
         if process_type not in self._processes:
             return None
@@ -134,8 +130,4 @@ class ProcessManager:
 
     def get_all_running(self) -> list[ProcessInfo]:
         """Get info for all running processes."""
-        return [
-            self.get_info(pt)
-            for pt in ProcessType
-            if self.is_running(pt)
-        ]
+        return [self.get_info(pt) for pt in ProcessType if self.is_running(pt)]

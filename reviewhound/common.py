@@ -7,8 +7,11 @@ import logging
 
 from reviewhound.models import APIConfig
 from reviewhound.scrapers import (
-    TrustPilotScraper, BBBScraper, YelpScraper,
-    GooglePlacesScraper, YelpAPIScraper
+    BBBScraper,
+    GooglePlacesScraper,
+    TrustPilotScraper,
+    YelpAPIScraper,
+    YelpScraper,
 )
 from reviewhound.services import run_scraper_for_business
 
@@ -17,10 +20,9 @@ logger = logging.getLogger(__name__)
 
 def get_api_config(session, provider: str):
     """Get API config for a provider if it exists and is enabled."""
-    return session.query(APIConfig).filter(
-        APIConfig.provider == provider,
-        APIConfig.enabled == True
-    ).first()
+    return (
+        session.query(APIConfig).filter(APIConfig.provider == provider, APIConfig.enabled.is_(True)).first()
+    )
 
 
 def build_scrapers_for_business(session, business) -> list[tuple]:
@@ -31,20 +33,14 @@ def build_scrapers_for_business(session, business) -> list[tuple]:
     scrapers = []
 
     # Google Places API (no web scraping fallback)
-    google_config = get_api_config(session, 'google_places')
+    google_config = get_api_config(session, "google_places")
     if google_config and business.google_place_id:
-        scrapers.append((
-            GooglePlacesScraper(google_config.api_key),
-            business.google_place_id
-        ))
+        scrapers.append((GooglePlacesScraper(google_config.api_key), business.google_place_id))
 
     # Yelp: prefer API, fall back to web scraping
-    yelp_config = get_api_config(session, 'yelp_fusion')
+    yelp_config = get_api_config(session, "yelp_fusion")
     if yelp_config and business.yelp_business_id:
-        scrapers.append((
-            YelpAPIScraper(yelp_config.api_key),
-            business.yelp_business_id
-        ))
+        scrapers.append((YelpAPIScraper(yelp_config.api_key), business.yelp_business_id))
     elif business.yelp_url:
         scrapers.append((YelpScraper(), business.yelp_url))
 
@@ -75,7 +71,7 @@ def scrape_business_sources(session, business, send_alerts: bool = False) -> tup
 
     for scraper, identifier in scrapers:
         try:
-            log, new_count = run_scraper_for_business(
+            _log, new_count = run_scraper_for_business(
                 session, business, scraper, identifier, send_alerts=send_alerts
             )
             total_new += new_count

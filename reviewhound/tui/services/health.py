@@ -1,16 +1,16 @@
 from dataclasses import dataclass
 from datetime import datetime
-from typing import Optional
 
 import requests
 
 from reviewhound.database import get_session
-from reviewhound.models import Review, Business
+from reviewhound.models import Business, Review
 
 
 @dataclass
 class HealthStatus:
     """Status of a health check."""
+
     name: str
     healthy: bool
     message: str

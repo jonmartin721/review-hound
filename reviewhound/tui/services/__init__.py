@@ -1,13 +1,13 @@
-from reviewhound.tui.services.docker import DockerManager, ContainerStatus
-from reviewhound.tui.services.process import ProcessManager, ProcessType, ProcessInfo
+from reviewhound.tui.services.docker import ContainerStatus, DockerManager
 from reviewhound.tui.services.health import HealthChecker, HealthStatus
+from reviewhound.tui.services.process import ProcessInfo, ProcessManager, ProcessType
 
 __all__ = [
-    "DockerManager",
     "ContainerStatus",
-    "ProcessManager",
-    "ProcessType",
-    "ProcessInfo",
+    "DockerManager",
     "HealthChecker",
     "HealthStatus",
+    "ProcessInfo",
+    "ProcessManager",
+    "ProcessType",
 ]

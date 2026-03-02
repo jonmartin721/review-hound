@@ -2,7 +2,6 @@
 
 from unittest.mock import MagicMock, patch
 
-import pytest
 from apscheduler.schedulers.background import BackgroundScheduler
 from apscheduler.schedulers.blocking import BlockingScheduler
 
@@ -88,9 +87,7 @@ class TestScrapeBusinessJob:
 
         _scrape_business_job(mock_session, mock_business)
 
-        mock_run.assert_called_once_with(
-            mock_session, mock_business, mock_scraper, "https://example.com"
-        )
+        mock_run.assert_called_once_with(mock_session, mock_business, mock_scraper, "https://example.com")
 
     @patch("reviewhound.scheduler.build_scrapers_for_business")
     @patch("reviewhound.scheduler.run_scraper_for_business")

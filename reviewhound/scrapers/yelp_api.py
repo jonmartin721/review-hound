@@ -1,5 +1,6 @@
+import contextlib
 import logging
-from datetime import datetime, date
+from datetime import datetime
 
 import requests
 
@@ -49,17 +50,13 @@ class YelpAPIScraper(BaseScraper):
         """Parse a single review from Yelp Fusion API response."""
         review_date = None
         if data.get("time_created"):
-            try:
-                review_date = datetime.strptime(
-                    data["time_created"], "%Y-%m-%d %H:%M:%S"
-                ).date()
-            except ValueError:
-                pass
+            with contextlib.suppress(ValueError):
+                review_date = datetime.strptime(data["time_created"], "%Y-%m-%d %H:%M:%S").date()
 
         # Yelp API may include review URL, or construct one
         review_url = data.get("url")
         if not review_url:
-            business_id = getattr(self, '_current_business_id', None)
+            business_id = getattr(self, "_current_business_id", None)
             review_id = data.get("id")
             if business_id and review_id:
                 review_url = f"https://www.yelp.com/biz/{business_id}?hrid={review_id}"
@@ -106,15 +103,17 @@ class YelpAPIScraper(BaseScraper):
                 if loc.get("state"):
                     location_parts.append(loc["state"])
 
-                results.append({
-                    "name": biz.get("name", ""),
-                    "address": ", ".join(location_parts),
-                    "rating": biz.get("rating"),
-                    "review_count": biz.get("review_count", 0),
-                    "business_id": biz.get("id"),
-                    "url": biz.get("url"),
-                    "thumbnail_url": biz.get("image_url"),
-                })
+                results.append(
+                    {
+                        "name": biz.get("name", ""),
+                        "address": ", ".join(location_parts),
+                        "rating": biz.get("rating"),
+                        "review_count": biz.get("review_count", 0),
+                        "business_id": biz.get("id"),
+                        "url": biz.get("url"),
+                        "thumbnail_url": biz.get("image_url"),
+                    }
+                )
 
             return results
 

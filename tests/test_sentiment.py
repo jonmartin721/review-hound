@@ -1,5 +1,3 @@
-import pytest
-
 from reviewhound.analysis.sentiment import analyze_review
 
 

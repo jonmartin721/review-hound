@@ -1,5 +1,5 @@
 import os
-from datetime import date, datetime, timezone
+from datetime import date
 
 import pytest
 from click.testing import CliRunner
@@ -12,6 +12,7 @@ os.environ.setdefault("DATABASE_PATH", ":memory:")
 @pytest.fixture
 def db_engine():
     from reviewhound.models import Base
+
     engine = create_engine("sqlite:///:memory:")
     Base.metadata.create_all(engine)
     yield engine
@@ -30,6 +31,7 @@ def db_session(db_engine):
 def sample_business(db_session):
     """Create a sample business with all URL fields populated."""
     from reviewhound.models import Business
+
     business = Business(
         name="Test Business",
         address="123 Main St, Test City, TC 12345",
@@ -48,6 +50,7 @@ def sample_business(db_session):
 def sample_reviews(db_session, sample_business):
     """Create sample reviews with various sentiments and sources."""
     from reviewhound.models import Review
+
     reviews = [
         Review(
             business_id=sample_business.id,
@@ -92,6 +95,7 @@ def sample_reviews(db_session, sample_business):
 def sample_alert_config(db_session, sample_business):
     """Create a sample alert configuration."""
     from reviewhound.models import AlertConfig
+
     alert = AlertConfig(
         business_id=sample_business.id,
         email="test@example.com",
@@ -108,6 +112,7 @@ def sample_alert_config(db_session, sample_business):
 def sample_api_configs(db_session):
     """Create sample API configurations for Google Places and Yelp."""
     from reviewhound.models import APIConfig
+
     configs = [
         APIConfig(provider="google_places", api_key="test-google-api-key-12345", enabled=True),
         APIConfig(provider="yelp_fusion", api_key="test-yelp-api-key-67890", enabled=True),
@@ -121,6 +126,7 @@ def sample_api_configs(db_session):
 def sample_sentiment_config(db_session):
     """Create a custom sentiment configuration."""
     from reviewhound.models import SentimentConfig
+
     config = SentimentConfig(
         rating_weight=0.6,
         text_weight=0.4,
@@ -141,6 +147,7 @@ def cli_runner():
 def mock_scraper():
     """Create a mock scraper for testing."""
     from unittest.mock import MagicMock
+
     scraper = MagicMock()
     scraper.source = "test_source"
     scraper.scrape.return_value = [
