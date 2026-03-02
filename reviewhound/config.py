@@ -16,6 +16,9 @@ class Config:
     REQUEST_DELAY_MIN = float(os.getenv("REQUEST_DELAY_MIN", "2.0"))
     REQUEST_DELAY_MAX = float(os.getenv("REQUEST_DELAY_MAX", "4.0"))
     MAX_PAGES_PER_SOURCE = int(os.getenv("MAX_PAGES_PER_SOURCE", "3"))
+    SCRAPE_MAX_RETRIES = int(os.getenv("SCRAPE_MAX_RETRIES", "3"))
+    SCRAPE_RETRY_BASE_DELAY = float(os.getenv("SCRAPE_RETRY_BASE_DELAY", "1.0"))
+    SCRAPE_RETRY_MAX_DELAY = float(os.getenv("SCRAPE_RETRY_MAX_DELAY", "30.0"))
 
     # Email Alerts
     SMTP_HOST = os.getenv("SMTP_HOST", "smtp.gmail.com")
