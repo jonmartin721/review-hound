@@ -1,8 +1,6 @@
-from unittest.mock import patch, MagicMock
+from unittest.mock import MagicMock, patch
 
-import pytest
-
-from reviewhound.tui.services.health import HealthChecker, HealthStatus
+from reviewhound.tui.services.health import HealthChecker
 
 
 class TestHealthChecker:
@@ -63,9 +61,11 @@ class TestHealthChecker:
         mock_session.__exit__ = MagicMock(return_value=False)
         mock_session.query.return_value.count.return_value = 10
 
-        with patch("requests.get", return_value=mock_response):
-            with patch("reviewhound.tui.services.health.get_session", return_value=mock_session):
-                all_status = checker.check_all()
+        with (
+            patch("requests.get", return_value=mock_response),
+            patch("reviewhound.tui.services.health.get_session", return_value=mock_session),
+        ):
+            all_status = checker.check_all()
 
         assert "web" in all_status
         assert "database" in all_status

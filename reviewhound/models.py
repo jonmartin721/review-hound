@@ -1,7 +1,16 @@
-from datetime import datetime, date, timezone
+from datetime import UTC, datetime
+
 from sqlalchemy import (
-    Column, Integer, String, Float, Text, DateTime, Date, Boolean,
-    ForeignKey, UniqueConstraint
+    Boolean,
+    Column,
+    Date,
+    DateTime,
+    Float,
+    ForeignKey,
+    Integer,
+    String,
+    Text,
+    UniqueConstraint,
 )
 from sqlalchemy.orm import declarative_base, relationship
 
@@ -9,7 +18,7 @@ Base = declarative_base()
 
 
 def utcnow():
-    return datetime.now(timezone.utc)
+    return datetime.now(UTC)
 
 
 class Business(Base):
@@ -34,9 +43,7 @@ class Business(Base):
 
 class Review(Base):
     __tablename__ = "reviews"
-    __table_args__ = (
-        UniqueConstraint("source", "external_id", name="uq_source_external_id"),
-    )
+    __table_args__ = (UniqueConstraint("source", "external_id", name="uq_source_external_id"),)
 
     id = Column(Integer, primary_key=True)
     business_id = Column(Integer, ForeignKey("businesses.id"), nullable=False)

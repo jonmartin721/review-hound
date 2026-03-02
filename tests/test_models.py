@@ -1,8 +1,9 @@
 from datetime import date
+
 import pytest
 from sqlalchemy.exc import IntegrityError
 
-from reviewhound.models import Business, Review, ScrapeLog, AlertConfig, APIConfig, utcnow
+from reviewhound.models import AlertConfig, APIConfig, Business, Review, ScrapeLog, utcnow
 
 
 class TestBusiness:

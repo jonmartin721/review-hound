@@ -1,15 +1,15 @@
 from textual.app import ComposeResult
-from textual.containers import Vertical, Horizontal, Container
-from textual.widgets import Static, Button, Rule
-from textual.widget import Widget
+from textual.containers import Container, Horizontal
 from textual.reactive import reactive
 from textual.timer import Timer
+from textual.widget import Widget
+from textual.widgets import Button, Static
 
 from reviewhound.tui.services import (
-    DockerManager,
-    ProcessManager,
-    HealthChecker,
     ContainerStatus,
+    DockerManager,
+    HealthChecker,
+    ProcessManager,
     ProcessType,
 )
 
@@ -69,7 +69,9 @@ class ServiceRow(Horizontal):
         yield Static(self.service_name, classes="name")
         yield Static(state, classes="state")
         yield Static(self._details, classes="details")
-        yield Button(button_label, id=f"btn-{self.service_type}", variant="primary" if not self._running else "warning")
+        yield Button(
+            button_label, id=f"btn-{self.service_type}", variant="primary" if not self._running else "warning"
+        )
 
 
 class ServicesPanel(Widget):

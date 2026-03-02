@@ -3,10 +3,10 @@ from datetime import datetime
 from apscheduler.schedulers.background import BackgroundScheduler
 from apscheduler.schedulers.blocking import BlockingScheduler
 
+from reviewhound.common import build_scrapers_for_business
 from reviewhound.config import Config
 from reviewhound.database import get_session
 from reviewhound.models import Business
-from reviewhound.common import build_scrapers_for_business
 from reviewhound.services import run_scraper_for_business
 
 
@@ -36,7 +36,7 @@ def _scrape_business_job(session, business):
     for scraper, identifier in scrapers:
         source = scraper.source
         try:
-            log, new_count = run_scraper_for_business(session, business, scraper, identifier)
+            _log, new_count = run_scraper_for_business(session, business, scraper, identifier)
             print(f"[Scheduler]   {source}: {new_count} new reviews")
         except Exception as e:
             print(f"[Scheduler]   {source}: Failed - {e}")
@@ -49,19 +49,16 @@ def create_scheduler(blocking: bool = True) -> BackgroundScheduler | BlockingSch
         blocking: If True, returns BlockingScheduler (for standalone watch command).
                   If False, returns BackgroundScheduler (for web server integration).
     """
-    if blocking:
-        scheduler = BlockingScheduler()
-    else:
-        scheduler = BackgroundScheduler()
+    scheduler = BlockingScheduler() if blocking else BackgroundScheduler()
 
     # Add the scrape job
     scheduler.add_job(
         scrape_all_businesses,
-        'interval',
+        "interval",
         hours=Config.SCRAPE_INTERVAL_HOURS,
-        id='scrape_all',
-        name='Scrape all businesses',
-        next_run_time=datetime.now()  # Run immediately on start
+        id="scrape_all",
+        name="Scrape all businesses",
+        next_run_time=datetime.now(),  # Run immediately on start
     )
 
     return scheduler

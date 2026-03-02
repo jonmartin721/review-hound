@@ -5,12 +5,12 @@ import click
 from rich.console import Console
 from rich.table import Table
 
-from reviewhound.config import Config
-from reviewhound.database import init_db, get_session
-from reviewhound.models import Business, Review, ScrapeLog, AlertConfig
-from reviewhound.scrapers import TrustPilotScraper, BBBScraper, YelpScraper
-from reviewhound.services import run_scraper_for_business, calculate_review_stats
 from reviewhound.common import scrape_business_sources
+from reviewhound.config import Config
+from reviewhound.database import get_session, init_db
+from reviewhound.models import AlertConfig, Business, Review
+from reviewhound.scrapers import BBBScraper, TrustPilotScraper, YelpScraper
+from reviewhound.services import calculate_review_stats, run_scraper_for_business
 
 console = Console()
 
@@ -96,9 +96,7 @@ def scrape(identifier, scrape_all):
             try:
                 business = session.query(Business).get(int(identifier))
             except ValueError:
-                business = session.query(Business).filter(
-                    Business.name.ilike(f"%{identifier}%")
-                ).first()
+                business = session.query(Business).filter(Business.name.ilike(f"%{identifier}%")).first()
 
             if not business:
                 console.print(f"[red]Business not found:[/red] {identifier}")
@@ -138,7 +136,7 @@ def _run_scraper(session, business: Business, scraper, url: str):
     console.print(f"  [blue]{source}:[/blue] ", end="")
 
     try:
-        log, new_count = run_scraper_for_business(session, business, scraper, url)
+        _log, new_count = run_scraper_for_business(session, business, scraper, url)
         console.print(f"[green]{new_count} new reviews[/green]")
     except Exception as e:
         console.print(f"[red]Failed: {e}[/red]")
@@ -175,10 +173,21 @@ def reviews(business_id, limit, source, sentiment):
 
         preview_len = Config.REVIEW_TEXT_PREVIEW_LENGTH
         for r in reviews:
-            sentiment_color = {"positive": "green", "negative": "red", "neutral": "yellow"}.get(r.sentiment_label, "white")
-            console.print(f"[cyan]{r.source}[/cyan] | [bold]{r.author_name or 'Anonymous'}[/bold] | ★{r.rating or '-'}")
-            console.print(f"[{sentiment_color}]{r.sentiment_label}[/{sentiment_color}] ({r.sentiment_score:.2f})" if r.sentiment_score else "")
-            console.print(f"{r.text[:preview_len]}..." if r.text and len(r.text) > preview_len else r.text or "")
+            sentiment_color = {"positive": "green", "negative": "red", "neutral": "yellow"}.get(
+                r.sentiment_label, "white"
+            )
+            author = r.author_name or "Anonymous"
+            console.print(f"[cyan]{r.source}[/cyan] | [bold]{author}[/bold] | ★{r.rating or '-'}")
+            if r.sentiment_score:
+                console.print(
+                    f"[{sentiment_color}]{r.sentiment_label}[/{sentiment_color}] ({r.sentiment_score:.2f})"
+                )
+            else:
+                console.print("")
+            if r.text and len(r.text) > preview_len:
+                console.print(f"{r.text[:preview_len]}...")
+            else:
+                console.print(r.text or "")
             console.print(f"[dim]{r.review_date or r.scraped_at.date()}[/dim]")
             console.print("─" * 60)
 
@@ -233,7 +242,7 @@ def export(business_id, output):
         reviews = session.query(Review).filter(Review.business_id == business_id).all()
 
         if not reviews:
-            console.print(f"[yellow]No reviews to export[/yellow]")
+            console.print("[yellow]No reviews to export[/yellow]")
             return
 
         if not output:
@@ -244,18 +253,22 @@ def export(business_id, output):
 
         with open(output, "w", newline="", encoding="utf-8") as f:
             writer = csv.writer(f)
-            writer.writerow(["source", "author", "rating", "text", "date", "sentiment_score", "sentiment_label"])
+            writer.writerow(
+                ["source", "author", "rating", "text", "date", "sentiment_score", "sentiment_label"]
+            )
 
             for r in reviews:
-                writer.writerow([
-                    r.source,
-                    r.author_name,
-                    r.rating,
-                    r.text,
-                    r.review_date,
-                    r.sentiment_score,
-                    r.sentiment_label,
-                ])
+                writer.writerow(
+                    [
+                        r.source,
+                        r.author_name,
+                        r.rating,
+                        r.text,
+                        r.review_date,
+                        r.sentiment_score,
+                        r.sentiment_label,
+                    ]
+                )
 
         console.print(f"[green]Exported {len(reviews)} reviews to {output}[/green]")
 
@@ -274,10 +287,11 @@ def alert(business_id, email, threshold, disable):
             return
 
         # Check if config already exists
-        existing = session.query(AlertConfig).filter(
-            AlertConfig.business_id == business_id,
-            AlertConfig.email == email
-        ).first()
+        existing = (
+            session.query(AlertConfig)
+            .filter(AlertConfig.business_id == business_id, AlertConfig.email == email)
+            .first()
+        )
 
         if existing:
             existing.enabled = not disable
@@ -292,12 +306,14 @@ def alert(business_id, email, threshold, disable):
                 email=email,
                 alert_on_negative=True,
                 negative_threshold=threshold,
-                enabled=True
+                enabled=True,
             )
             session.add(config)
             action = "Created"
 
-        console.print(f"[green]{action} alert config:[/green] {business.name} → {email} (threshold: {threshold}★)")
+        console.print(
+            f"[green]{action} alert config:[/green] {business.name} → {email} (threshold: {threshold}★)"
+        )
 
 
 @cli.command("alerts")
@@ -327,7 +343,7 @@ def list_alerts(business_id):
                 business.name if business else f"ID:{c.business_id}",
                 c.email,
                 f"≤{c.negative_threshold}★",
-                "✓" if c.enabled else "✗"
+                "✓" if c.enabled else "✗",
             )
 
         console.print(table)
@@ -352,6 +368,7 @@ def watch(interval):
 def tui():
     """Launch the TUI dashboard."""
     from reviewhound.tui import ReviewHoundApp
+
     app = ReviewHoundApp()
     app.run()
 
@@ -369,6 +386,7 @@ def web(host, port, debug, with_scheduler):
 
     if with_scheduler:
         from reviewhound.scheduler import create_scheduler
+
         scheduler = create_scheduler(blocking=False)
         scheduler.start()
         console.print(f"[green]Scheduler started (every {Config.SCRAPE_INTERVAL_HOURS} hours)[/green]")

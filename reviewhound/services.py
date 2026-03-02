@@ -1,12 +1,12 @@
 """Shared business logic for Review Hound."""
 
 import logging
-from datetime import datetime, timezone, timedelta
+from datetime import UTC, datetime, timedelta
 
-from reviewhound.config import Config
-from reviewhound.models import Review, ScrapeLog, Business, SentimentConfig
-from reviewhound.analysis import analyze_review
 from reviewhound.alerts import check_and_send_alerts
+from reviewhound.analysis import analyze_review
+from reviewhound.config import Config
+from reviewhound.models import Business, Review, ScrapeLog, SentimentConfig
 
 logger = logging.getLogger(__name__)
 
@@ -14,7 +14,7 @@ logger = logging.getLogger(__name__)
 def _normalize_review_date(review) -> datetime:
     """Get a datetime for a review, using review_date or scraped_at as fallback."""
     if review.review_date:
-        return datetime.combine(review.review_date, datetime.min.time(), tzinfo=timezone.utc)
+        return datetime.combine(review.review_date, datetime.min.time(), tzinfo=UTC)
     return review.scraped_at
 
 
@@ -53,10 +53,14 @@ def _process_reviews(
     rating_weight, text_weight, threshold = get_sentiment_weights(session)
 
     for review_data in reviews_data:
-        existing = session.query(Review).filter(
-            Review.source == source,
-            Review.external_id == review_data["external_id"],
-        ).first()
+        existing = (
+            session.query(Review)
+            .filter(
+                Review.source == source,
+                Review.external_id == review_data["external_id"],
+            )
+            .first()
+        )
 
         if existing:
             continue
@@ -115,7 +119,7 @@ def save_scraped_reviews(
         business_id=business.id,
         source=source,
         status="running",
-        started_at=datetime.now(timezone.utc),
+        started_at=datetime.now(UTC),
     )
     session.add(log)
     session.flush()
@@ -124,7 +128,7 @@ def save_scraped_reviews(
 
     log.status = "success"
     log.reviews_found = new_count
-    log.completed_at = datetime.now(timezone.utc)
+    log.completed_at = datetime.now(UTC)
 
     return log, new_count
 
@@ -154,7 +158,7 @@ def run_scraper_for_business(
         business_id=business.id,
         source=source,
         status="running",
-        started_at=datetime.now(timezone.utc),
+        started_at=datetime.now(UTC),
     )
     session.add(log)
     session.flush()
@@ -165,7 +169,7 @@ def run_scraper_for_business(
 
         log.status = "success"
         log.reviews_found = new_count
-        log.completed_at = datetime.now(timezone.utc)
+        log.completed_at = datetime.now(UTC)
 
         return log, new_count
 
@@ -173,7 +177,7 @@ def run_scraper_for_business(
         logger.exception(f"Scrape failed for {business.name} from {source}: {e}")
         log.status = "failed"
         log.error_message = str(e)
-        log.completed_at = datetime.now(timezone.utc)
+        log.completed_at = datetime.now(UTC)
         raise
 
 
@@ -190,7 +194,7 @@ def calculate_review_stats(reviews: list[Review]) -> dict:
         recent_negative_count
     """
     total = len(reviews)
-    now = datetime.now(timezone.utc)
+    now = datetime.now(UTC)
     seven_days_ago = now - timedelta(days=7)
     thirty_days_ago = now - timedelta(days=30)
     sixty_days_ago = now - timedelta(days=60)
@@ -226,8 +230,9 @@ def calculate_review_stats(reviews: list[Review]) -> dict:
 
     # Calculate trend: compare last 30 days vs previous 30 days
     recent_rated = [r for r in rated_reviews if _normalize_review_date(r) >= thirty_days_ago]
-    previous_rated = [r for r in rated_reviews
-                      if sixty_days_ago <= _normalize_review_date(r) < thirty_days_ago]
+    previous_rated = [
+        r for r in rated_reviews if sixty_days_ago <= _normalize_review_date(r) < thirty_days_ago
+    ]
 
     trend_direction = None
     trend_delta = 0.0
@@ -247,10 +252,7 @@ def calculate_review_stats(reviews: list[Review]) -> dict:
     recent_count = len(recent_reviews)
 
     # Most recent review date
-    if reviews:
-        last_review_date = max(_normalize_review_date(r) for r in reviews)
-    else:
-        last_review_date = None
+    last_review_date = max(_normalize_review_date(r) for r in reviews) if reviews else None
 
     # Negative reviews in last 7 days
     recent_negative_count = len([r for r in recent_reviews if r.sentiment_label == "negative"])

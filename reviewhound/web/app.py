@@ -1,6 +1,8 @@
 from flask import Flask
+
 from reviewhound.config import Config
 from reviewhound.database import init_db
+
 
 def create_app():
     app = Flask(__name__)
@@ -10,6 +12,7 @@ def create_app():
         init_db()
 
     from reviewhound.web import routes
+
     app.register_blueprint(routes.bp)
 
     return app
