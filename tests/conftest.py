@@ -9,6 +9,16 @@ from sqlalchemy.orm import sessionmaker
 os.environ.setdefault("DATABASE_PATH", ":memory:")
 
 
+@pytest.fixture(autouse=True)
+def _reset_fernet():
+    """Reset Fernet encryption state between tests to prevent leakage."""
+    from reviewhound.crypto import reset_fernet
+
+    reset_fernet()
+    yield
+    reset_fernet()
+
+
 @pytest.fixture
 def db_engine():
     from reviewhound.models import Base
