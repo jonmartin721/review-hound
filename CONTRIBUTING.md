@@ -6,20 +6,24 @@ Thanks for your interest in contributing! This project welcomes contributions of
 
 1. Fork the repository
 2. Clone your fork locally
-3. Install dependencies with `uv sync`
+3. Install dependencies with `pip install -e ".[dev]"`
 4. Create a branch for your changes
 
 ## Development Setup
 
 ```bash
 # Install dependencies
-uv sync
+pip install -e ".[dev]"
+
+# Run linting
+ruff check .
+ruff format --check .
 
 # Run tests
 pytest
 
 # Run the development server
-python -m reviewhound.cli web --reload
+python -m reviewhound web --debug
 ```
 
 ## Making Changes
@@ -27,6 +31,7 @@ python -m reviewhound.cli web --reload
 - Keep changes focused and atomic
 - Write tests for new functionality
 - Ensure existing tests pass before submitting
+- Ensure `ruff check` and `ruff format --check` pass
 - Follow the existing code style
 
 ## Submitting a Pull Request
