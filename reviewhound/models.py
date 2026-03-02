@@ -1,3 +1,4 @@
+import logging
 from datetime import UTC, datetime
 
 from sqlalchemy import (
@@ -13,6 +14,8 @@ from sqlalchemy import (
     UniqueConstraint,
 )
 from sqlalchemy.orm import declarative_base, relationship
+
+logger = logging.getLogger(__name__)
 
 Base = declarative_base()
 
@@ -102,16 +105,26 @@ class APIConfig(Base):
     @property
     def api_key(self) -> str:
         """Decrypt and return the API key."""
+        from cryptography.fernet import InvalidToken
+
         from reviewhound.crypto import decrypt
 
         raw = self._api_key_encrypted
         if not raw:
             return ""
+
+        # Fernet tokens start with 'gAAAAA' — anything else is pre-encryption plaintext
+        if not raw.startswith("gAAAAA"):
+            return raw
+
         try:
             return decrypt(raw)
-        except Exception:
-            # Fall back to plaintext for keys stored before encryption was added
-            return raw
+        except InvalidToken:
+            logger.error(
+                "Decryption failed for provider=%s — encryption key may have changed",
+                self.provider,
+            )
+            raise
 
     @api_key.setter
     def api_key(self, value: str) -> None:
