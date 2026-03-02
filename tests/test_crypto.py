@@ -234,3 +234,59 @@ class TestAPIConfigEncryption:
         reset_fernet()
         with patch.dict(os.environ, {"ENCRYPTION_KEY": "key-b"}), pytest.raises(InvalidToken):
             _ = config.api_key
+
+
+class TestCryptoErrorPaths:
+    """Tests for error handling in key loading."""
+
+    def test_oserror_on_key_read_raises(self, tmp_path, monkeypatch):
+        """OSError reading key file should raise with actionable message."""
+        monkeypatch.delenv("ENCRYPTION_KEY", raising=False)
+        key_path = tmp_path / ".encryption_key"
+        key_path.write_bytes(b"some-key-data")
+
+        monkeypatch.setattr("reviewhound.crypto.Config.DATABASE_PATH", str(tmp_path / "test.db"))
+
+        # Patch read_bytes to raise OSError
+        with (
+            patch.object(Path, "read_bytes", side_effect=OSError("Permission denied")),
+            pytest.raises(OSError, match="Cannot read encryption key file"),
+        ):
+            get_fernet()
+
+    def test_oserror_on_key_write_still_returns_key(self, tmp_path, monkeypatch):
+        """OSError writing key should log warning but still return valid key."""
+        monkeypatch.delenv("ENCRYPTION_KEY", raising=False)
+        # Key file doesn't exist, so it will try to generate and write
+        monkeypatch.setattr("reviewhound.crypto.Config.DATABASE_PATH", str(tmp_path / "test.db"))
+
+        # Patch os.open to fail when writing key
+        with patch("os.open", side_effect=OSError("Read-only filesystem")):
+            # Should NOT raise - graceful degradation
+            f = get_fernet()
+            # Should still return a working Fernet instance
+            ct = f.encrypt(b"test")
+            assert f.decrypt(ct) == b"test"
+
+    def test_invalid_key_from_file_raises(self, tmp_path, monkeypatch):
+        """Invalid key in file should raise ValueError with key file source."""
+        monkeypatch.delenv("ENCRYPTION_KEY", raising=False)
+        key_path = tmp_path / ".encryption_key"
+        key_path.write_bytes(b"not-a-valid-fernet-key")
+
+        monkeypatch.setattr("reviewhound.crypto.Config.DATABASE_PATH", str(tmp_path / "test.db"))
+
+        with pytest.raises(ValueError, match="key file at"):
+            get_fernet()
+
+    def test_invalid_key_from_env_raises(self, tmp_path, monkeypatch):
+        """Invalid derived key should raise ValueError mentioning env var."""
+        # This test needs a PBKDF2 derivation to produce an invalid Fernet key
+        # We patch _derive_key to return garbage
+        monkeypatch.setenv("ENCRYPTION_KEY", "some-secret")
+
+        with (
+            patch("reviewhound.crypto._derive_key", return_value=b"not-valid-fernet"),
+            pytest.raises(ValueError, match="ENCRYPTION_KEY env var"),
+        ):
+            get_fernet()
