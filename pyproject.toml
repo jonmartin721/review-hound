@@ -68,6 +68,7 @@ include = ["reviewhound*"]
 exclude = ["tests*", "scripts*"]
 
 [tool.setuptools.package-data]
+reviewhound = ["py.typed"]
 "reviewhound.web" = ["templates/*.html", "static/*.css", "static/*.js"]
 
 [tool.ruff]
