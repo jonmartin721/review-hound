@@ -1,3 +1,4 @@
+import logging
 from datetime import UTC, datetime
 
 from sqlalchemy import (
@@ -13,6 +14,8 @@ from sqlalchemy import (
     UniqueConstraint,
 )
 from sqlalchemy.orm import declarative_base, relationship
+
+logger = logging.getLogger(__name__)
 
 Base = declarative_base()
 
@@ -94,10 +97,41 @@ class APIConfig(Base):
 
     id = Column(Integer, primary_key=True)
     provider = Column(String(50), unique=True, nullable=False)  # 'google_places', 'yelp_fusion'
-    api_key = Column(String(500), nullable=False)
+    _api_key_encrypted = Column("api_key", String(500), nullable=False)
     enabled = Column(Boolean, default=True)
     created_at = Column(DateTime, default=utcnow)
     updated_at = Column(DateTime, default=utcnow, onupdate=utcnow)
+
+    @property
+    def api_key(self) -> str:
+        """Decrypt and return the API key."""
+        from cryptography.fernet import InvalidToken
+
+        from reviewhound.crypto import decrypt
+
+        raw = self._api_key_encrypted
+        if not raw:
+            return ""
+
+        # Fernet tokens start with 'gAAAAA' — anything else is pre-encryption plaintext
+        if not raw.startswith("gAAAAA"):
+            return raw
+
+        try:
+            return decrypt(raw)
+        except InvalidToken:
+            logger.error(
+                "Decryption failed for provider=%s — encryption key may have changed",
+                self.provider,
+            )
+            raise
+
+    @api_key.setter
+    def api_key(self, value: str) -> None:
+        """Encrypt and store the API key."""
+        from reviewhound.crypto import encrypt
+
+        self._api_key_encrypted = encrypt(value)
 
     @staticmethod
     def mask_key(key: str) -> str:
