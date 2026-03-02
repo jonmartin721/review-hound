@@ -408,3 +408,203 @@ class TestHelperFunctions:
         mock_tp.assert_called_once()
         mock_yelp.assert_called_once()
         mock_bbb.assert_not_called()
+
+    def test_scrape_business_no_urls(self, runner):
+        """Should print warning when no URLs are configured."""
+        from reviewhound.cli import _scrape_business
+
+        mock_session = MagicMock()
+        mock_business = MagicMock()
+        mock_business.name = "No URLs Business"
+        mock_business.trustpilot_url = None
+        mock_business.bbb_url = None
+        mock_business.yelp_url = None
+
+        _scrape_business(mock_session, mock_business)
+        # Should not raise - just prints warning
+
+
+class TestScrapeAllCommand:
+    """Tests for scrape --all flag."""
+
+    @patch("reviewhound.cli._scrape_business")
+    @patch("reviewhound.cli.get_session")
+    def test_scrapes_all_businesses(self, mock_get_session, mock_scrape, runner):
+        """Should scrape all businesses with --all flag."""
+        mock_session = MagicMock()
+        mock_get_session.return_value.__enter__.return_value = mock_session
+
+        biz1 = MagicMock()
+        biz1.name = "Business 1"
+        biz2 = MagicMock()
+        biz2.name = "Business 2"
+        mock_session.query.return_value.all.return_value = [biz1, biz2]
+
+        result = runner.invoke(cli, ["scrape", "--all"])
+
+        assert result.exit_code == 0
+        assert mock_scrape.call_count == 2
+
+
+class TestScrapeByName:
+    """Tests for scraping by business name."""
+
+    @patch("reviewhound.cli._scrape_business")
+    @patch("reviewhound.cli.get_session")
+    def test_finds_business_by_name(self, mock_get_session, mock_scrape, runner):
+        """Should find business by name when non-integer identifier given."""
+        mock_session = MagicMock()
+        mock_get_session.return_value.__enter__.return_value = mock_session
+
+        mock_business = MagicMock()
+        mock_business.name = "Pizza Palace"
+        # int() will raise ValueError for non-numeric string, triggering name search
+        mock_session.query.return_value.get.side_effect = None
+        mock_session.query.return_value.filter.return_value.first.return_value = mock_business
+
+        result = runner.invoke(cli, ["scrape", "Pizza Palace"])
+
+        assert result.exit_code == 0
+        mock_scrape.assert_called_once()
+
+
+class TestStatsNoReviews:
+    """Tests for stats command with no reviews."""
+
+    @patch("reviewhound.cli.get_session")
+    def test_shows_no_reviews_message(self, mock_get_session, runner):
+        """Should show message when business has no reviews."""
+        mock_session = MagicMock()
+        mock_get_session.return_value.__enter__.return_value = mock_session
+
+        mock_business = MagicMock()
+        mock_business.name = "Empty Business"
+        mock_session.query.return_value.get.return_value = mock_business
+        mock_session.query.return_value.filter.return_value.all.return_value = []
+
+        result = runner.invoke(cli, ["stats", "1"])
+
+        assert result.exit_code == 0
+        assert "No reviews" in result.output
+
+
+class TestExportAutoPath:
+    """Tests for export command auto-generated path."""
+
+    @patch("reviewhound.cli.get_session")
+    def test_generates_output_path_when_not_specified(self, mock_get_session, runner, tmp_path):
+        """Should auto-generate exports/ path when -o is not provided."""
+        mock_session = MagicMock()
+        mock_get_session.return_value.__enter__.return_value = mock_session
+
+        mock_business = MagicMock()
+        mock_business.name = "Test Business"
+        mock_session.query.return_value.get.return_value = mock_business
+
+        mock_review = MagicMock()
+        mock_review.source = "trustpilot"
+        mock_review.author_name = "Author"
+        mock_review.rating = 5.0
+        mock_review.text = "Great!"
+        mock_review.review_date = date.today()
+        mock_review.sentiment_score = 0.9
+        mock_review.sentiment_label = "positive"
+        mock_session.query.return_value.filter.return_value.all.return_value = [mock_review]
+
+        # Run in isolated filesystem so exports/ dir is created in temp location
+        with runner.isolated_filesystem(temp_dir=tmp_path):
+            result = runner.invoke(cli, ["export", "1"])
+
+        assert result.exit_code == 0
+        assert "Exported" in result.output
+
+    @patch("reviewhound.cli.get_session")
+    def test_shows_no_reviews_message(self, mock_get_session, runner):
+        """Should show message when no reviews to export."""
+        mock_session = MagicMock()
+        mock_get_session.return_value.__enter__.return_value = mock_session
+
+        mock_business = MagicMock()
+        mock_business.name = "Empty Business"
+        mock_session.query.return_value.get.return_value = mock_business
+        mock_session.query.return_value.filter.return_value.all.return_value = []
+
+        result = runner.invoke(cli, ["export", "1"])
+
+        assert result.exit_code == 0
+        assert "No reviews" in result.output
+
+
+class TestAlertUpdateAndDisable:
+    """Tests for alert command update and disable paths."""
+
+    @patch("reviewhound.cli.get_session")
+    def test_updates_existing_alert(self, mock_get_session, runner):
+        """Should update existing alert configuration."""
+        mock_session = MagicMock()
+        mock_get_session.return_value.__enter__.return_value = mock_session
+
+        mock_business = MagicMock()
+        mock_business.name = "Test Business"
+        mock_session.query.return_value.get.return_value = mock_business
+
+        mock_existing = MagicMock()
+        mock_session.query.return_value.filter.return_value.first.return_value = mock_existing
+
+        result = runner.invoke(cli, ["alert", "1", "test@example.com", "--threshold", "2.0"])
+
+        assert result.exit_code == 0
+        assert "Updated" in result.output or "updated" in result.output.lower()
+
+    @patch("reviewhound.cli.get_session")
+    def test_disable_nonexistent_alert(self, mock_get_session, runner):
+        """Should show warning when trying to disable non-existent alert."""
+        mock_session = MagicMock()
+        mock_get_session.return_value.__enter__.return_value = mock_session
+
+        mock_business = MagicMock()
+        mock_business.name = "Test Business"
+        mock_session.query.return_value.get.return_value = mock_business
+        mock_session.query.return_value.filter.return_value.first.return_value = None
+
+        result = runner.invoke(cli, ["alert", "1", "test@example.com", "--disable"])
+
+        assert result.exit_code == 0
+        assert "No alert config" in result.output
+
+    @patch("reviewhound.cli.get_session")
+    def test_disable_existing_alert(self, mock_get_session, runner):
+        """Should disable existing alert."""
+        mock_session = MagicMock()
+        mock_get_session.return_value.__enter__.return_value = mock_session
+
+        mock_business = MagicMock()
+        mock_business.name = "Test Business"
+        mock_session.query.return_value.get.return_value = mock_business
+
+        mock_existing = MagicMock()
+        mock_session.query.return_value.filter.return_value.first.return_value = mock_existing
+
+        result = runner.invoke(cli, ["alert", "1", "test@example.com", "--disable"])
+
+        assert result.exit_code == 0
+        assert mock_existing.enabled is False
+
+
+class TestAddCommandFailedSources:
+    """Tests for add command with failed sources."""
+
+    @patch("reviewhound.cli.scrape_business_sources")
+    @patch("reviewhound.cli.get_session")
+    def test_shows_failed_sources(self, mock_get_session, mock_scrape, runner):
+        """Should show failed sources after initial scrape."""
+        mock_session = MagicMock()
+        mock_get_session.return_value.__enter__.return_value = mock_session
+        mock_scrape.return_value = (0, ["trustpilot"])
+
+        result = runner.invoke(
+            cli, ["add", "New Business", "--trustpilot", "https://trustpilot.com/review/test.com"]
+        )
+
+        assert result.exit_code == 0
+        assert "Failed" in result.output or "failed" in result.output.lower()
