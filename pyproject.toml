@@ -72,7 +72,7 @@ reviewhound = ["py.typed"]
 "reviewhound.web" = ["templates/*.html", "static/*.css", "static/*.js"]
 
 [tool.ruff]
-target-version = "py311"
+target-version = "py312"
 line-length = 110
 
 [tool.ruff.lint]
