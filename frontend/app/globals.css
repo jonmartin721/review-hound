@@ -38,7 +38,7 @@ html:not(.dark) {
   --bg-page: #F5F4F0;
   --bg-surface: #FFFFFF;
   --bg-surface-hover: #F0EFEB;
-  --bg-elevated: #FFFFFF;
+  --bg-elevated: #EDECEA;
   --border: #E0DDD8;
   --border-bright: #D0CCC6;
   --text-primary: #1A1A1A;
@@ -70,6 +70,9 @@ html:not(.dark) {
 }
 
 /* Base */
+html {
+  scrollbar-gutter: stable;
+}
 body {
   background: var(--bg-page);
   color: var(--text-primary);
@@ -141,6 +144,7 @@ textarea:focus {
 /* Button improvements */
 button {
   transition: all 0.15s ease-in-out;
+  cursor: pointer;
 }
 
 /* Table styling */
