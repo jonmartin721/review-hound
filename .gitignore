@@ -56,6 +56,11 @@ exports/
 # Flask
 instance/
 
+# Node / Next.js
+node_modules/
+frontend/.next/
+frontend/out/
+
 # OS
 .DS_Store
 Thumbs.db
