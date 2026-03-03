@@ -38,7 +38,7 @@ export function DeleteConfirmModal({
   return (
     <Modal isOpen={isOpen} onClose={onClose} title="Delete Business" maxWidth="max-w-sm">
       <div className="flex items-start gap-3 mb-4">
-        <div className="w-10 h-10 bg-[var(--negative)]/10 rounded-none flex items-center justify-center shrink-0">
+        <div className="w-10 h-10 bg-(--negative)/10 rounded-none flex items-center justify-center shrink-0">
           <svg
             className="w-5 h-5 text-[var(--negative)]"
             fill="none"

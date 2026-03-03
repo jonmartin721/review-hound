@@ -12,9 +12,9 @@ interface ScrapeHistoryProps {
 function StatusBadge({ status }: { status: string }) {
   let classes: string;
   if (status === 'success') {
-    classes = 'bg-[var(--positive)]/10 text-[var(--positive)]';
+    classes = 'bg-(--positive)/10 text-[var(--positive)]';
   } else if (status === 'failed') {
-    classes = 'bg-[var(--negative)]/10 text-[var(--negative)]';
+    classes = 'bg-(--negative)/10 text-[var(--negative)]';
   } else {
     classes = 'bg-[var(--accent-dim)] text-[var(--accent)]';
   }
@@ -59,7 +59,7 @@ export function ScrapeHistory({ businessId, refreshKey }: ScrapeHistoryProps) {
             <tbody>
               {logs.slice(0, 10).map((log) => (
                 <tr key={log.id} className="border-t border-[var(--border)]">
-                  <td className="px-4 py-2 text-[var(--text-primary)] font-[family-name:var(--font-mono)]">{log.source}</td>
+                  <td className="px-4 py-2 text-[var(--text-primary)] font-code">{log.source}</td>
                   <td className="px-4 py-2">
                     <StatusBadge status={log.status} />
                   </td>
@@ -86,7 +86,7 @@ export function ScrapeHistory({ businessId, refreshKey }: ScrapeHistoryProps) {
                       </span>
                     )}
                   </td>
-                  <td className="px-4 py-2 text-[var(--text-muted)] font-[family-name:var(--font-mono)]">
+                  <td className="px-4 py-2 text-[var(--text-muted)] font-code">
                     {log.completed_at ? formatDateTime(log.completed_at) : 'Running...'}
                   </td>
                 </tr>

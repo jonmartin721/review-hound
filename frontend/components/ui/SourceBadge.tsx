@@ -17,7 +17,7 @@ const unifiedClasses = 'border border-[var(--border-bright)] text-[var(--text-se
 export function SourceBadge({ source, url, size = 'sm' }: SourceBadgeProps) {
   const label = SOURCE_LABELS[source] || source;
   const sizeClasses = size === 'sm' ? 'px-2 py-1 text-xs' : 'px-3 py-1 text-sm';
-  const baseClasses = `${sizeClasses} ${unifiedClasses} rounded-none font-[family-name:var(--font-mono)] uppercase tracking-wider`;
+  const baseClasses = `${sizeClasses} ${unifiedClasses} rounded-none font-code uppercase tracking-wider`;
 
   if (url) {
     return (

@@ -24,7 +24,7 @@ export function BusinessGrid({ businesses, onEdit, onDelete, onAddBusiness }: Bu
         {onAddBusiness && (
           <button
             onClick={onAddBusiness}
-            className="mt-6 bg-[var(--accent)] text-[#0F0F0F] px-5 py-2.5 rounded-none hover:brightness-110 transition font-medium inline-flex items-center gap-2"
+            className="mt-6 bg-[var(--accent)] text-[var(--accent-contrast)] px-5 py-2.5 rounded-none hover:brightness-110 transition font-medium inline-flex items-center gap-2"
           >
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />

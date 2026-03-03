@@ -26,7 +26,7 @@ export function ReviewCard({ review }: ReviewCardProps) {
       <p className="text-[var(--text-secondary)] leading-relaxed">
         {review.text || 'No review text'}
       </p>
-      <p className="text-sm text-[var(--text-muted)] mt-3 font-[family-name:var(--font-mono)]">
+      <p className="text-sm text-[var(--text-muted)] mt-3 font-code">
         {formatDate(review.review_date || review.scraped_at)}
       </p>
     </div>

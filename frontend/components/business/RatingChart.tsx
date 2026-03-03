@@ -36,10 +36,10 @@ export function RatingChart({ businessId }: RatingChartProps) {
     typeof window !== 'undefined'
       ? getChartColors()
       : {
-          borderColor: '#C4922F',
-          backgroundColor: 'rgba(196, 146, 47, 0.15)',
-          gridColor: '#E0DDD8',
-          textColor: '#6B6B6B',
+          borderColor: '#E5A84B',
+          backgroundColor: 'rgba(229, 168, 75, 0.15)',
+          gridColor: '#2A2A2A',
+          textColor: '#8A8A8A',
         }
   );
   const chartRef = useRef<ChartJS<'line'> | null>(null);

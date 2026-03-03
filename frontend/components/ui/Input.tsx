@@ -19,7 +19,7 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
           {...props}
         />
         {helpText && <p className="text-xs text-[var(--text-muted)] mt-1.5">{helpText}</p>}
-        {error && <p className="text-xs text-red-500 mt-1.5">{error}</p>}
+        {error && <p className="text-xs text-[var(--negative)] mt-1.5">{error}</p>}
       </div>
     );
   }

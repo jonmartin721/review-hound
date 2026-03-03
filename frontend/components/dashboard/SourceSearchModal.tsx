@@ -157,7 +157,7 @@ export function SourceSearchModal({
         <SourceSection
           source="trustpilot"
           label="TrustPilot"
-          dotColor="bg-green-500"
+          dotColor="bg-[var(--positive)]"
           results={trustpilotResults}
           isLoading={isLoading}
           selectedUrl={trustpilotUrl}
@@ -166,7 +166,7 @@ export function SourceSearchModal({
         <SourceSection
           source="bbb"
           label="BBB"
-          dotColor="bg-blue-500"
+          dotColor="bg-[var(--accent)]"
           results={bbbResults}
           isLoading={isLoading}
           selectedUrl={bbbUrl}

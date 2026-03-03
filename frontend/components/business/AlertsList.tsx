@@ -74,7 +74,7 @@ export function AlertsList({ businessId, onAdd, onEdit, refreshKey }: AlertsList
                 <span
                   className={`px-2 py-0.5 text-xs rounded-none ${
                     alert.enabled
-                      ? 'bg-[var(--positive)]/10 text-[var(--positive)]'
+                      ? 'bg-(--positive)/10 text-[var(--positive)]'
                       : 'bg-[var(--bg-elevated)] text-[var(--text-muted)]'
                   }`}
                 >

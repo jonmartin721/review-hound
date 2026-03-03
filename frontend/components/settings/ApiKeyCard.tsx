@@ -87,7 +87,7 @@ export function ApiKeyCard({
               checked={keyInfo.enabled}
               onChange={onToggle}
             />
-            <div className="w-11 h-6 bg-[var(--border-bright)] peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-[var(--accent)]/30 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-[var(--border)] after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[var(--accent)]" />
+            <div className="w-11 h-6 bg-[var(--border-bright)] peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-(--accent)/30 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-[var(--border)] after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[var(--accent)]" />
           </label>
         )}
       </div>
@@ -97,7 +97,7 @@ export function ApiKeyCard({
         <>
           {keyInfo ? (
             <div className="flex items-center gap-3">
-              <div className="flex-1 bg-[var(--bg-elevated)] rounded-none px-3 py-2 font-[family-name:var(--font-mono)] text-sm text-[var(--text-secondary)] truncate">
+              <div className="flex-1 bg-[var(--bg-elevated)] rounded-none px-3 py-2 font-code text-sm text-[var(--text-secondary)] truncate">
                 {keyInfo.key_preview}
               </div>
               <button

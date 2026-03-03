@@ -12,7 +12,7 @@ export default function WelcomePage() {
         <p className="text-lg text-[var(--text-muted)] mb-6">Monitor and analyze your business reviews across platforms</p>
         <Link
           href="/"
-          className="inline-flex items-center gap-2 bg-[var(--accent)] text-[#0F0F0F] px-6 py-3 rounded-none hover:brightness-110 transition font-medium"
+          className="inline-flex items-center gap-2 bg-[var(--accent)] text-[var(--accent-contrast)] px-6 py-3 rounded-none hover:brightness-110 transition font-medium"
         >
           Get Started
           <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -84,7 +84,7 @@ export default function WelcomePage() {
       <div className="text-center py-8 border-t border-[var(--border)]">
         <Link
           href="/"
-          className="inline-flex items-center gap-2 bg-[var(--accent)] text-[#0F0F0F] px-6 py-3 rounded-none hover:brightness-110 transition font-medium"
+          className="inline-flex items-center gap-2 bg-[var(--accent)] text-[var(--accent-contrast)] px-6 py-3 rounded-none hover:brightness-110 transition font-medium"
         >
           Get Started
           <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">

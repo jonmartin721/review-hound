@@ -1,5 +1,6 @@
 @import "tailwindcss";
 
+/* Dark-first: :root sets dark palette, html:not(.dark) overrides with light */
 :root {
   --bg-page: #0F0F0F;
   --bg-surface: #1A1A1A;
@@ -12,23 +13,7 @@
   --text-muted: #5A5A5A;
   --accent: #E5A84B;
   --accent-dim: rgba(229, 168, 75, 0.2);
-  --positive: #4ADE80;
-  --negative: #F87171;
-  --neutral: #E5A84B;
-}
-
-.dark {
-  --bg-page: #0F0F0F;
-  --bg-surface: #1A1A1A;
-  --bg-surface-hover: #222222;
-  --bg-elevated: #252525;
-  --border: #2A2A2A;
-  --border-bright: #333333;
-  --text-primary: #E8E4DD;
-  --text-secondary: #8A8A8A;
-  --text-muted: #5A5A5A;
-  --accent: #E5A84B;
-  --accent-dim: rgba(229, 168, 75, 0.2);
+  --accent-contrast: #0F0F0F;
   --positive: #4ADE80;
   --negative: #F87171;
   --neutral: #E5A84B;
@@ -46,6 +31,7 @@ html:not(.dark) {
   --text-muted: #8A8A8A;
   --accent: #C4922F;
   --accent-dim: rgba(196, 146, 47, 0.2);
+  --accent-contrast: #1A1A1A;
   --positive: #22C55E;
   --negative: #EF4444;
   --neutral: #C4922F;
@@ -62,11 +48,18 @@ html:not(.dark) {
   --color-text-secondary: var(--text-secondary);
   --color-text-muted: var(--text-muted);
   --color-accent: var(--accent);
+  --color-accent-dim: var(--accent-dim);
+  --color-accent-contrast: var(--accent-contrast);
   --color-positive: var(--positive);
   --color-negative: var(--negative);
   --color-neutral: var(--neutral);
   --font-sans: var(--font-sans);
   --font-mono: var(--font-mono);
+}
+
+/* Mono font utility */
+.font-code {
+  font-family: var(--font-mono);
 }
 
 /* Base */
@@ -78,19 +71,6 @@ body {
   color: var(--text-primary);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-}
-
-/* Observatory card */
-.observatory-card {
-  background: var(--bg-surface);
-  border: 1px solid var(--border);
-  border-top: 2px solid var(--accent);
-}
-
-/* Dot grid page texture */
-.dot-grid {
-  background-image: radial-gradient(circle, var(--border) 1px, transparent 1px);
-  background-size: 24px 24px;
 }
 
 /* Fade in animation */
@@ -121,7 +101,7 @@ body {
   color: var(--accent);
 }
 
-/* Form input improvements */
+/* Form inputs */
 input[type="text"],
 input[type="email"],
 input[type="url"],
@@ -141,7 +121,7 @@ textarea:focus {
   outline: none;
 }
 
-/* Button improvements */
+/* Buttons */
 button {
   transition: all 0.15s ease-in-out;
   cursor: pointer;

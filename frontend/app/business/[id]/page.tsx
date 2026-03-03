@@ -13,6 +13,7 @@ import { ScrapeHistory } from '@/components/business/ScrapeHistory';
 import { DeleteConfirmModal } from '@/components/business/DeleteConfirmModal';
 import { EditBusinessModal } from '@/components/dashboard/EditBusinessModal';
 import { Spinner } from '@/components/ui/Spinner';
+import { SourceBadge } from '@/components/ui/SourceBadge';
 import type { BusinessWithStats, Review, AlertConfig } from '@/lib/storage/types';
 
 export default function BusinessDetailPage() {
@@ -147,7 +148,7 @@ export default function BusinessDetailPage() {
             </button>
             <button
               onClick={() => setDeleteOpen(true)}
-              className="px-4 py-2 border border-[var(--negative)]/30 bg-[var(--negative)]/10 text-[var(--negative)] rounded-none hover:bg-[var(--negative)]/20 transition font-medium"
+              className="px-4 py-2 border border-(--negative)/30 bg-(--negative)/10 text-[var(--negative)] rounded-none hover:bg-(--negative)/20 transition font-medium"
             >
               Delete
             </button>
@@ -168,44 +169,19 @@ export default function BusinessDetailPage() {
         {/* Source links */}
         <div className="flex flex-wrap gap-2 mt-6">
           {business.trustpilot_url && (
-            <a
-              href={business.trustpilot_url}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="px-3 py-1 border border-[var(--border-bright)] text-[var(--text-secondary)] bg-[var(--bg-elevated)] rounded-none font-[family-name:var(--font-mono)] uppercase tracking-wider hover:brightness-110 transition"
-            >
-              TrustPilot ↗
-            </a>
+            <SourceBadge source="trustpilot" url={business.trustpilot_url} size="md" />
           )}
           {business.bbb_url && (
-            <a
-              href={business.bbb_url}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="px-3 py-1 border border-[var(--border-bright)] text-[var(--text-secondary)] bg-[var(--bg-elevated)] rounded-none font-[family-name:var(--font-mono)] uppercase tracking-wider hover:brightness-110 transition"
-            >
-              BBB ↗
-            </a>
+            <SourceBadge source="bbb" url={business.bbb_url} size="md" />
           )}
           {business.yelp_url && (
-            <a
-              href={business.yelp_url}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="px-3 py-1 border border-[var(--border-bright)] text-[var(--text-secondary)] bg-[var(--bg-elevated)] rounded-none font-[family-name:var(--font-mono)] uppercase tracking-wider hover:brightness-110 transition"
-            >
-              Yelp ↗
-            </a>
+            <SourceBadge source="yelp" url={business.yelp_url} size="md" />
           )}
           {business.google_place_id && (
-            <span className="px-3 py-1 border border-[var(--border-bright)] text-[var(--text-secondary)] bg-[var(--bg-elevated)] rounded-none font-[family-name:var(--font-mono)] uppercase tracking-wider">
-              Google (API)
-            </span>
+            <SourceBadge source="google_places" size="md" />
           )}
           {business.yelp_business_id && (
-            <span className="px-3 py-1 border border-[var(--border-bright)] text-[var(--text-secondary)] bg-[var(--bg-elevated)] rounded-none font-[family-name:var(--font-mono)] uppercase tracking-wider">
-              Yelp (API)
-            </span>
+            <SourceBadge source="yelp_api" size="md" />
           )}
         </div>
       </div>

@@ -93,7 +93,7 @@ export function SentimentSliders() {
           <label className="text-xs font-medium uppercase tracking-wider text-[var(--text-secondary)]">
             Star Rating Weight
           </label>
-          <span className="text-sm font-[family-name:var(--font-mono)] text-[var(--text-secondary)]">
+          <span className="text-sm font-code text-[var(--text-secondary)]">
             {ratingWeight}%
           </span>
         </div>
@@ -116,7 +116,7 @@ export function SentimentSliders() {
           <label className="text-xs font-medium uppercase tracking-wider text-[var(--text-secondary)]">
             Text Analysis Weight
           </label>
-          <span className="text-sm font-[family-name:var(--font-mono)] text-[var(--text-secondary)]">
+          <span className="text-sm font-code text-[var(--text-secondary)]">
             {textWeight}%
           </span>
         </div>
@@ -139,7 +139,7 @@ export function SentimentSliders() {
           <label className="text-xs font-medium uppercase tracking-wider text-[var(--text-secondary)]">
             Classification Threshold
           </label>
-          <span className="text-sm font-[family-name:var(--font-mono)] text-[var(--text-secondary)]">
+          <span className="text-sm font-code text-[var(--text-secondary)]">
             {(thresholdInt / 100).toFixed(2)}
           </span>
         </div>

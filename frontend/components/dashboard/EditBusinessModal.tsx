@@ -264,7 +264,7 @@ export function EditBusinessModal({ businessId, onClose, onSuccess }: EditBusine
           </div>
 
           {error && (
-            <p className="text-sm text-red-500 mt-3">{error}</p>
+            <p className="text-sm text-[var(--negative)] mt-3">{error}</p>
           )}
 
           <div className="flex justify-end gap-3 mt-6">
