@@ -113,40 +113,46 @@ def api_list_businesses():
             stats = calculate_review_stats(reviews)
             scrape_health = _get_scrape_health(session, b.id)
 
-            result.append({
-                "id": b.id,
-                "name": b.name,
-                "address": b.address,
-                "trustpilot_url": b.trustpilot_url,
-                "bbb_url": b.bbb_url,
-                "yelp_url": b.yelp_url,
-                "google_place_id": b.google_place_id,
-                "yelp_business_id": b.yelp_business_id,
-                "created_at": b.created_at.isoformat() if b.created_at else None,
-                "updated_at": b.updated_at.isoformat() if b.updated_at else None,
-                "total_reviews": stats["total"],
-                "avg_rating": stats["avg_rating"],
-                "positive_pct": stats["positive_pct"],
-                "negative_pct": stats["negative_pct"],
-                "trend_direction": stats["trend_direction"],
-                "trend_delta": stats["trend_delta"],
-                "recent_count": stats["recent_count"],
-                "last_review_date": stats["last_review_date"].isoformat() if stats["last_review_date"] else None,
-                "recent_negative_count": stats["recent_negative_count"],
-                "scrape_issues": scrape_health["has_issues"],
-                "scrape_issue_sources": scrape_health["issue_sources"],
-                "scrape_issue_type": scrape_health["issue_type"],
-            })
+            result.append(
+                {
+                    "id": b.id,
+                    "name": b.name,
+                    "address": b.address,
+                    "trustpilot_url": b.trustpilot_url,
+                    "bbb_url": b.bbb_url,
+                    "yelp_url": b.yelp_url,
+                    "google_place_id": b.google_place_id,
+                    "yelp_business_id": b.yelp_business_id,
+                    "created_at": b.created_at.isoformat() if b.created_at else None,
+                    "updated_at": b.updated_at.isoformat() if b.updated_at else None,
+                    "total_reviews": stats["total"],
+                    "avg_rating": stats["avg_rating"],
+                    "positive_pct": stats["positive_pct"],
+                    "negative_pct": stats["negative_pct"],
+                    "trend_direction": stats["trend_direction"],
+                    "trend_delta": stats["trend_delta"],
+                    "recent_count": stats["recent_count"],
+                    "last_review_date": (
+                        stats["last_review_date"].isoformat() if stats["last_review_date"] else None
+                    ),
+                    "recent_negative_count": stats["recent_negative_count"],
+                    "scrape_issues": scrape_health["has_issues"],
+                    "scrape_issue_sources": scrape_health["issue_sources"],
+                    "scrape_issue_type": scrape_health["issue_type"],
+                }
+            )
 
         has_google_api = get_api_config(session, "google_places") is not None
         has_yelp_api = get_api_config(session, "yelp_fusion") is not None
 
-        return jsonify({
-            "success": True,
-            "businesses": result,
-            "has_google_api": has_google_api,
-            "has_yelp_api": has_yelp_api,
-        })
+        return jsonify(
+            {
+                "success": True,
+                "businesses": result,
+                "has_google_api": has_google_api,
+                "has_yelp_api": has_yelp_api,
+            }
+        )
 
 
 @bp.route("/api/business/<int:business_id>/reviews")
@@ -173,30 +179,32 @@ def api_list_reviews(business_id):
 
         reviews = query.order_by(Review.scraped_at.desc()).offset((page - 1) * per_page).limit(per_page).all()
 
-        return jsonify({
-            "success": True,
-            "reviews": [
-                {
-                    "id": r.id,
-                    "business_id": r.business_id,
-                    "source": r.source,
-                    "external_id": r.external_id,
-                    "review_url": r.review_url,
-                    "author_name": r.author_name,
-                    "rating": r.rating,
-                    "text": r.text,
-                    "review_date": str(r.review_date) if r.review_date else None,
-                    "sentiment_score": r.sentiment_score,
-                    "sentiment_label": r.sentiment_label,
-                    "scraped_at": r.scraped_at.isoformat() if r.scraped_at else None,
-                }
-                for r in reviews
-            ],
-            "total": total,
-            "total_pages": total_pages,
-            "page": page,
-            "per_page": per_page,
-        })
+        return jsonify(
+            {
+                "success": True,
+                "reviews": [
+                    {
+                        "id": r.id,
+                        "business_id": r.business_id,
+                        "source": r.source,
+                        "external_id": r.external_id,
+                        "review_url": r.review_url,
+                        "author_name": r.author_name,
+                        "rating": r.rating,
+                        "text": r.text,
+                        "review_date": str(r.review_date) if r.review_date else None,
+                        "sentiment_score": r.sentiment_score,
+                        "sentiment_label": r.sentiment_label,
+                        "scraped_at": r.scraped_at.isoformat() if r.scraped_at else None,
+                    }
+                    for r in reviews
+                ],
+                "total": total,
+                "total_pages": total_pages,
+                "page": page,
+                "per_page": per_page,
+            }
+        )
 
 
 @bp.route("/api/business/<int:business_id>/scrape-logs")
@@ -216,22 +224,24 @@ def api_list_scrape_logs(business_id):
             .all()
         )
 
-        return jsonify({
-            "success": True,
-            "logs": [
-                {
-                    "id": l.id,
-                    "business_id": l.business_id,
-                    "source": l.source,
-                    "status": l.status,
-                    "reviews_found": l.reviews_found or 0,
-                    "error_message": l.error_message,
-                    "started_at": l.started_at.isoformat() if l.started_at else None,
-                    "completed_at": l.completed_at.isoformat() if l.completed_at else None,
-                }
-                for l in logs
-            ],
-        })
+        return jsonify(
+            {
+                "success": True,
+                "logs": [
+                    {
+                        "id": entry.id,
+                        "business_id": entry.business_id,
+                        "source": entry.source,
+                        "status": entry.status,
+                        "reviews_found": entry.reviews_found or 0,
+                        "error_message": entry.error_message,
+                        "started_at": entry.started_at.isoformat() if entry.started_at else None,
+                        "completed_at": entry.completed_at.isoformat() if entry.completed_at else None,
+                    }
+                    for entry in logs
+                ],
+            }
+        )
 
 
 @bp.route("/welcome")
