@@ -2,14 +2,14 @@ import Link from 'next/link';
 
 export default function WelcomePage() {
   return (
-    <div className="max-w-4xl mx-auto">
+    <div className="max-w-4xl mx-auto fade-in">
       {/* Header */}
       <div className="text-center mb-16">
         <h1 className="text-3xl font-semibold text-[var(--text-primary)] mb-3">Welcome to Review Hound</h1>
         <p className="text-lg text-[var(--text-muted)] mb-6">Monitor and analyze your business reviews across platforms</p>
         <Link
           href="/"
-          className="inline-flex items-center gap-2 bg-indigo-600 text-white px-6 py-3 rounded-lg hover:bg-indigo-700 transition font-medium"
+          className="inline-flex items-center gap-2 bg-[var(--accent)] text-[#0F0F0F] px-6 py-3 rounded-none hover:brightness-110 transition font-medium"
         >
           Get Started
           <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -20,7 +20,7 @@ export default function WelcomePage() {
 
       {/* Section 1: Add a Business */}
       <div className="grid md:grid-cols-2 gap-8 items-center mb-16">
-        <div className="bg-[var(--bg-muted)] rounded-lg aspect-video flex items-center justify-center border border-[var(--border)]">
+        <div className="bg-[var(--bg-elevated)] rounded-none aspect-video flex items-center justify-center border border-[var(--border)]">
           <span className="text-[var(--text-muted)] text-sm">Screenshot: Add business modal with source search results</span>
         </div>
         <div>
@@ -33,7 +33,7 @@ export default function WelcomePage() {
 
       {/* Section 2: Dashboard Overview */}
       <div className="grid md:grid-cols-2 gap-8 items-center mb-16">
-        <div className="md:order-2 bg-[var(--bg-muted)] rounded-lg aspect-video flex items-center justify-center border border-[var(--border)]">
+        <div className="md:order-2 bg-[var(--bg-elevated)] rounded-none aspect-video flex items-center justify-center border border-[var(--border)]">
           <span className="text-[var(--text-muted)] text-sm">Screenshot: Dashboard with business cards</span>
         </div>
         <div className="md:order-1">
@@ -46,7 +46,7 @@ export default function WelcomePage() {
 
       {/* Section 3: Review Details */}
       <div className="grid md:grid-cols-2 gap-8 items-center mb-16">
-        <div className="bg-[var(--bg-muted)] rounded-lg aspect-video flex items-center justify-center border border-[var(--border)]">
+        <div className="bg-[var(--bg-elevated)] rounded-none aspect-video flex items-center justify-center border border-[var(--border)]">
           <span className="text-[var(--text-muted)] text-sm">Screenshot: Business detail page with chart and reviews</span>
         </div>
         <div>
@@ -59,7 +59,7 @@ export default function WelcomePage() {
 
       {/* Section 4: Alerts */}
       <div className="grid md:grid-cols-2 gap-8 items-center mb-16">
-        <div className="md:order-2 bg-[var(--bg-muted)] rounded-lg aspect-video flex items-center justify-center border border-[var(--border)]">
+        <div className="md:order-2 bg-[var(--bg-elevated)] rounded-none aspect-video flex items-center justify-center border border-[var(--border)]">
           <span className="text-[var(--text-muted)] text-sm">Screenshot: Alert configuration panel</span>
         </div>
         <div className="md:order-1">
@@ -72,7 +72,7 @@ export default function WelcomePage() {
 
       {/* Section 5: Settings */}
       <div className="grid md:grid-cols-2 gap-8 items-center mb-16">
-        <div className="bg-[var(--bg-muted)] rounded-lg aspect-video flex items-center justify-center border border-[var(--border)]">
+        <div className="bg-[var(--bg-elevated)] rounded-none aspect-video flex items-center justify-center border border-[var(--border)]">
           <span className="text-[var(--text-muted)] text-sm">Screenshot: Settings page with API keys</span>
         </div>
         <div>
@@ -87,7 +87,7 @@ export default function WelcomePage() {
       <div className="text-center py-8 border-t border-[var(--border)]">
         <Link
           href="/"
-          className="inline-flex items-center gap-2 bg-indigo-600 text-white px-6 py-3 rounded-lg hover:bg-indigo-700 transition font-medium"
+          className="inline-flex items-center gap-2 bg-[var(--accent)] text-[#0F0F0F] px-6 py-3 rounded-none hover:brightness-110 transition font-medium"
         >
           Get Started
           <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">

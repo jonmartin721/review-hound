@@ -106,7 +106,7 @@ export default function BusinessDetailPage() {
         <p className="text-[var(--text-muted)] text-lg mb-4">Business not found.</p>
         <Link
           href="/"
-          className="text-indigo-600 dark:text-indigo-400 hover:text-indigo-700 dark:hover:text-indigo-300 font-medium"
+          className="text-[var(--accent)] hover:brightness-110 font-medium"
         >
           ← Back to Dashboard
         </Link>
@@ -120,7 +120,7 @@ export default function BusinessDetailPage() {
       <div className="mb-6">
         <Link
           href="/"
-          className="text-[var(--text-muted)] hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors inline-flex items-center gap-1"
+          className="text-[var(--text-muted)] hover:text-[var(--accent)] transition-colors inline-flex items-center gap-1"
         >
           <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
@@ -130,7 +130,7 @@ export default function BusinessDetailPage() {
       </div>
 
       {/* Header card */}
-      <div className="bg-[var(--bg-surface)] rounded-xl shadow-sm border border-[var(--border)] p-6 mb-6">
+      <div className="bg-[var(--bg-surface)] rounded-none border-t-2 border-t-[var(--accent)] border border-[var(--border)] p-6 mb-6">
         <div className="flex justify-between items-start">
           <div>
             <h1 className="text-2xl font-semibold text-[var(--text-primary)]">{business.name}</h1>
@@ -141,13 +141,13 @@ export default function BusinessDetailPage() {
           <div className="flex gap-2 flex-wrap justify-end">
             <button
               onClick={() => setEditOpen(true)}
-              className="px-4 py-2 border border-[var(--border)] rounded-lg text-[var(--text-secondary)] hover:bg-[var(--bg-muted)] transition font-medium"
+              className="px-4 py-2 border border-[var(--border)] rounded-none text-[var(--text-secondary)] hover:bg-[var(--bg-surface-hover)] transition font-medium"
             >
               Edit
             </button>
             <button
               onClick={() => setDeleteOpen(true)}
-              className="px-4 py-2 border border-red-200 dark:border-red-800 bg-red-50 dark:bg-red-900/30 text-red-700 dark:text-red-400 rounded-lg hover:bg-red-100 dark:hover:bg-red-900/50 transition font-medium"
+              className="px-4 py-2 border border-[var(--negative)]/30 bg-[var(--negative)]/10 text-[var(--negative)] rounded-none hover:bg-[var(--negative)]/20 transition font-medium"
             >
               Delete
             </button>
@@ -172,7 +172,7 @@ export default function BusinessDetailPage() {
               href={business.trustpilot_url}
               target="_blank"
               rel="noopener noreferrer"
-              className="px-3 py-1 bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 rounded hover:bg-green-200 dark:hover:bg-green-900/50 transition"
+              className="px-3 py-1 border border-[var(--border-bright)] text-[var(--text-secondary)] bg-[var(--bg-elevated)] rounded-none font-[family-name:var(--font-mono)] uppercase tracking-wider hover:brightness-110 transition"
             >
               TrustPilot ↗
             </a>
@@ -182,7 +182,7 @@ export default function BusinessDetailPage() {
               href={business.bbb_url}
               target="_blank"
               rel="noopener noreferrer"
-              className="px-3 py-1 bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 rounded hover:bg-blue-200 dark:hover:bg-blue-900/50 transition"
+              className="px-3 py-1 border border-[var(--border-bright)] text-[var(--text-secondary)] bg-[var(--bg-elevated)] rounded-none font-[family-name:var(--font-mono)] uppercase tracking-wider hover:brightness-110 transition"
             >
               BBB ↗
             </a>
@@ -192,18 +192,18 @@ export default function BusinessDetailPage() {
               href={business.yelp_url}
               target="_blank"
               rel="noopener noreferrer"
-              className="px-3 py-1 bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400 rounded hover:bg-red-200 dark:hover:bg-red-900/50 transition"
+              className="px-3 py-1 border border-[var(--border-bright)] text-[var(--text-secondary)] bg-[var(--bg-elevated)] rounded-none font-[family-name:var(--font-mono)] uppercase tracking-wider hover:brightness-110 transition"
             >
               Yelp ↗
             </a>
           )}
           {business.google_place_id && (
-            <span className="px-3 py-1 bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-400 rounded">
+            <span className="px-3 py-1 border border-[var(--border-bright)] text-[var(--text-secondary)] bg-[var(--bg-elevated)] rounded-none font-[family-name:var(--font-mono)] uppercase tracking-wider">
               Google (API)
             </span>
           )}
           {business.yelp_business_id && (
-            <span className="px-3 py-1 bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400 rounded">
+            <span className="px-3 py-1 border border-[var(--border-bright)] text-[var(--text-secondary)] bg-[var(--bg-elevated)] rounded-none font-[family-name:var(--font-mono)] uppercase tracking-wider">
               Yelp (API)
             </span>
           )}
@@ -211,7 +211,7 @@ export default function BusinessDetailPage() {
       </div>
 
       {/* Rating Trend Chart */}
-      <div className="bg-[var(--bg-surface)] rounded-xl shadow-sm border border-[var(--border)] p-6 mb-6">
+      <div className="bg-[var(--bg-surface)] rounded-none border-t-2 border-t-[var(--accent)] border border-[var(--border)] p-6 mb-6">
         <h2 className="text-lg font-semibold text-[var(--text-primary)] mb-4">Rating Trend</h2>
         <RatingChart businessId={businessId} />
       </div>

@@ -20,7 +20,7 @@ export function ReviewFilters({ source, sentiment, onFilter, onExport }: ReviewF
   };
 
   return (
-    <div className="bg-[var(--bg-surface)] rounded-lg shadow-md border border-[var(--border)] p-4 mb-6">
+    <div className="bg-[var(--bg-surface)] rounded-none border border-[var(--border)] p-4 mb-6">
       <div className="flex flex-wrap gap-4 items-end">
         <Select
           label="Source"
@@ -52,7 +52,7 @@ export function ReviewFilters({ source, sentiment, onFilter, onExport }: ReviewF
 
         <Button
           variant="primary"
-          className="bg-green-600 hover:bg-green-700"
+          className="bg-[var(--positive)] text-[#0F0F0F] hover:brightness-110"
           onClick={onExport}
         >
           <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">

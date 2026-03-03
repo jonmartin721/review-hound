@@ -59,8 +59,8 @@ export default function DashboardPage() {
   if (error) {
     return (
       <div className="flex flex-col items-center justify-center py-20 text-center">
-        <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-xl p-8 max-w-md">
-          <p className="text-red-700 dark:text-red-400 font-medium mb-2">Connection Error</p>
+        <div className="fade-in bg-[var(--bg-surface)] border border-[var(--border)] border-t-2 border-t-[var(--negative)] rounded-none p-8 max-w-md">
+          <p className="text-[var(--negative)] font-medium mb-2">Connection Error</p>
           <p className="text-[var(--text-muted)] text-sm mb-4">{error}</p>
           <Button onClick={loadBusinesses}>Retry</Button>
         </div>

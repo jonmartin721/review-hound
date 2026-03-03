@@ -80,14 +80,14 @@ export default function SettingsPage() {
           <Spinner size="lg" />
         </div>
       ) : error ? (
-        <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-xl p-8 text-center max-w-2xl">
-          <p className="text-red-700 dark:text-red-400 font-medium mb-2">Connection Error</p>
+        <div className="bg-[var(--bg-surface)] border border-[var(--border)] border-t-2 border-t-[var(--negative)] rounded-none p-8 text-center max-w-2xl">
+          <p className="text-[var(--negative)] font-medium mb-2">Connection Error</p>
           <p className="text-[var(--text-muted)] text-sm">{error}</p>
         </div>
       ) : (
         <>
           {/* API Keys card */}
-          <div className="bg-[var(--bg-surface)] rounded-xl shadow-sm border border-[var(--border)] p-6 max-w-2xl">
+          <div className="bg-[var(--bg-surface)] rounded-none border border-[var(--border)] border-t-2 border-t-[var(--accent)] p-6 max-w-2xl">
             <h2 className="text-lg font-semibold text-[var(--text-primary)] mb-4">
               API Keys
             </h2>
@@ -117,7 +117,7 @@ export default function SettingsPage() {
           </div>
 
           {/* Sentiment Analysis card */}
-          <div className="bg-[var(--bg-surface)] rounded-xl shadow-sm border border-[var(--border)] p-6 max-w-2xl mt-6">
+          <div className="bg-[var(--bg-surface)] rounded-none border border-[var(--border)] border-t-2 border-t-[var(--accent)] p-6 max-w-2xl mt-6">
             <h2 className="text-lg font-semibold text-[var(--text-primary)] mb-4">
               Sentiment Analysis
             </h2>

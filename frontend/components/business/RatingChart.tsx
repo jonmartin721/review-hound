@@ -18,10 +18,10 @@ ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Filler, 
 function getChartColors() {
   const isDark = document.documentElement.classList.contains('dark');
   return {
-    borderColor: isDark ? '#818cf8' : '#4f46e5',
-    backgroundColor: isDark ? 'rgba(129, 140, 248, 0.1)' : 'rgba(79, 70, 229, 0.1)',
-    gridColor: isDark ? '#2e2c29' : '#e5e7eb',
-    textColor: isDark ? '#9ca3af' : '#6b7280',
+    borderColor: isDark ? '#E5A84B' : '#C4922F',
+    backgroundColor: isDark ? 'rgba(229, 168, 75, 0.15)' : 'rgba(196, 146, 47, 0.15)',
+    gridColor: isDark ? '#2A2A2A' : '#E0DDD8',
+    textColor: isDark ? '#8A8A8A' : '#6B6B6B',
   };
 }
 
@@ -36,10 +36,10 @@ export function RatingChart({ businessId }: RatingChartProps) {
     typeof window !== 'undefined'
       ? getChartColors()
       : {
-          borderColor: '#4f46e5',
-          backgroundColor: 'rgba(79, 70, 229, 0.1)',
-          gridColor: '#e5e7eb',
-          textColor: '#6b7280',
+          borderColor: '#C4922F',
+          backgroundColor: 'rgba(196, 146, 47, 0.15)',
+          gridColor: '#E0DDD8',
+          textColor: '#6B6B6B',
         }
   );
   const chartRef = useRef<ChartJS<'line'> | null>(null);

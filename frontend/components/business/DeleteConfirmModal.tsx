@@ -38,9 +38,9 @@ export function DeleteConfirmModal({
   return (
     <Modal isOpen={isOpen} onClose={onClose} title="Delete Business" maxWidth="max-w-sm">
       <div className="flex items-start gap-3 mb-4">
-        <div className="w-10 h-10 bg-red-100 dark:bg-red-900/30 rounded-full flex items-center justify-center shrink-0">
+        <div className="w-10 h-10 bg-[var(--negative)]/10 rounded-none flex items-center justify-center shrink-0">
           <svg
-            className="w-5 h-5 text-red-600 dark:text-red-400"
+            className="w-5 h-5 text-[var(--negative)]"
             fill="none"
             stroke="currentColor"
             viewBox="0 0 24 24"
@@ -59,7 +59,7 @@ export function DeleteConfirmModal({
         </p>
       </div>
 
-      {error && <p className="text-sm text-red-500 mb-4">{error}</p>}
+      {error && <p className="text-sm text-[var(--negative)] mb-4">{error}</p>}
 
       <div className="flex justify-end gap-3">
         <Button variant="secondary" onClick={onClose} disabled={deleting}>

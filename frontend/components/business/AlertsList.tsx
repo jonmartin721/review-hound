@@ -40,7 +40,7 @@ export function AlertsList({ businessId, onAdd, onEdit, refreshKey }: AlertsList
   }
 
   return (
-    <div className="bg-[var(--bg-surface)] rounded-xl shadow-sm border border-[var(--border)] p-6 mt-6">
+    <div className="bg-[var(--bg-surface)] rounded-none border-t-2 border-t-[var(--accent)] border border-[var(--border)] p-6 mt-6">
       <div className="flex justify-between items-center mb-4">
         <h2 className="text-lg font-semibold text-[var(--text-primary)]">Email Alerts</h2>
         <Button variant="primary" className="text-sm px-3 py-1.5" onClick={onAdd}>
@@ -54,7 +54,7 @@ export function AlertsList({ businessId, onAdd, onEdit, refreshKey }: AlertsList
       {loading ? (
         <p className="text-[var(--text-muted)] text-center py-4">Loading alerts...</p>
       ) : error ? (
-        <p className="text-red-500 text-center py-4">{error}</p>
+        <p className="text-[var(--negative)] text-center py-4">{error}</p>
       ) : alerts.length === 0 ? (
         <p className="text-[var(--text-muted)] text-center py-4">
           No alerts configured. Click &quot;+ Add Alert&quot; to get notified about negative reviews.
@@ -72,10 +72,10 @@ export function AlertsList({ businessId, onAdd, onEdit, refreshKey }: AlertsList
                   Alert on ≤{alert.negative_threshold}★
                 </span>
                 <span
-                  className={`px-2 py-0.5 text-xs rounded ${
+                  className={`px-2 py-0.5 text-xs rounded-none ${
                     alert.enabled
-                      ? 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400'
-                      : 'bg-[var(--bg-muted)] text-[var(--text-muted)]'
+                      ? 'bg-[var(--positive)]/10 text-[var(--positive)]'
+                      : 'bg-[var(--bg-elevated)] text-[var(--text-muted)]'
                   }`}
                 >
                   {alert.enabled ? 'Active' : 'Disabled'}
@@ -84,13 +84,13 @@ export function AlertsList({ businessId, onAdd, onEdit, refreshKey }: AlertsList
               <div className="flex gap-3">
                 <button
                   onClick={() => onEdit(alert)}
-                  className="text-indigo-600 dark:text-indigo-400 hover:text-indigo-800 dark:hover:text-indigo-300 text-sm font-medium transition"
+                  className="text-[var(--accent)] hover:brightness-110 text-sm font-medium transition"
                 >
                   Edit
                 </button>
                 <button
                   onClick={() => handleDelete(alert.id)}
-                  className="text-red-600 dark:text-red-400 hover:text-red-800 dark:hover:text-red-300 text-sm font-medium transition"
+                  className="text-[var(--negative)] hover:brightness-110 text-sm font-medium transition"
                 >
                   Delete
                 </button>

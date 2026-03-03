@@ -90,10 +90,10 @@ export function SentimentSliders() {
       {/* Rating Weight */}
       <div>
         <div className="flex justify-between mb-2">
-          <label className="text-sm font-medium text-[var(--text-secondary)]">
+          <label className="text-xs font-medium uppercase tracking-wider text-[var(--text-secondary)]">
             Star Rating Weight
           </label>
-          <span className="text-sm text-[var(--text-secondary)]">
+          <span className="text-sm font-[family-name:var(--font-mono)] text-[var(--text-secondary)]">
             {ratingWeight}%
           </span>
         </div>
@@ -103,7 +103,7 @@ export function SentimentSliders() {
           max={100}
           value={ratingWeight}
           onChange={(e) => setRatingWeight(Number(e.target.value))}
-          className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
+          className="w-full"
         />
         <p className="text-xs text-[var(--text-muted)] mt-1">
           How much the star rating (1–5) influences the sentiment score
@@ -113,10 +113,10 @@ export function SentimentSliders() {
       {/* Text Weight */}
       <div>
         <div className="flex justify-between mb-2">
-          <label className="text-sm font-medium text-[var(--text-secondary)]">
+          <label className="text-xs font-medium uppercase tracking-wider text-[var(--text-secondary)]">
             Text Analysis Weight
           </label>
-          <span className="text-sm text-[var(--text-secondary)]">
+          <span className="text-sm font-[family-name:var(--font-mono)] text-[var(--text-secondary)]">
             {textWeight}%
           </span>
         </div>
@@ -126,7 +126,7 @@ export function SentimentSliders() {
           max={100}
           value={textWeight}
           onChange={(e) => setTextWeight(Number(e.target.value))}
-          className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
+          className="w-full"
         />
         <p className="text-xs text-[var(--text-muted)] mt-1">
           How much the review text analysis influences the sentiment score
@@ -136,10 +136,10 @@ export function SentimentSliders() {
       {/* Classification Threshold */}
       <div className="pt-4 border-t border-[var(--border)]">
         <div className="flex justify-between mb-2">
-          <label className="text-sm font-medium text-[var(--text-secondary)]">
+          <label className="text-xs font-medium uppercase tracking-wider text-[var(--text-secondary)]">
             Classification Threshold
           </label>
-          <span className="text-sm text-[var(--text-secondary)]">
+          <span className="text-sm font-[family-name:var(--font-mono)] text-[var(--text-secondary)]">
             {(thresholdInt / 100).toFixed(2)}
           </span>
         </div>
@@ -149,7 +149,7 @@ export function SentimentSliders() {
           max={50}
           value={thresholdInt}
           onChange={(e) => setThresholdInt(Number(e.target.value))}
-          className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
+          className="w-full"
         />
         <p className="text-xs text-[var(--text-muted)] mt-1">
           Score must be above this value to be classified as positive/negative

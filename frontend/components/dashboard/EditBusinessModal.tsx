@@ -136,7 +136,7 @@ export function EditBusinessModal({ businessId, onClose, onSuccess }: EditBusine
 
             {/* Review Sources */}
             <div className="border-t border-[var(--border)] pt-4 mt-4">
-              <p className="text-sm font-medium text-[var(--text-muted)] mb-4">Review Sources</p>
+              <p className="text-xs font-medium uppercase tracking-wider text-[var(--text-muted)] mb-4">Review Sources</p>
               <div className="space-y-4">
                 <Input
                   label="TrustPilot URL"
@@ -164,18 +164,18 @@ export function EditBusinessModal({ businessId, onClose, onSuccess }: EditBusine
 
             {/* API Sources */}
             <div className="border-t border-[var(--border)] pt-4 mt-4">
-              <p className="text-sm font-medium text-[var(--text-muted)] mb-4">API Sources</p>
+              <p className="text-xs font-medium uppercase tracking-wider text-[var(--text-muted)] mb-4">API Sources</p>
               <div className="space-y-4">
                 {/* Google Place ID */}
                 <div>
-                  <label className="block text-sm font-medium text-[var(--text-secondary)] mb-1.5">Google Place ID</label>
+                  <label className="block text-xs font-medium uppercase tracking-wider text-[var(--text-secondary)] mb-1.5">Google Place ID</label>
                   <div className="flex gap-2">
                     <input
                       type="text"
                       value={googlePlaceId}
                       onChange={(e) => setGooglePlaceId(e.target.value)}
                       placeholder="ChIJ..."
-                      className="flex-1 border border-[var(--border)] bg-[var(--bg-surface)] text-[var(--text-primary)] rounded-lg px-3 py-2.5 placeholder-[var(--text-muted)]"
+                      className="flex-1 border border-[var(--border)] bg-[var(--bg-surface)] text-[var(--text-primary)] rounded-none px-3 py-2.5 placeholder-[var(--text-muted)]"
                     />
                     <Button type="button" variant="secondary" onClick={handleGoogleSearch}>
                       Search
@@ -185,14 +185,14 @@ export function EditBusinessModal({ businessId, onClose, onSuccess }: EditBusine
 
                 {/* Yelp Business ID */}
                 <div>
-                  <label className="block text-sm font-medium text-[var(--text-secondary)] mb-1.5">Yelp Business ID</label>
+                  <label className="block text-xs font-medium uppercase tracking-wider text-[var(--text-secondary)] mb-1.5">Yelp Business ID</label>
                   <div className="flex gap-2">
                     <input
                       type="text"
                       value={yelpBusinessId}
                       onChange={(e) => setYelpBusinessId(e.target.value)}
                       placeholder="e.g., gary-danko-san-francisco"
-                      className="flex-1 border border-[var(--border)] bg-[var(--bg-surface)] text-[var(--text-primary)] rounded-lg px-3 py-2.5 placeholder-[var(--text-muted)]"
+                      className="flex-1 border border-[var(--border)] bg-[var(--bg-surface)] text-[var(--text-primary)] rounded-none px-3 py-2.5 placeholder-[var(--text-muted)]"
                     />
                     <Button type="button" variant="secondary" onClick={handleYelpSearch}>
                       Search
@@ -204,7 +204,7 @@ export function EditBusinessModal({ businessId, onClose, onSuccess }: EditBusine
 
             {/* Search results panel */}
             {searchPanel && (
-              <div className="border border-[var(--border)] rounded-lg p-3 bg-[var(--bg-muted)]">
+              <div className="border border-[var(--border)] rounded-none p-3 bg-[var(--bg-elevated)]">
                 <div className="flex justify-between items-center mb-2">
                   <p className="text-sm font-medium text-[var(--text-secondary)]">
                     {searchPanel.type === 'google' ? 'Google Places' : 'Yelp'} results
@@ -240,7 +240,7 @@ export function EditBusinessModal({ businessId, onClose, onSuccess }: EditBusine
                           }
                           setSearchPanel(null);
                         }}
-                        className="w-full text-left p-2 rounded hover:bg-[var(--bg-surface-hover)] transition"
+                        className="w-full text-left p-2 rounded-none hover:bg-[var(--bg-surface-hover)] transition"
                       >
                         <div className="font-medium text-sm text-[var(--text-primary)]">{result.name}</div>
                         {result.address && (
@@ -252,7 +252,7 @@ export function EditBusinessModal({ businessId, onClose, onSuccess }: EditBusine
                             {result.review_count ? ` · ${result.review_count} reviews` : ''}
                           </div>
                         )}
-                        <div className="text-xs text-indigo-600 dark:text-indigo-400 mt-0.5">
+                        <div className="text-xs text-[var(--accent)] mt-0.5">
                           ID: {searchPanel.type === 'google' ? result.place_id : result.business_id}
                         </div>
                       </button>

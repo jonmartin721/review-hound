@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Inter } from "next/font/google";
+import { DM_Sans, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
 import { ThemeProvider } from "@/components/layout/ThemeProvider";
 import { StorageProvider } from "@/lib/storage/provider";
@@ -7,7 +7,8 @@ import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
 import { SchedulerInit } from "@/components/layout/SchedulerInit";
 
-const inter = Inter({ subsets: ["latin"] });
+const dmSans = DM_Sans({ subsets: ["latin"], variable: "--font-sans" });
+const jetbrainsMono = JetBrains_Mono({ subsets: ["latin"], variable: "--font-mono" });
 
 export const metadata: Metadata = {
   title: "Review Hound",
@@ -24,11 +25,11 @@ export default function RootLayout({
       <head>
         <script
           dangerouslySetInnerHTML={{
-            __html: `(function(){var s=localStorage.getItem('theme');if(s==='dark'||(!s&&window.matchMedia('(prefers-color-scheme:dark)').matches)){document.documentElement.classList.add('dark')}})()`,
+            __html: `(function(){var s=localStorage.getItem('theme');if(s!=='light'){document.documentElement.classList.add('dark')}})()`,
           }}
         />
       </head>
-      <body className={`${inter.className} bg-[var(--bg-page)] min-h-screen flex flex-col antialiased`}>
+      <body className={`${dmSans.variable} ${jetbrainsMono.variable} font-[family-name:var(--font-sans)] bg-[var(--bg-page)] min-h-screen flex flex-col antialiased`}>
         <ThemeProvider>
           <StorageProvider>
             <SchedulerInit />

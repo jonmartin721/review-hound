@@ -13,10 +13,10 @@ export function Pagination({ page, totalPages, onPageChange }: PaginationProps) 
         <button
           key={p}
           onClick={() => onPageChange(p)}
-          className={`px-3 py-1 rounded transition ${
+          className={`px-3 py-1 rounded-none transition font-[family-name:var(--font-mono)] ${
             p === page
-              ? 'bg-indigo-600 text-white'
-              : 'bg-[var(--bg-muted)] text-[var(--text-secondary)] hover:bg-[var(--border)]'
+              ? 'bg-[var(--accent)] text-[#0F0F0F]'
+              : 'bg-[var(--bg-elevated)] text-[var(--text-secondary)] hover:bg-[var(--border)]'
           }`}
         >
           {p}

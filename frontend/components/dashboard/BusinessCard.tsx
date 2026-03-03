@@ -21,13 +21,13 @@ export function BusinessCard({ business, onEdit, onDelete }: BusinessCardProps) 
   };
 
   return (
-    <div className="bg-[var(--bg-surface)] rounded-xl shadow-sm border border-[var(--border)] p-6 card-hover">
+    <div className="bg-[var(--bg-surface)] rounded-none border border-[var(--border)] border-t-2 border-t-[var(--accent)] p-6">
       {/* Header: name + warning icon + edit/delete buttons */}
       <div className="flex justify-between items-start mb-2">
         <div className="flex items-center gap-2 min-w-0">
           <h2 className="text-xl font-semibold text-[var(--text-primary)] truncate">{business.name}</h2>
           {business.scrape_issues && (
-            <span className="text-amber-500 dark:text-amber-400 flex-shrink-0" title="Scrape issues detected">
+            <span className="text-[var(--accent)] flex-shrink-0" title="Scrape issues detected">
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
               </svg>
@@ -37,7 +37,7 @@ export function BusinessCard({ business, onEdit, onDelete }: BusinessCardProps) 
         <div className="flex gap-1 flex-shrink-0 ml-2">
           <button
             onClick={() => onEdit(business.id)}
-            className="p-1.5 text-[var(--text-muted)] hover:text-indigo-600 dark:hover:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-900/30 rounded transition"
+            className="p-1.5 text-[var(--text-muted)] hover:text-[var(--accent)] hover:bg-[var(--accent-dim)] rounded-none transition"
             title="Edit business"
           >
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -46,7 +46,7 @@ export function BusinessCard({ business, onEdit, onDelete }: BusinessCardProps) 
           </button>
           <button
             onClick={() => onDelete(business.id, business.name)}
-            className="p-1.5 text-[var(--text-muted)] hover:text-red-600 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/30 rounded transition"
+            className="p-1.5 text-[var(--text-muted)] hover:text-[var(--negative)] hover:bg-[var(--negative)]/10 rounded-none transition"
             title="Delete business"
           >
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -59,21 +59,21 @@ export function BusinessCard({ business, onEdit, onDelete }: BusinessCardProps) 
       {/* Rating + trend */}
       <div className="flex items-center mb-1">
         <span className="rating-stars text-lg">{'★'.repeat(filledStars)}{'☆'.repeat(emptyStars)}</span>
-        <span className="ml-1 text-[var(--text-secondary)] font-medium">{avgRating.toFixed(1)}</span>
+        <span className="ml-1 text-[var(--text-secondary)] font-medium font-[family-name:var(--font-mono)]">{avgRating.toFixed(1)}</span>
         {business.trend_direction === 'up' && (
-          <span className="ml-2 text-green-600 dark:text-green-400 text-sm font-medium flex items-center">
+          <span className="ml-2 text-[var(--positive)] text-sm font-medium flex items-center">
             <svg className="w-3.5 h-3.5 mr-0.5" fill="currentColor" viewBox="0 0 20 20">
               <path fillRule="evenodd" d="M5.293 9.707a1 1 0 010-1.414l4-4a1 1 0 011.414 0l4 4a1 1 0 01-1.414 1.414L11 7.414V15a1 1 0 11-2 0V7.414L6.707 9.707a1 1 0 01-1.414 0z" clipRule="evenodd" />
             </svg>
-            {Math.abs(business.trend_delta).toFixed(1)}
+            <span className="font-[family-name:var(--font-mono)]">{Math.abs(business.trend_delta).toFixed(1)}</span>
           </span>
         )}
         {business.trend_direction === 'down' && (
-          <span className="ml-2 text-red-600 dark:text-red-400 text-sm font-medium flex items-center">
+          <span className="ml-2 text-[var(--negative)] text-sm font-medium flex items-center">
             <svg className="w-3.5 h-3.5 mr-0.5" fill="currentColor" viewBox="0 0 20 20">
               <path fillRule="evenodd" d="M14.707 10.293a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 111.414-1.414L9 12.586V5a1 1 0 012 0v7.586l2.293-2.293a1 1 0 011.414 0z" clipRule="evenodd" />
             </svg>
-            {Math.abs(business.trend_delta).toFixed(1)}
+            <span className="font-[family-name:var(--font-mono)]">{Math.abs(business.trend_delta).toFixed(1)}</span>
           </span>
         )}
         {business.trend_direction === 'stable' && (
@@ -87,13 +87,13 @@ export function BusinessCard({ business, onEdit, onDelete }: BusinessCardProps) 
       </div>
 
       {/* Review count */}
-      <div className="text-[var(--text-muted)] text-sm mb-3">({business.total_reviews} reviews)</div>
+      <div className="text-[var(--text-muted)] text-sm mb-3 font-[family-name:var(--font-mono)]">({business.total_reviews} reviews)</div>
 
       {/* Negative alert badge */}
       {business.recent_negative_count > 0 && (
         <Link
           href={`/business/${business.id}?sentiment=negative`}
-          className="mb-3 flex items-center px-2.5 py-1.5 bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-400 rounded-lg text-sm font-medium hover:bg-red-100 dark:hover:bg-red-900/30 transition"
+          className="mb-3 flex items-center px-2.5 py-1.5 bg-[var(--negative)]/10 text-[var(--negative)] rounded-none text-sm font-medium hover:bg-[var(--negative)]/20 transition"
         >
           <svg className="w-4 h-4 mr-1.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
@@ -106,7 +106,7 @@ export function BusinessCard({ business, onEdit, onDelete }: BusinessCardProps) 
       {business.scrape_issues && (
         <Link
           href={`/business/${business.id}#scrape-history`}
-          className="mb-3 flex items-center px-2.5 py-1.5 bg-amber-50 dark:bg-amber-900/20 text-amber-700 dark:text-amber-400 rounded-lg text-sm font-medium hover:bg-amber-100 dark:hover:bg-amber-900/30 transition"
+          className="mb-3 flex items-center px-2.5 py-1.5 bg-[var(--accent-dim)] text-[var(--accent)] rounded-none text-sm font-medium hover:bg-[var(--accent)]/20 transition"
         >
           <svg className="w-4 h-4 mr-1.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
@@ -136,32 +136,32 @@ export function BusinessCard({ business, onEdit, onDelete }: BusinessCardProps) 
           <span>Sentiment</span>
           <span>{Math.round(business.positive_pct)}% positive</span>
         </div>
-        <div className="sentiment-bar bg-[var(--bg-muted)] flex">
-          <div className="bg-green-500" style={{ width: `${business.positive_pct}%` }} />
-          <div className="bg-red-500" style={{ width: `${business.negative_pct}%` }} />
+        <div className="sentiment-bar bg-[var(--bg-elevated)] flex">
+          <div className="bg-[var(--positive)]" style={{ width: `${business.positive_pct}%` }} />
+          <div className="bg-[var(--negative)]" style={{ width: `${business.negative_pct}%` }} />
         </div>
       </div>
 
       {/* Source badges */}
       <div className="flex flex-wrap gap-1.5 text-xs mb-4">
         {business.trustpilot_url && (
-          <span className="px-2 py-1 bg-green-50 dark:bg-green-900/30 text-green-700 dark:text-green-400 rounded-md">TrustPilot</span>
+          <span className="px-2 py-1 border border-[var(--border-bright)] text-[var(--text-secondary)] bg-[var(--bg-elevated)] font-[family-name:var(--font-mono)] uppercase tracking-wider rounded-none">TrustPilot</span>
         )}
         {business.bbb_url && (
-          <span className="px-2 py-1 bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 rounded-md">BBB</span>
+          <span className="px-2 py-1 border border-[var(--border-bright)] text-[var(--text-secondary)] bg-[var(--bg-elevated)] font-[family-name:var(--font-mono)] uppercase tracking-wider rounded-none">BBB</span>
         )}
         {(business.yelp_url || business.yelp_business_id) && (
-          <span className="px-2 py-1 bg-red-50 dark:bg-red-900/30 text-red-700 dark:text-red-400 rounded-md">Yelp</span>
+          <span className="px-2 py-1 border border-[var(--border-bright)] text-[var(--text-secondary)] bg-[var(--bg-elevated)] font-[family-name:var(--font-mono)] uppercase tracking-wider rounded-none">Yelp</span>
         )}
         {business.google_place_id && (
-          <span className="px-2 py-1 bg-amber-50 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400 rounded-md">Google</span>
+          <span className="px-2 py-1 border border-[var(--border-bright)] text-[var(--text-secondary)] bg-[var(--bg-elevated)] font-[family-name:var(--font-mono)] uppercase tracking-wider rounded-none">Google</span>
         )}
       </div>
 
       {/* View Details button */}
       <Link
         href={`/business/${business.id}`}
-        className="block text-center bg-indigo-600 text-white py-2.5 rounded-lg hover:bg-indigo-700 transition font-medium"
+        className="block text-center bg-[var(--accent)] text-[#0F0F0F] py-2.5 rounded-none hover:brightness-110 transition font-medium"
       >
         View Details
       </Link>
