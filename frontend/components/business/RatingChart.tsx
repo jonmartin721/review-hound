@@ -45,7 +45,9 @@ export function RatingChart({ businessId }: RatingChartProps) {
   const chartRef = useRef<ChartJS<'line'> | null>(null);
 
   useEffect(() => {
-    storage.getChartData(businessId).then(setChartData);
+    storage.getChartData(businessId)
+      .then(setChartData)
+      .catch((err) => console.error('Failed to load chart data:', err));
   }, [businessId, storage]);
 
   useEffect(() => {

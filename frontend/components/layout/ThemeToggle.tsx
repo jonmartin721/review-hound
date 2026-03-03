@@ -3,7 +3,9 @@
 export function ThemeToggle() {
   function toggle() {
     const isDark = document.documentElement.classList.toggle('dark');
-    localStorage.setItem('theme', isDark ? 'dark' : 'light');
+    try {
+      localStorage.setItem('theme', isDark ? 'dark' : 'light');
+    } catch { /* Private browsing or quota exceeded — visual toggle still works */ }
   }
 
   return (

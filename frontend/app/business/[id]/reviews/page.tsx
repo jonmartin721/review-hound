@@ -59,12 +59,17 @@ export default function ReviewsPage() {
   };
 
   const handleExport = async () => {
-    const csv = await storage.exportReviewsCsv(businessId, {
-      source: source || undefined,
-      sentiment: sentiment || undefined,
-    });
-    const safeName = (business?.name || 'reviews').toLowerCase().replace(/\s+/g, '_');
-    downloadCsv(csv, `${safeName}_reviews.csv`);
+    try {
+      const csv = await storage.exportReviewsCsv(businessId, {
+        source: source || undefined,
+        sentiment: sentiment || undefined,
+      });
+      const safeName = (business?.name || 'reviews').toLowerCase().replace(/\s+/g, '_');
+      downloadCsv(csv, `${safeName}_reviews.csv`);
+    } catch (err) {
+      console.error('Failed to export reviews:', err);
+      setError('Failed to export reviews. Please try again.');
+    }
   };
 
   return (

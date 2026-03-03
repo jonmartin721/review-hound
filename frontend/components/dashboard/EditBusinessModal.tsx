@@ -18,6 +18,7 @@ interface SearchPanel {
   type: 'google' | 'yelp';
   results: ApiSearchResult[];
   loading: boolean;
+  searchError?: boolean;
 }
 
 export function EditBusinessModal({ businessId, onClose, onSuccess }: EditBusinessModalProps) {
@@ -75,7 +76,7 @@ export function EditBusinessModal({ businessId, onClose, onSuccess }: EditBusine
       const results = await storage.searchGooglePlaces(name, address || null);
       setSearchPanel({ type: 'google', results, loading: false });
     } catch {
-      setSearchPanel({ type: 'google', results: [], loading: false });
+      setSearchPanel({ type: 'google', results: [], loading: false, searchError: true });
     }
   };
 
@@ -85,7 +86,7 @@ export function EditBusinessModal({ businessId, onClose, onSuccess }: EditBusine
       const results = await storage.searchYelp(name, address || null);
       setSearchPanel({ type: 'yelp', results, loading: false });
     } catch {
-      setSearchPanel({ type: 'yelp', results: [], loading: false });
+      setSearchPanel({ type: 'yelp', results: [], loading: false, searchError: true });
     }
   };
 
@@ -224,6 +225,8 @@ export function EditBusinessModal({ businessId, onClose, onSuccess }: EditBusine
                     <Spinner size="sm" />
                     <span className="text-sm">Searching...</span>
                   </div>
+                ) : searchPanel.searchError ? (
+                  <p className="text-sm text-[var(--negative)] py-2">Search failed. Try again or enter an ID manually.</p>
                 ) : searchPanel.results.length === 0 ? (
                   <p className="text-sm text-[var(--text-muted)] py-2">No results found.</p>
                 ) : (

@@ -35,13 +35,16 @@ export function SentimentSliders() {
   );
   const [saving, setSaving] = useState(false);
   const [savedMsg, setSavedMsg] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    storage.getSentimentConfig().then((cfg) => {
-      setRatingWeight(Math.round(cfg.rating_weight * 100));
-      setTextWeight(Math.round(cfg.text_weight * 100));
-      setThresholdInt(Math.round(cfg.threshold * 100));
-    });
+    storage.getSentimentConfig()
+      .then((cfg) => {
+        setRatingWeight(Math.round(cfg.rating_weight * 100));
+        setTextWeight(Math.round(cfg.text_weight * 100));
+        setThresholdInt(Math.round(cfg.threshold * 100));
+      })
+      .catch(() => setError('Failed to load sentiment config.'));
   }, [storage]);
 
   useEffect(() => {
@@ -52,6 +55,7 @@ export function SentimentSliders() {
 
   async function handleSave() {
     setSaving(true);
+    setError(null);
     try {
       await storage.saveSentimentConfig({
         rating_weight: ratingWeight / 100,
@@ -60,6 +64,8 @@ export function SentimentSliders() {
       });
       setSavedMsg(true);
       savedMsgTimeoutRef.current = setTimeout(() => setSavedMsg(false), 2500);
+    } catch {
+      setError('Failed to save settings.');
     } finally {
       setSaving(false);
     }
@@ -71,15 +77,25 @@ export function SentimentSliders() {
     ) {
       return;
     }
+    const prevRating = ratingWeight;
+    const prevText = textWeight;
+    const prevThreshold = thresholdInt;
+
     setRatingWeight(Math.round(DEFAULTS.rating_weight * 100));
     setTextWeight(Math.round(DEFAULTS.text_weight * 100));
     setThresholdInt(Math.round(DEFAULTS.threshold * 100));
 
     setSaving(true);
+    setError(null);
     try {
       await storage.saveSentimentConfig(DEFAULTS);
       setSavedMsg(true);
       savedMsgTimeoutRef.current = setTimeout(() => setSavedMsg(false), 2500);
+    } catch {
+      setRatingWeight(prevRating);
+      setTextWeight(prevText);
+      setThresholdInt(prevThreshold);
+      setError('Failed to reset settings.');
     } finally {
       setSaving(false);
     }
@@ -158,6 +174,7 @@ export function SentimentSliders() {
       </div>
 
       {/* Actions */}
+      {error && <p className="text-sm text-[var(--negative)]">{error}</p>}
       <div className="flex items-center justify-between pt-4">
         <Button onClick={handleSave} loading={saving}>
           {savedMsg ? 'Saved!' : 'Save Settings'}

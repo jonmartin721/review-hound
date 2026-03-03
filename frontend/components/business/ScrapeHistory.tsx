@@ -29,11 +29,15 @@ export function ScrapeHistory({ businessId, refreshKey }: ScrapeHistoryProps) {
   const [logs, setLogs] = useState<ScrapeLog[]>([]);
   const [loading, setLoading] = useState(true);
 
+  const [error, setError] = useState<string | null>(null);
+
   useEffect(() => {
     setLoading(true);
+    setError(null);
     storage
       .getScrapeHistory(businessId, 10)
       .then(setLogs)
+      .catch(() => setError('Failed to load scrape history.'))
       .finally(() => setLoading(false));
   }, [businessId, storage, refreshKey]);
 
@@ -43,6 +47,8 @@ export function ScrapeHistory({ businessId, refreshKey }: ScrapeHistoryProps) {
 
       {loading ? (
         <p className="text-[var(--text-muted)] text-center py-4">Loading...</p>
+      ) : error ? (
+        <p className="text-[var(--negative)] text-center py-4">{error}</p>
       ) : logs.length === 0 ? (
         <p className="text-[var(--text-muted)] text-center py-4">No scrape history yet.</p>
       ) : (

@@ -31,6 +31,7 @@ export function ApiKeyCard({
   const [newKey, setNewKey] = useState('');
   const [saving, setSaving] = useState(false);
   const [deleting, setDeleting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const editInputRef = useRef<HTMLInputElement>(null);
   const addInputRef = useRef<HTMLInputElement>(null);
 
@@ -39,10 +40,13 @@ export function ApiKeyCard({
     const key = editing ? newKey : (addInputRef.current?.value ?? '');
     if (!key.trim()) return;
     setSaving(true);
+    setError(null);
     try {
       await onSave(key.trim());
       setNewKey('');
       setEditing(false);
+    } catch {
+      setError('Failed to save API key.');
     } finally {
       setSaving(false);
     }
@@ -51,8 +55,11 @@ export function ApiKeyCard({
   async function handleDelete() {
     if (!confirm('Are you sure you want to delete this API key?')) return;
     setDeleting(true);
+    setError(null);
     try {
       await onDelete();
+    } catch {
+      setError('Failed to delete API key.');
     } finally {
       setDeleting(false);
     }
@@ -149,6 +156,8 @@ export function ApiKeyCard({
           </Button>
         </form>
       )}
+
+      {error && <p className="text-xs text-[var(--negative)] mt-2">{error}</p>}
 
       {/* Help link */}
       <p className="text-xs text-[var(--text-muted)] mt-2">
