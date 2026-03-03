@@ -4,7 +4,6 @@ import "./globals.css";
 import { ThemeProvider } from "@/components/layout/ThemeProvider";
 import { StorageProvider } from "@/lib/storage/provider";
 import { Navbar } from "@/components/layout/Navbar";
-import { Footer } from "@/components/layout/Footer";
 import { SchedulerInit } from "@/components/layout/SchedulerInit";
 
 const dmSans = DM_Sans({ subsets: ["latin"], variable: "--font-sans" });
@@ -37,7 +36,6 @@ export default function RootLayout({
             <main className="container mx-auto px-6 py-8 flex-1">
               {children}
             </main>
-            <Footer />
           </StorageProvider>
         </ThemeProvider>
       </body>
