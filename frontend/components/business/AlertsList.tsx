@@ -25,7 +25,10 @@ export function AlertsList({ businessId, onAdd, onEdit, refreshKey }: AlertsList
         setAlerts(data);
         setError(null);
       })
-      .catch(() => setError('Failed to load alerts.'))
+      .catch((err) => {
+        console.error('Failed to load alerts:', err);
+        setError('Failed to load alerts.');
+      })
       .finally(() => setLoading(false));
   }, [businessId, storage, refreshKey]);
 
@@ -34,7 +37,8 @@ export function AlertsList({ businessId, onAdd, onEdit, refreshKey }: AlertsList
     try {
       await storage.deleteAlert(alertId);
       setAlerts((prev) => prev.filter((a) => a.id !== alertId));
-    } catch {
+    } catch (err) {
+      console.error('Failed to delete alert:', err);
       alert('Error deleting alert');
     }
   }

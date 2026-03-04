@@ -45,7 +45,8 @@ export function ApiKeyCard({
       await onSave(key.trim());
       setNewKey('');
       setEditing(false);
-    } catch {
+    } catch (err) {
+      console.error('Failed to save API key:', err);
       setError('Failed to save API key.');
     } finally {
       setSaving(false);
@@ -58,7 +59,8 @@ export function ApiKeyCard({
     setError(null);
     try {
       await onDelete();
-    } catch {
+    } catch (err) {
+      console.error('Failed to delete API key:', err);
       setError('Failed to delete API key.');
     } finally {
       setDeleting(false);
@@ -92,7 +94,15 @@ export function ApiKeyCard({
               type="checkbox"
               className="sr-only peer"
               checked={keyInfo.enabled}
-              onChange={onToggle}
+              onChange={async () => {
+                setError(null);
+                try {
+                  await onToggle();
+                } catch (err) {
+                  console.error('Failed to toggle API key:', err);
+                  setError('Failed to toggle API key.');
+                }
+              }}
             />
             <div className="w-11 h-6 bg-[var(--border-bright)] peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-(--accent)/30 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-[var(--border)] after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[var(--accent)]" />
           </label>

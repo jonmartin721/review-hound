@@ -13,6 +13,8 @@ interface SourceSearchModalProps {
   trustpilotResults: SearchResult[];
   bbbResults: SearchResult[];
   isLoading: boolean;
+  searchError: string | null;
+  saveError: string | null;
   onSave: (sources: { trustpilot: string | null; bbb: string | null }) => Promise<void>;
   isSaving: boolean;
 }
@@ -130,6 +132,8 @@ export function SourceSearchModal({
   trustpilotResults,
   bbbResults,
   isLoading,
+  searchError,
+  saveError,
   onSave,
   isSaving,
 }: SourceSearchModalProps) {
@@ -153,6 +157,10 @@ export function SourceSearchModal({
     >
       <p className="text-[var(--text-muted)] mb-4">Select the correct business listing from each platform, or enter URLs manually.</p>
 
+      {searchError && (
+        <p className="text-sm text-[var(--negative)] mb-4">{searchError}</p>
+      )}
+
       <div className="overflow-y-auto max-h-[60vh] pr-1">
         <SourceSection
           source="trustpilot"
@@ -173,6 +181,10 @@ export function SourceSearchModal({
           onSelect={setBbbUrl}
         />
       </div>
+
+      {saveError && (
+        <p className="text-sm text-[var(--negative)] mt-4">{saveError}</p>
+      )}
 
       <div className="flex justify-end gap-3 mt-6 border-t border-[var(--border)] pt-4">
         <Button variant="secondary" onClick={handleSkip} disabled={isSaving}>

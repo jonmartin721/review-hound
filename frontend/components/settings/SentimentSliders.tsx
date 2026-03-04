@@ -44,7 +44,10 @@ export function SentimentSliders() {
         setTextWeight(Math.round(cfg.text_weight * 100));
         setThresholdInt(Math.round(cfg.threshold * 100));
       })
-      .catch(() => setError('Failed to load sentiment config.'));
+      .catch((err) => {
+        console.error('Failed to load sentiment config:', err);
+        setError('Failed to load sentiment config.');
+      });
   }, [storage]);
 
   useEffect(() => {
@@ -64,7 +67,8 @@ export function SentimentSliders() {
       });
       setSavedMsg(true);
       savedMsgTimeoutRef.current = setTimeout(() => setSavedMsg(false), 2500);
-    } catch {
+    } catch (err) {
+      console.error('Failed to save sentiment config:', err);
       setError('Failed to save settings.');
     } finally {
       setSaving(false);
@@ -91,7 +95,8 @@ export function SentimentSliders() {
       await storage.saveSentimentConfig(DEFAULTS);
       setSavedMsg(true);
       savedMsgTimeoutRef.current = setTimeout(() => setSavedMsg(false), 2500);
-    } catch {
+    } catch (err) {
+      console.error('Failed to reset sentiment config:', err);
       setRatingWeight(prevRating);
       setTextWeight(prevText);
       setThresholdInt(prevThreshold);

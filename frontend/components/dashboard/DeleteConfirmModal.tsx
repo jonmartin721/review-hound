@@ -24,7 +24,8 @@ export function DeleteConfirmModal({ id, name, onClose, onSuccess }: DeleteConfi
       await storage.deleteBusiness(id);
       onSuccess();
       onClose();
-    } catch {
+    } catch (err) {
+      console.error('Failed to delete business:', err);
       setError('Failed to delete business. Please try again.');
       setDeleting(false);
     }

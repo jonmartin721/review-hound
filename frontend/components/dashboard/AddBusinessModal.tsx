@@ -28,7 +28,9 @@ export function AddBusinessModal({ isOpen, onClose, onSuccess }: AddBusinessModa
   const [trustpilotResults, setTrustpilotResults] = useState<SearchResult[]>([]);
   const [bbbResults, setBbbResults] = useState<SearchResult[]>([]);
   const [sourceLoading, setSourceLoading] = useState(false);
+  const [searchError, setSearchError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
+  const [saveError, setSaveError] = useState<string | null>(null);
 
   const handleClose = useCallback(() => {
     setName('');
@@ -49,13 +51,15 @@ export function AddBusinessModal({ isOpen, onClose, onSuccess }: AddBusinessModa
     setSourceLoading(true);
     setTrustpilotResults([]);
     setBbbResults([]);
+    setSearchError(null);
 
     try {
       const results = await storage.searchSources(name.trim(), location.trim() || null);
       setTrustpilotResults(results.trustpilot);
       setBbbResults(results.bbb);
-    } catch {
-      // Show empty results on failure — user can still enter manually
+    } catch (err) {
+      console.error('Failed to search sources:', err);
+      setSearchError('Could not search for existing profiles. You can enter URLs manually below.');
       setTrustpilotResults([]);
       setBbbResults([]);
     } finally {
@@ -66,6 +70,7 @@ export function AddBusinessModal({ isOpen, onClose, onSuccess }: AddBusinessModa
 
   const handleSave = async (sources: { trustpilot: string | null; bbb: string | null }) => {
     setSaving(true);
+    setSaveError(null);
     try {
       const result = await storage.createBusiness({
         name: name.trim(),
@@ -75,10 +80,10 @@ export function AddBusinessModal({ isOpen, onClose, onSuccess }: AddBusinessModa
       });
       handleClose();
       onSuccess();
-      // Navigate to the new business detail page
       router.push(`/business/${result.business.id}`);
     } catch (err) {
       console.error('Failed to create business:', err);
+      setSaveError(err instanceof Error ? err.message : 'Failed to create business. Please try again.');
     } finally {
       setSaving(false);
     }
@@ -122,6 +127,8 @@ export function AddBusinessModal({ isOpen, onClose, onSuccess }: AddBusinessModa
         trustpilotResults={trustpilotResults}
         bbbResults={bbbResults}
         isLoading={sourceLoading}
+        searchError={searchError}
+        saveError={saveError}
         onSave={handleSave}
         isSaving={saving}
       />
