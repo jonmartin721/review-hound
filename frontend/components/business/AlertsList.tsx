@@ -17,8 +17,14 @@ export function AlertsList({ businessId, onAdd, onEdit, refreshKey }: AlertsList
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
+  const fetchKey = `${businessId}-${refreshKey}`;
+  const [prevFetchKey, setPrevFetchKey] = useState(fetchKey);
+  if (fetchKey !== prevFetchKey) {
+    setPrevFetchKey(fetchKey);
     setLoading(true);
+  }
+
+  useEffect(() => {
     storage
       .getAlerts(businessId)
       .then((data) => {

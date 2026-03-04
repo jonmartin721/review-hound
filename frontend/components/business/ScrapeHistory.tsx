@@ -28,12 +28,17 @@ export function ScrapeHistory({ businessId, refreshKey }: ScrapeHistoryProps) {
   const storage = useStorage();
   const [logs, setLogs] = useState<ScrapeLog[]>([]);
   const [loading, setLoading] = useState(true);
-
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
+  const fetchKey = `${businessId}-${refreshKey}`;
+  const [prevFetchKey, setPrevFetchKey] = useState(fetchKey);
+  if (fetchKey !== prevFetchKey) {
+    setPrevFetchKey(fetchKey);
     setLoading(true);
     setError(null);
+  }
+
+  useEffect(() => {
     storage
       .getScrapeHistory(businessId, 10)
       .then(setLogs)
