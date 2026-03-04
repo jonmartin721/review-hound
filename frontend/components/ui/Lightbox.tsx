@@ -30,7 +30,7 @@ export function LightboxImage({ src, alt, width, height }: LightboxImageProps) {
 
       {open && (
         <div className="fixed inset-0 z-50 bg-black/80 modal-backdrop flex items-center justify-center p-8 cursor-pointer" onClick={close}>
-          <div className="relative max-w-[90vw] max-h-[90vh]">
+          <div className="relative max-w-[90vw] max-h-[90vh]" onClick={e => e.stopPropagation()}>
             <Image src={src} alt={alt} width={width} height={height} className="max-w-full max-h-[90vh] w-auto h-auto object-contain" />
           </div>
         </div>
