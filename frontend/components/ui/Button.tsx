@@ -2,7 +2,7 @@ import { type ButtonHTMLAttributes, type ReactNode } from 'react';
 import { Spinner } from './Spinner';
 
 interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
-  variant?: 'primary' | 'secondary' | 'danger' | 'ghost';
+  variant?: 'primary' | 'secondary' | 'danger' | 'ghost' | 'success';
   loading?: boolean;
   children: ReactNode;
 }
@@ -14,6 +14,7 @@ export function Button({ variant = 'primary', loading, children, disabled, class
     secondary: 'border border-[var(--border)] text-[var(--text-secondary)] hover:bg-[var(--bg-surface-hover)]',
     danger: 'bg-[var(--negative)] text-[var(--accent-contrast)] hover:brightness-110',
     ghost: 'text-[var(--text-muted)] hover:text-[var(--text-secondary)] hover:bg-[var(--bg-surface-hover)]',
+    success: 'bg-[var(--positive)] text-[var(--accent-contrast)] hover:brightness-110',
   };
 
   return (

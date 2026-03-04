@@ -51,8 +51,7 @@ export function ReviewFilters({ source, sentiment, onFilter, onExport }: ReviewF
         </Button>
 
         <Button
-          variant="secondary"
-          className="bg-[var(--positive)] text-[var(--accent-contrast)] border-[var(--positive)] hover:brightness-110"
+          variant="success"
           onClick={onExport}
         >
           <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
