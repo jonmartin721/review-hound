@@ -30,7 +30,7 @@ export function Modal({ isOpen, onClose, title, children, maxWidth = 'max-w-md' 
   return (
     <div className="fixed inset-0 bg-black/50 dark:bg-black/70 flex items-center justify-center z-50 modal-backdrop"
          onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}>
-      <div className={`bg-[var(--bg-surface)] rounded-none border border-[var(--border)] border-t-2 border-t-[var(--accent)] p-6 w-full ${maxWidth} mx-4`}
+      <div className={`panel-shell rounded-none p-6 w-full ${maxWidth} mx-4`}
            role="dialog"
            aria-modal="true"
            aria-label={title}>

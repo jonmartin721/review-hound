@@ -58,18 +58,18 @@ export function Navbar() {
         </div>
       </div>
       {isPortfolioMode && (
-        <div className="bg-[var(--accent-dim)] border-b border-[var(--border)]">
-          <div className="container mx-auto px-6 py-1.5 text-center text-xs text-[var(--accent)]">
+        <div className="panel-shell-info border-b border-[var(--border)]">
+          <div className="container mx-auto px-6 py-1.5 text-center text-xs text-[var(--text-primary)]">
             {workspaceMode === 'sample'
               ? 'Sample workspace loaded from this browser.'
               : 'Local workspace stored only in this browser.'}
             <span className="mx-2 text-[var(--text-muted)]">Resetting only affects this browser.</span>
             {workspaceMode === 'sample' ? (
-              <button onClick={handleStartEmptyWorkspace} className="underline hover:opacity-80 transition-opacity">
+              <button onClick={handleStartEmptyWorkspace} className="accent-link underline">
                 Start empty workspace
               </button>
             ) : (
-              <button onClick={handleReloadSample} className="underline hover:opacity-80 transition-opacity">
+              <button onClick={handleReloadSample} className="accent-link underline">
                 Reload sample data
               </button>
             )}
@@ -77,7 +77,7 @@ export function Navbar() {
               href={GITHUB_REPO_URL}
               target="_blank"
               rel="noreferrer"
-              className="ml-3 underline hover:opacity-80 transition-opacity"
+              className="accent-link ml-3 underline"
             >
               View full project
             </a>

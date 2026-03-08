@@ -13,12 +13,12 @@ interface RecentReviewsProps {
 
 export function RecentReviews({ reviews, businessId }: RecentReviewsProps) {
   return (
-    <div className="bg-[var(--bg-surface)] rounded-none border-t-2 border-t-[var(--accent)] border border-[var(--border)] p-6">
+    <div className="panel-shell rounded-none p-6">
       <div className="flex justify-between items-center mb-4">
         <h2 className="text-lg font-semibold text-[var(--text-primary)]">Recent Reviews</h2>
         <Link
           href={`/business/${businessId}/reviews`}
-          className="text-[var(--accent)] hover:brightness-110 font-medium"
+          className="accent-link font-medium"
         >
           View All →
         </Link>

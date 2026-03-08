@@ -16,7 +16,7 @@ function StatusBadge({ status }: { status: string }) {
   } else if (status === 'failed') {
     classes = 'bg-(--negative)/10 text-[var(--negative)]';
   } else {
-    classes = 'bg-[var(--accent-dim)] text-[var(--accent)]';
+    classes = 'info-badge';
   }
 
   return (
@@ -47,7 +47,7 @@ export function ScrapeHistory({ businessId, refreshKey }: ScrapeHistoryProps) {
   }, [businessId, storage, refreshKey]);
 
   return (
-    <div className="bg-[var(--bg-surface)] rounded-none border-t-2 border-t-[var(--accent)] border border-[var(--border)] p-6 mt-6">
+    <div className="panel-shell rounded-none p-6 mt-6">
       <h2 className="text-lg font-semibold text-[var(--text-primary)] mb-4">Scrape History</h2>
 
       {loading ? (
@@ -78,7 +78,7 @@ export function ScrapeHistory({ businessId, refreshKey }: ScrapeHistoryProps) {
                     {log.reviews_found || 0}
                     {log.status === 'success' && (log.reviews_found || 0) === 0 && (
                       <span
-                        className="ml-1 text-[var(--accent)] inline-flex items-center"
+                        className="info-badge-subtle ml-1 inline-flex items-center"
                         title="No new reviews found - check if the source URL is correct"
                       >
                         <svg

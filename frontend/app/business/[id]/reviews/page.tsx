@@ -77,7 +77,7 @@ export default function ReviewsPage() {
       <div className="mb-6">
         <Link
           href={`/business/${businessId}`}
-          className="text-[var(--accent)] hover:brightness-110"
+          className="accent-link"
         >
           &larr; Back to {business?.name || 'Business'}
         </Link>

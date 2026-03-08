@@ -215,7 +215,7 @@ export function EditBusinessModal({ businessId, onClose, onSuccess }: EditBusine
                   href={GITHUB_REPO_URL}
                   target="_blank"
                   rel="noreferrer"
-                  className="text-[var(--accent)] hover:brightness-110"
+                  className="accent-link"
                 >
                   full cloned app
                 </a>

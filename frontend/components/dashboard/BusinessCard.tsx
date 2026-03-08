@@ -22,13 +22,13 @@ export function BusinessCard({ business, onEdit, onDelete }: BusinessCardProps) 
   };
 
   return (
-    <div className="bg-[var(--bg-surface)] rounded-none border border-[var(--border)] border-t-2 border-t-[var(--accent)] p-6">
+    <div className="panel-shell rounded-none p-6">
       {/* Header: name + warning icon + edit/delete buttons */}
       <div className="flex justify-between items-start mb-2">
         <div className="flex items-center gap-2 min-w-0">
           <h2 className="text-xl font-semibold text-[var(--text-primary)] truncate">{business.name}</h2>
           {business.scrape_issues && (
-            <span className="text-[var(--accent)] flex-shrink-0" title="Scrape issues detected">
+            <span className="info-badge-subtle flex-shrink-0" title="Scrape issues detected">
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
               </svg>
@@ -38,7 +38,7 @@ export function BusinessCard({ business, onEdit, onDelete }: BusinessCardProps) 
         <div className="flex gap-1 flex-shrink-0 ml-2">
           <button
             onClick={() => onEdit(business.id)}
-            className="p-1.5 text-[var(--text-muted)] hover:text-[var(--accent)] hover:bg-[var(--accent-dim)] rounded-none transition"
+            className="p-1.5 text-[var(--text-muted)] hover:text-[var(--accent)] hover:bg-[var(--bg-surface-hover)] rounded-none transition"
             title="Edit business"
           >
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -107,7 +107,7 @@ export function BusinessCard({ business, onEdit, onDelete }: BusinessCardProps) 
       {business.scrape_issues && (
         <Link
           href={`/business/${business.id}#scrape-history`}
-          className="mb-3 flex items-center px-2.5 py-1.5 bg-[var(--accent-dim)] text-[var(--accent)] rounded-none text-sm font-medium hover:bg-(--accent)/20 transition"
+          className="info-badge mb-3 flex items-center px-2.5 py-1.5 rounded-none text-sm font-medium transition hover:opacity-90"
         >
           <svg className="w-4 h-4 mr-1.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
@@ -154,7 +154,7 @@ export function BusinessCard({ business, onEdit, onDelete }: BusinessCardProps) 
       {/* View Details button */}
       <Link
         href={`/business/${business.id}`}
-        className="block text-center bg-[var(--accent)] text-[var(--accent-contrast)] py-2.5 rounded-none hover:brightness-110 transition font-medium"
+        className="block text-center bg-[var(--accent)] text-[var(--accent-contrast)] py-2.5 rounded-none hover:brightness-105 transition font-medium"
       >
         View Details
       </Link>

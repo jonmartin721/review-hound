@@ -117,14 +117,14 @@ export function ApiKeyCard({
               </div>
               <button
                 onClick={handleShowEdit}
-                className="text-[var(--accent)] hover:brightness-110 text-sm shrink-0"
+                className="accent-link text-sm shrink-0"
               >
                 Edit
               </button>
               <button
                 onClick={handleDelete}
                 disabled={deleting}
-                className="text-[var(--negative)] hover:brightness-110 text-sm shrink-0 disabled:opacity-50"
+                className="text-[var(--negative)] hover:opacity-80 transition-opacity text-sm shrink-0 disabled:opacity-50"
               >
                 {deleting ? 'Deleting…' : 'Delete'}
               </button>
@@ -173,7 +173,7 @@ export function ApiKeyCard({
           href={helpUrl}
           target="_blank"
           rel="noopener noreferrer"
-          className="text-[var(--accent)] hover:underline"
+          className="accent-link"
         >
           {helpLinkText}
         </a>

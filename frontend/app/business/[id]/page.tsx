@@ -108,7 +108,7 @@ export default function BusinessDetailPage() {
         <p className="text-[var(--text-muted)] text-lg mb-4">Business not found.</p>
         <Link
           href="/"
-          className="text-[var(--accent)] hover:brightness-110 font-medium"
+          className="accent-link font-medium"
         >
           ← Back to Dashboard
         </Link>
@@ -122,7 +122,7 @@ export default function BusinessDetailPage() {
       <div className="mb-6">
         <Link
           href="/"
-          className="text-[var(--text-muted)] hover:text-[var(--accent)] transition-colors inline-flex items-center gap-1"
+          className="muted-accent-link inline-flex items-center gap-1"
         >
           <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
@@ -132,7 +132,7 @@ export default function BusinessDetailPage() {
       </div>
 
       {/* Header card */}
-      <div className="bg-[var(--bg-surface)] rounded-none border-t-2 border-t-[var(--accent)] border border-[var(--border)] p-6 mb-6">
+      <div className="panel-shell rounded-none p-6 mb-6">
         <div className="flex justify-between items-start">
           <div>
             <h1 className="text-2xl font-semibold text-[var(--text-primary)]">{business.name}</h1>
@@ -190,7 +190,7 @@ export default function BusinessDetailPage() {
       </div>
 
       {/* Rating Trend Chart */}
-      <div className="bg-[var(--bg-surface)] rounded-none border-t-2 border-t-[var(--accent)] border border-[var(--border)] p-6 mb-6">
+      <div className="panel-shell rounded-none p-6 mb-6">
         <h2 className="text-lg font-semibold text-[var(--text-primary)] mb-4">Rating Trend</h2>
         <RatingChart businessId={businessId} />
       </div>
@@ -200,7 +200,7 @@ export default function BusinessDetailPage() {
 
       {/* Email Alerts */}
       {IS_PORTFOLIO_MODE ? (
-        <div className="bg-[var(--bg-surface)] rounded-none border-t-2 border-t-[var(--accent)] border border-[var(--border)] p-6 mt-6">
+        <div className="panel-shell-info rounded-none p-6 mt-6">
           <h2 className="text-lg font-semibold text-[var(--text-primary)]">Full App Features</h2>
           <p className="text-sm text-[var(--text-muted)] mt-2">
             Email alerts and live scraping are intentionally disabled in this browser-local portfolio build. Use the{' '}
@@ -208,7 +208,7 @@ export default function BusinessDetailPage() {
               href={GITHUB_REPO_URL}
               target="_blank"
               rel="noreferrer"
-              className="text-[var(--accent)] hover:brightness-110"
+              className="accent-link"
             >
               full GitHub project
             </a>{' '}

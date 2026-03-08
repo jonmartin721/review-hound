@@ -90,13 +90,13 @@ export default function DashboardPage() {
       </div>
 
       {IS_PORTFOLIO_MODE && (
-        <div className="mb-8 bg-[var(--bg-surface)] border border-[var(--border)] border-t-2 border-t-[var(--accent)] p-5">
+        <div className="panel-shell-info mb-8 p-5">
           <p className="text-[var(--text-primary)] font-medium">
             {workspaceMode === 'sample' ? 'Sample workspace' : 'Local workspace'} only
           </p>
           <p className="text-sm text-[var(--text-muted)] mt-1">
             Data lives in this browser only. Search, scraping, API keys, and email alerts are part of the full project on{' '}
-            <a href={GITHUB_REPO_URL} target="_blank" rel="noreferrer" className="text-[var(--accent)] hover:brightness-110">
+            <a href={GITHUB_REPO_URL} target="_blank" rel="noreferrer" className="accent-link">
               GitHub
             </a>
             .

@@ -50,7 +50,7 @@ export function AlertsList({ businessId, onAdd, onEdit, refreshKey }: AlertsList
   }
 
   return (
-    <div className="bg-[var(--bg-surface)] rounded-none border-t-2 border-t-[var(--accent)] border border-[var(--border)] p-6 mt-6">
+    <div className="panel-shell rounded-none p-6 mt-6">
       <div className="flex justify-between items-center mb-4">
         <h2 className="text-lg font-semibold text-[var(--text-primary)]">Email Alerts</h2>
         <Button variant="primary" className="text-sm px-3 py-1.5" onClick={onAdd}>
@@ -94,13 +94,13 @@ export function AlertsList({ businessId, onAdd, onEdit, refreshKey }: AlertsList
               <div className="flex gap-3">
                 <button
                   onClick={() => onEdit(alert)}
-                  className="text-[var(--accent)] hover:brightness-110 text-sm font-medium transition"
+                  className="accent-link text-sm font-medium"
                 >
                   Edit
                 </button>
                 <button
                   onClick={() => handleDelete(alert.id)}
-                  className="text-[var(--negative)] hover:brightness-110 text-sm font-medium transition"
+                  className="text-[var(--negative)] hover:opacity-80 transition-opacity text-sm font-medium"
                 >
                   Delete
                 </button>

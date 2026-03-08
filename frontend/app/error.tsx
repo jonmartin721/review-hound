@@ -10,7 +10,7 @@ export default function Error({ error, reset }: { error: Error; reset: () => voi
       </div>
       <h1 className="text-xl font-semibold text-[var(--text-primary)]">Something went wrong</h1>
       <p className="text-[var(--text-muted)] mt-2">{error.message}</p>
-      <button onClick={reset} className="mt-6 bg-[var(--accent)] text-[var(--accent-contrast)] px-5 py-2.5 rounded-none hover:brightness-110 transition font-medium">
+      <button onClick={reset} className="mt-6 bg-[var(--accent)] text-[var(--accent-contrast)] px-5 py-2.5 rounded-none hover:brightness-105 transition font-medium">
         Try Again
       </button>
     </div>

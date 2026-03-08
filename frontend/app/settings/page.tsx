@@ -94,7 +94,7 @@ export default function SettingsPage() {
           </p>
         </div>
 
-        <div className="bg-[var(--bg-surface)] rounded-none border border-[var(--border)] border-t-2 border-t-[var(--accent)] p-6">
+        <div className="panel-shell-info rounded-none p-6">
           <h2 className="text-lg font-semibold text-[var(--text-primary)] mb-3">
             Workspace Storage
           </h2>
@@ -113,7 +113,7 @@ export default function SettingsPage() {
           </div>
         </div>
 
-        <div className="bg-[var(--bg-surface)] rounded-none border border-[var(--border)] border-t-2 border-t-[var(--accent)] p-6">
+        <div className="panel-shell rounded-none p-6">
           <h2 className="text-lg font-semibold text-[var(--text-primary)] mb-3">
             Full Project
           </h2>
@@ -124,7 +124,7 @@ export default function SettingsPage() {
             href={GITHUB_REPO_URL}
             target="_blank"
             rel="noreferrer"
-            className="inline-flex items-center gap-2 text-[var(--accent)] hover:brightness-110 font-medium"
+            className="accent-link inline-flex items-center gap-2 font-medium"
           >
             View or clone the GitHub repo
           </a>
@@ -157,7 +157,7 @@ export default function SettingsPage() {
       ) : (
         <>
           {/* API Keys card */}
-          <div className="bg-[var(--bg-surface)] rounded-none border border-[var(--border)] border-t-2 border-t-[var(--accent)] p-6 max-w-2xl">
+          <div className="panel-shell rounded-none p-6 max-w-2xl">
             <h2 className="text-lg font-semibold text-[var(--text-primary)] mb-4">
               API Keys
             </h2>
@@ -186,7 +186,7 @@ export default function SettingsPage() {
           </div>
 
           {/* Sentiment Analysis card */}
-          <div className="bg-[var(--bg-surface)] rounded-none border border-[var(--border)] border-t-2 border-t-[var(--accent)] p-6 max-w-2xl mt-6">
+          <div className="panel-shell rounded-none p-6 max-w-2xl mt-6">
             <h2 className="text-lg font-semibold text-[var(--text-primary)] mb-4">
               Sentiment Analysis
             </h2>

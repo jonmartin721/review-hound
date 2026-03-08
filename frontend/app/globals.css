@@ -2,39 +2,41 @@
 
 /* Dark-first: :root sets dark palette, html:not(.dark) overrides with light */
 :root {
-  --bg-page: #0F0F0F;
-  --bg-surface: #1A1A1A;
-  --bg-surface-hover: #222222;
-  --bg-elevated: #252525;
-  --border: #2A2A2A;
-  --border-bright: #333333;
-  --text-primary: #E8E4DD;
-  --text-secondary: #8A8A8A;
-  --text-muted: #5A5A5A;
-  --accent: #E5A84B;
-  --accent-dim: rgba(229, 168, 75, 0.2);
-  --accent-contrast: #0F0F0F;
+  --bg-page: #0F172A;
+  --bg-surface: #162033;
+  --bg-surface-hover: #1D2A40;
+  --bg-elevated: #213149;
+  --border: #2A364B;
+  --border-bright: #3B4A64;
+  --text-primary: #E2ECF3;
+  --text-secondary: #96A9B8;
+  --text-muted: #66798A;
+  --accent: #14B8A6;
+  --accent-dim: rgba(20, 184, 166, 0.18);
+  --accent-contrast: #042F2E;
+  --solid-contrast: #F8FAFC;
   --positive: #4ADE80;
   --negative: #F87171;
-  --neutral: #E5A84B;
+  --neutral: #7DD3FC;
 }
 
 html:not(.dark) {
-  --bg-page: #F5F4F0;
+  --bg-page: #F6FAF9;
   --bg-surface: #FFFFFF;
-  --bg-surface-hover: #F0EFEB;
-  --bg-elevated: #EDECEA;
-  --border: #E0DDD8;
-  --border-bright: #D0CCC6;
-  --text-primary: #1A1A1A;
-  --text-secondary: #6B6B6B;
-  --text-muted: #8A8A8A;
-  --accent: #C4922F;
-  --accent-dim: rgba(196, 146, 47, 0.2);
-  --accent-contrast: #1A1A1A;
+  --bg-surface-hover: #EEF4F2;
+  --bg-elevated: #E6EFEC;
+  --border: #D1DCD8;
+  --border-bright: #BAC9C4;
+  --text-primary: #102033;
+  --text-secondary: #526273;
+  --text-muted: #738191;
+  --accent: #0F766E;
+  --accent-dim: rgba(15, 118, 110, 0.14);
+  --accent-contrast: #F8FAFC;
+  --solid-contrast: #FFFFFF;
   --positive: #22C55E;
   --negative: #EF4444;
-  --neutral: #C4922F;
+  --neutral: #64748B;
 }
 
 @theme inline {
@@ -50,6 +52,7 @@ html:not(.dark) {
   --color-accent: var(--accent);
   --color-accent-dim: var(--accent-dim);
   --color-accent-contrast: var(--accent-contrast);
+  --color-solid-contrast: var(--solid-contrast);
   --color-positive: var(--positive);
   --color-negative: var(--negative);
   --color-neutral: var(--neutral);
@@ -77,6 +80,56 @@ body {
   color: var(--text-primary);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+}
+
+.panel-shell {
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.02), transparent 28px), var(--bg-surface);
+  border: 1px solid var(--border);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.03);
+}
+
+.panel-shell-info {
+  background: linear-gradient(180deg, var(--accent-dim), transparent 120px), var(--bg-surface);
+  border: 1px solid var(--border);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.03);
+}
+
+.accent-link {
+  color: var(--accent);
+  transition: color 0.15s ease, opacity 0.15s ease;
+}
+
+.accent-link:hover {
+  color: color-mix(in srgb, var(--accent) 78%, var(--text-primary));
+}
+
+.muted-accent-link {
+  color: var(--text-muted);
+  transition: color 0.15s ease, opacity 0.15s ease;
+}
+
+.muted-accent-link:hover {
+  color: var(--accent);
+}
+
+.info-badge {
+  background: color-mix(in srgb, var(--accent) 10%, transparent);
+  border: 1px solid color-mix(in srgb, var(--accent) 24%, transparent);
+  color: color-mix(in srgb, var(--accent) 84%, var(--text-primary));
+}
+
+.info-badge-subtle {
+  color: color-mix(in srgb, var(--accent) 70%, var(--text-primary));
+}
+
+html:not(.dark) .panel-shell {
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.72), transparent 28px), var(--bg-surface);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.92);
+}
+
+html:not(.dark) .panel-shell-info {
+  background: linear-gradient(180deg, var(--accent-dim), rgba(255, 255, 255, 0) 120px), var(--bg-surface);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.92);
 }
 
 /* Fade in animation */

@@ -104,7 +104,7 @@ function SourceSection({ source, label, dotColor, results, isLoading, selectedUr
           <button
             type="button"
             onClick={() => setShowManual((v) => !v)}
-            className="text-[var(--accent)] hover:brightness-110 text-sm"
+            className="accent-link text-sm"
           >
             Enter URL manually
           </button>

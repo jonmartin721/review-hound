@@ -7,7 +7,7 @@ interface SentimentBadgeProps {
 const SENTIMENT_CLASSES: Record<string, string> = {
   positive: 'border border-(--positive)/30 text-[var(--positive)] bg-(--positive)/10',
   negative: 'border border-(--negative)/30 text-[var(--negative)] bg-(--negative)/10',
-  neutral: 'border border-(--accent)/30 text-[var(--accent)] bg-[var(--accent-dim)]',
+  neutral: 'border border-(--neutral)/30 text-[var(--neutral)] bg-(--neutral)/10',
 };
 
 export function SentimentBadge({ label, score, size = 'sm' }: SentimentBadgeProps) {
