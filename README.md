@@ -12,9 +12,28 @@ Stop checking TrustPilot, BBB, and Yelp separately. Review Hound scrapes them al
 
 ## Hosted Portfolio Demo
 
-The public Vercel deployment is intentionally a browser-local portfolio demo. It starts with seeded sample data, lets you switch to an empty local workspace, and keeps that data in your browser storage only.
+The public Vercel deployment is a browser-local hosted version of Review Hound. It starts with seeded sample data, lets you switch to an empty local workspace, and keeps workspace data in your browser storage only.
 
-The full scraping, API key, scheduler, and alerting workflows live in the main project. Clone or fork the repo if you want the full self-hosted app:
+### Hosted Web Version Includes
+
+- Local browser storage for businesses, reviews, scrape logs, alert rules, API keys, and sentiment settings
+- Source search for TrustPilot and BBB
+- On-demand scraping from the web UI
+- Review filtering, charts, and CSV export
+- Google Places and Yelp lookups with user-supplied API keys
+- Email alerts with user-supplied Resend credentials and sender address
+- Automatic checks while the browser tab is open
+
+### Hosted Web Version Does Not Include
+
+- Server-side persistent storage for your workspace
+- Always-on background monitoring when the browser tab is closed
+- CLI workflows
+- TUI workflows
+- Docker/self-hosted runtime controls
+- Built-in server-managed email delivery; hosted users must bring their own Resend credentials if they want email alerts
+
+Clone or fork the repo if you want the full self-hosted app:
 
 - GitHub: https://github.com/jonmartin721/review-hound
 
@@ -46,7 +65,7 @@ Browse and filter reviews by source and sentiment, with CSV export support.
 ![Reviews](docs/screenshots/reviews.png)
 
 ### Settings
-Configure API keys for Google Places and Yelp Fusion, plus sentiment analysis tuning.
+Configure Google Places, Yelp Fusion, and optional Resend credentials, plus sentiment analysis tuning.
 
 ![Settings](docs/screenshots/settings.png)
 

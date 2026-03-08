@@ -33,7 +33,7 @@ export default function WelcomePage() {
           </a>
         </div>
         <p className="text-sm text-[var(--text-muted)] mt-4">
-          This hosted version keeps data in your browser only. The full scraping and alerting app lives in the GitHub repo.
+          This hosted version keeps data in your browser only. Scrapes and alerts can run while you are using it, but always-on monitoring still lives in the full project.
         </p>
       </div>
 
@@ -43,7 +43,7 @@ export default function WelcomePage() {
         <div>
           <h2 className="text-xl font-semibold text-[var(--text-primary)] mb-3">Add a Business</h2>
           <p className="text-[var(--text-secondary)]">
-            In this hosted portfolio build, you can create businesses locally in your browser and explore the interface without sending data to a backend.
+            Search for Trustpilot and BBB profiles, save businesses locally in your browser, and kick off an initial scrape without standing up your own backend database.
           </p>
         </div>
       </div>
@@ -80,7 +80,7 @@ export default function WelcomePage() {
         <div className="md:order-1">
           <h2 className="text-xl font-semibold text-[var(--text-primary)] mb-3">Alerts</h2>
           <p className="text-[var(--text-secondary)]">
-            The full project supports alerts and scraping workflows when you clone the repo and run the complete local app.
+            Save local alert rules and send email notifications for newly found reviews. Background checks still depend on the browser tab being open in hosted mode.
           </p>
         </div>
       </div>
@@ -91,7 +91,7 @@ export default function WelcomePage() {
         <div>
           <h2 className="text-xl font-semibold text-[var(--text-primary)] mb-3">Settings</h2>
           <p className="text-[var(--text-secondary)]">
-            Reset the local workspace, reload sample data, and jump to the full GitHub project when you want the full self-hosted feature set.
+            Manage local API keys, tune sentiment scoring, reset the browser workspace, and jump to the full GitHub project when you want always-on monitoring.
           </p>
         </div>
       </div>

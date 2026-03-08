@@ -47,26 +47,6 @@ export function AddBusinessModal({ isOpen, onClose, onSuccess }: AddBusinessModa
     e.preventDefault();
     if (!name.trim()) return;
 
-    if (IS_PORTFOLIO_MODE) {
-      setSaving(true);
-      setSaveError(null);
-      try {
-        const result = await storage.createBusiness({
-          name: name.trim(),
-          address: location.trim() || null,
-        });
-        handleClose();
-        onSuccess();
-        router.push(`/business/${result.business.id}`);
-      } catch (err) {
-        console.error('Failed to create business:', err);
-        setSaveError(err instanceof Error ? err.message : 'Failed to create business. Please try again.');
-      } finally {
-        setSaving(false);
-      }
-      return;
-    }
-
     setSearching(true);
     setShowSourceModal(true);
     setSourceLoading(true);
@@ -129,13 +109,13 @@ export function AddBusinessModal({ isOpen, onClose, onSuccess }: AddBusinessModa
               placeholder="City, State"
               helpText={
                 IS_PORTFOLIO_MODE
-                  ? 'Saved only in this browser. Use the full cloned app for scraping and source search.'
+                  ? 'Saved only in this browser. You can still search for sources and scrape on demand.'
                   : 'Helps find the right business on review sites'
               }
             />
             {IS_PORTFOLIO_MODE && (
               <p className="text-sm text-[var(--text-muted)]">
-                This portfolio build is a local browser workspace. It does not call hosted search or scraping APIs.
+                This hosted workspace stays local in your browser, but it can still call stateless search and scraping endpoints.
               </p>
             )}
             {saveError && (
@@ -148,29 +128,27 @@ export function AddBusinessModal({ isOpen, onClose, onSuccess }: AddBusinessModa
             </Button>
             <Button
               type="submit"
-              loading={IS_PORTFOLIO_MODE ? saving : searching}
+              loading={searching}
               disabled={!name.trim()}
             >
-              {IS_PORTFOLIO_MODE ? 'Add Business' : 'Next: Find Sources'}
+              Next: Find Sources
             </Button>
           </div>
         </form>
       </Modal>
 
-      {!IS_PORTFOLIO_MODE && (
-        <SourceSearchModal
-          isOpen={showSourceModal}
-          onClose={handleClose}
-          businessName={name}
-          trustpilotResults={trustpilotResults}
-          bbbResults={bbbResults}
-          isLoading={sourceLoading}
-          searchError={searchError}
-          saveError={saveError}
-          onSave={handleSave}
-          isSaving={saving}
-        />
-      )}
+      <SourceSearchModal
+        isOpen={showSourceModal}
+        onClose={handleClose}
+        businessName={name}
+        trustpilotResults={trustpilotResults}
+        bbbResults={bbbResults}
+        isLoading={sourceLoading}
+        searchError={searchError}
+        saveError={saveError}
+        onSave={handleSave}
+        isSaving={saving}
+      />
     </>
   );
 }

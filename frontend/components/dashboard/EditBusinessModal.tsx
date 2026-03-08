@@ -7,7 +7,7 @@ import { Input } from '@/components/ui/Input';
 import { Spinner } from '@/components/ui/Spinner';
 import { useStorage } from '@/lib/storage/hooks';
 import type { ApiSearchResult } from '@/lib/storage/types';
-import { GITHUB_REPO_URL, IS_PORTFOLIO_MODE } from '@/lib/portfolio';
+import { IS_PORTFOLIO_MODE } from '@/lib/portfolio';
 
 interface EditBusinessModalProps {
   businessId: number;
@@ -179,11 +179,9 @@ export function EditBusinessModal({ businessId, onClose, onSuccess }: EditBusine
                       placeholder="ChIJ..."
                       className="flex-1 border border-[var(--border)] bg-[var(--bg-surface)] text-[var(--text-primary)] rounded-none px-3 py-2.5 placeholder-[var(--text-muted)]"
                     />
-                    {!IS_PORTFOLIO_MODE && (
-                      <Button type="button" variant="secondary" onClick={handleGoogleSearch}>
-                        Search
-                      </Button>
-                    )}
+                    <Button type="button" variant="secondary" onClick={handleGoogleSearch}>
+                      Search
+                    </Button>
                   </div>
                 </div>
 
@@ -198,11 +196,9 @@ export function EditBusinessModal({ businessId, onClose, onSuccess }: EditBusine
                       placeholder="e.g., gary-danko-san-francisco"
                       className="flex-1 border border-[var(--border)] bg-[var(--bg-surface)] text-[var(--text-primary)] rounded-none px-3 py-2.5 placeholder-[var(--text-muted)]"
                     />
-                    {!IS_PORTFOLIO_MODE && (
-                      <Button type="button" variant="secondary" onClick={handleYelpSearch}>
-                        Search
-                      </Button>
-                    )}
+                    <Button type="button" variant="secondary" onClick={handleYelpSearch}>
+                      Search
+                    </Button>
                   </div>
                 </div>
               </div>
@@ -210,21 +206,12 @@ export function EditBusinessModal({ businessId, onClose, onSuccess }: EditBusine
 
             {IS_PORTFOLIO_MODE && (
               <p className="text-sm text-[var(--text-muted)]">
-                You can store source URLs and IDs locally here. Search, scraping, and API-assisted setup are available in the{' '}
-                <a
-                  href={GITHUB_REPO_URL}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="accent-link"
-                >
-                  full cloned app
-                </a>
-                .
+                Source URLs, IDs, and API keys stay local to this browser profile in hosted mode.
               </p>
             )}
 
             {/* Search results panel */}
-            {!IS_PORTFOLIO_MODE && searchPanel && (
+            {searchPanel && (
               <div className="border border-[var(--border)] rounded-none p-3 bg-[var(--bg-elevated)]">
                 <div className="flex justify-between items-center mb-2">
                   <p className="text-sm font-medium text-[var(--text-secondary)]">

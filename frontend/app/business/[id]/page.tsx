@@ -15,7 +15,6 @@ import { EditBusinessModal } from '@/components/dashboard/EditBusinessModal';
 import { Spinner } from '@/components/ui/Spinner';
 import { SourceBadge } from '@/components/ui/SourceBadge';
 import type { BusinessWithStats, Review, AlertConfig } from '@/lib/storage/types';
-import { IS_PORTFOLIO_MODE } from '@/lib/portfolio';
 
 export default function BusinessDetailPage() {
   const params = useParams();
@@ -153,9 +152,7 @@ export default function BusinessDetailPage() {
             >
               Delete
             </button>
-            {!IS_PORTFOLIO_MODE && (
-              <ScrapeButton businessId={businessId} onComplete={handleScrapeComplete} />
-            )}
+            <ScrapeButton businessId={businessId} onComplete={handleScrapeComplete} />
           </div>
         </div>
 
@@ -200,22 +197,12 @@ export default function BusinessDetailPage() {
         <RecentReviews reviews={reviews} businessId={businessId} />
       </div>
 
-      {/* Email Alerts */}
-      {IS_PORTFOLIO_MODE ? (
-        <div className="panel-shell-info rounded-none p-6 mt-6">
-          <h2 className="text-lg font-semibold text-[var(--text-primary)]">Full App Features</h2>
-          <p className="text-sm text-[var(--text-muted)] mt-2">
-            Email alerts and live scraping are intentionally disabled in this browser-local portfolio build.
-          </p>
-        </div>
-      ) : (
-        <AlertsList
-          businessId={businessId}
-          onAdd={openAddAlert}
-          onEdit={openEditAlert}
-          refreshKey={alertsRefreshKey}
-        />
-      )}
+      <AlertsList
+        businessId={businessId}
+        onAdd={openAddAlert}
+        onEdit={openEditAlert}
+        refreshKey={alertsRefreshKey}
+      />
 
       {/* Scrape History */}
       <ScrapeHistory businessId={businessId} refreshKey={historyRefreshKey} />
@@ -237,15 +224,13 @@ export default function BusinessDetailPage() {
         businessName={business.name}
       />
 
-      {!IS_PORTFOLIO_MODE && (
-        <AlertModal
-          isOpen={alertModalOpen}
-          onClose={() => setAlertModalOpen(false)}
-          onSaved={handleAlertSaved}
-          businessId={businessId}
-          editingAlert={editingAlert}
-        />
-      )}
+      <AlertModal
+        isOpen={alertModalOpen}
+        onClose={() => setAlertModalOpen(false)}
+        onSaved={handleAlertSaved}
+        businessId={businessId}
+        editingAlert={editingAlert}
+      />
     </>
   );
 }

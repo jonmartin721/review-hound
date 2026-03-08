@@ -23,7 +23,7 @@ export function BusinessGrid({ businesses, onEdit, onDelete, onAddBusiness }: Bu
         <p className="text-[var(--text-primary)] font-medium text-lg">No businesses tracked yet</p>
         <p className="text-[var(--text-muted)] mt-1">
           {IS_PORTFOLIO_MODE
-            ? 'Start a local workspace in this browser, or clone the full app for scraping and alerts.'
+            ? 'Start a local workspace in this browser, then add sources to scrape reviews or clone the full app for always-on monitoring.'
             : 'Get started by adding your first business to track reviews.'}
         </p>
         {onAddBusiness && (

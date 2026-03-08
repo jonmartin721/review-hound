@@ -95,7 +95,7 @@ export default function DashboardPage() {
             {workspaceMode === 'sample' ? 'Sample workspace' : 'Local workspace'} only
           </p>
           <p className="text-sm text-[var(--text-muted)] mt-1">
-            Data lives in this browser only. Search, scraping, API keys, and email alerts are unavailable in this portfolio build.
+            Data lives in this browser only. Searches, scraping, API keys, and alert rules stay local to this browser profile. Automatic checks only run while this tab is open.
           </p>
         </div>
       )}

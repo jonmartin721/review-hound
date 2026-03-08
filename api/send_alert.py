@@ -12,14 +12,18 @@ class handler(BaseHTTPRequestHandler):
         email = body.get("email")
         business_name = body.get("business_name", "Unknown Business")
         reviews = body.get("reviews", [])
+        resend_key = body.get("api_key") or os.environ.get("RESEND_API_KEY")
+        from_email = body.get("from_email") or os.environ.get("RESEND_FROM_EMAIL")
 
         if not email:
             self._respond(400, {"success": False, "error": "Email is required"})
             return
 
-        resend_key = os.environ.get("RESEND_API_KEY")
         if not resend_key:
             self._respond(500, {"success": False, "error": "Email service not configured"})
+            return
+        if not from_email:
+            self._respond(400, {"success": False, "error": "Sender email is required"})
             return
 
         try:
@@ -35,7 +39,7 @@ class handler(BaseHTTPRequestHandler):
 
             payload = json.dumps(
                 {
-                    "from": "Review Hound <alerts@reviewhound.app>",
+                    "from": f"Review Hound <{from_email}>",
                     "to": [email],
                     "subject": f"Alert: New negative reviews for {business_name}",
                     "html": (

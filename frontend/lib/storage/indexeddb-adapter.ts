@@ -18,7 +18,6 @@ import type {
   SchedulerConfig,
 } from './types';
 import { db } from '../db/schema';
-import { IS_PORTFOLIO_MODE } from '../portfolio';
 import { calculateReviewStats, getScrapeHealth } from '../utils/stats';
 import { generateReviewsCsv } from '../utils/csv';
 import { maskApiKey } from '../utils/format';
@@ -30,6 +29,79 @@ import {
   SENTIMENT_THRESHOLD,
   SCRAPE_INTERVAL_HOURS,
 } from '../constants';
+
+interface ScrapeApiReview {
+  external_id: string;
+  author_name?: string;
+  rating?: number;
+  text?: string;
+  review_date?: string;
+  review_url?: string;
+}
+
+interface ScrapeApiResponse {
+  success?: boolean;
+  reviews?: ScrapeApiReview[];
+  error?: string;
+}
+
+interface SearchSourcesResponse {
+  success?: boolean;
+  results?: {
+    trustpilot?: SearchResult[];
+    bbb?: SearchResult[];
+  };
+  error?: string;
+}
+
+interface ApiSearchResponse {
+  success?: boolean;
+  results?: ApiSearchResult[];
+  error?: string;
+}
+
+async function getStoredConfig(provider: string) {
+  return db.apiConfigs.where('provider').equals(provider).first();
+}
+
+async function sendAlertEmail(
+  email: string,
+  businessName: string,
+  reviews: Array<{
+    author_name: string | null;
+    rating: number | null;
+    text: string | null;
+    source: string;
+    review_date: string | null;
+      }>
+    ): Promise<void> {
+  const resendConfig = await getStoredConfig('resend');
+  const fromEmailConfig = await getStoredConfig('resend_from_email');
+
+  if (!resendConfig?.enabled || !resendConfig.api_key) {
+    throw new Error('Resend API key is not configured.');
+  }
+  if (!fromEmailConfig?.enabled || !fromEmailConfig.api_key) {
+    throw new Error('Resend sender email is not configured.');
+  }
+
+  const response = await fetch('/api/send_alert', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      email,
+      business_name: businessName,
+      reviews,
+      api_key: resendConfig.api_key,
+      from_email: fromEmailConfig.api_key,
+    }),
+  });
+
+  if (!response.ok) {
+    const payload = (await response.json().catch(() => ({}))) as { error?: string };
+    throw new Error(payload.error ?? `Send alert API returned ${response.status}`);
+  }
+}
 
 export class IndexedDBAdapter implements StorageAdapter {
   // ─── Businesses ────────────────────────────────────────────────────────────
@@ -247,10 +319,6 @@ export class IndexedDBAdapter implements StorageAdapter {
   // ─── Scraping ──────────────────────────────────────────────────────────────
 
   async triggerScrape(businessId: number): Promise<ScrapeResult> {
-    if (IS_PORTFOLIO_MODE) {
-      throw new Error('Scraping is available in the full cloned app.');
-    }
-
     const biz = await this.getBusiness(businessId);
     if (!biz) {
       return { success: false, new_reviews: 0, failed_sources: [] };
@@ -269,24 +337,29 @@ export class IndexedDBAdapter implements StorageAdapter {
       sources.push({ source: 'yelp', url: biz.yelp_url });
     }
     if (biz.google_place_id) {
-      const googleConfig = await db.apiConfigs
-        .where('provider')
-        .equals('google_places')
-        .first();
+      const googleConfig = await getStoredConfig('google_places');
       const apiKey = googleConfig?.enabled ? googleConfig.api_key : undefined;
       sources.push({ source: 'google_places', url: biz.google_place_id, api_key: apiKey });
     }
     if (biz.yelp_business_id) {
-      const yelpConfig = await db.apiConfigs
-        .where('provider')
-        .equals('yelp_fusion')
-        .first();
+      const yelpConfig = await getStoredConfig('yelp_fusion');
       const apiKey = yelpConfig?.enabled ? yelpConfig.api_key : undefined;
       sources.push({ source: 'yelp_api', url: biz.yelp_business_id, api_key: apiKey });
     }
 
     let totalNew = 0;
     const failedSources: string[] = [];
+    const alertConfigs = (await this.getAlerts(businessId)).filter((config) => config.enabled);
+    const pendingAlerts = new Map<
+      string,
+      Array<{
+        author_name: string | null;
+        rating: number | null;
+        text: string | null;
+        source: string;
+        review_date: string | null;
+      }>
+    >();
 
     for (const s of sources) {
       const startedAt = new Date().toISOString();
@@ -295,27 +368,21 @@ export class IndexedDBAdapter implements StorageAdapter {
       let errorMessage: string | null = null;
 
       try {
-        const payload: Record<string, string> = { source: s.source, url: s.url };
-        if (s.api_key) payload.api_key = s.api_key;
+        const requestBody: Record<string, string> = { source: s.source, url: s.url };
+        if (s.api_key) requestBody.api_key = s.api_key;
 
         const res = await fetch('/api/scrape', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(payload),
+          body: JSON.stringify(requestBody),
         });
 
         if (!res.ok) {
           throw new Error(`Scrape API returned ${res.status}`);
         }
 
-        const scraped: Array<{
-          external_id: string;
-          author_name?: string;
-          rating?: number;
-          text?: string;
-          review_date?: string;
-          review_url?: string;
-        }> = await res.json();
+        const scrapePayload = (await res.json()) as ScrapeApiResponse | ScrapeApiReview[];
+        const scraped = Array.isArray(scrapePayload) ? scrapePayload : scrapePayload.reviews ?? [];
 
         for (const raw of scraped) {
           // Deduplicate via compound index [source+external_id]
@@ -364,6 +431,23 @@ export class IndexedDBAdapter implements StorageAdapter {
 
           totalNew += 1;
           reviewsFound += 1;
+
+          for (const config of alertConfigs) {
+            const matchesThreshold =
+              raw.rating != null && raw.rating <= config.negative_threshold;
+            const matchesSentiment = sentimentLabel === 'negative';
+            if (!matchesThreshold && !matchesSentiment) continue;
+
+            const bucket = pendingAlerts.get(config.email) ?? [];
+            bucket.push({
+              author_name: raw.author_name ?? null,
+              rating: raw.rating ?? null,
+              text: raw.text ?? null,
+              source: s.source,
+              review_date: raw.review_date ?? null,
+            });
+            pendingAlerts.set(config.email, bucket);
+          }
         }
       } catch (err) {
         status = 'failed';
@@ -380,6 +464,14 @@ export class IndexedDBAdapter implements StorageAdapter {
         started_at: startedAt,
         completed_at: new Date().toISOString(),
       });
+    }
+
+    for (const [email, reviews] of pendingAlerts.entries()) {
+      try {
+        await sendAlertEmail(email, biz.name, reviews);
+      } catch (err) {
+        console.error('Failed to send alert email:', err);
+      }
     }
 
     return {
@@ -458,7 +550,8 @@ export class IndexedDBAdapter implements StorageAdapter {
       result[config.provider] = {
         provider: config.provider,
         enabled: config.enabled,
-        key_preview: maskApiKey(config.api_key),
+        key_preview:
+          config.provider === 'resend_from_email' ? config.api_key : maskApiKey(config.api_key),
       };
     }
 
@@ -570,10 +663,6 @@ export class IndexedDBAdapter implements StorageAdapter {
     query: string,
     location?: string | null
   ): Promise<{ trustpilot: SearchResult[]; bbb: SearchResult[] }> {
-    if (IS_PORTFOLIO_MODE) {
-      throw new Error('Source search is available in the full cloned app.');
-    }
-
     const res = await fetch('/api/search_sources', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -584,21 +673,18 @@ export class IndexedDBAdapter implements StorageAdapter {
       throw new Error(`Search sources API returned ${res.status}`);
     }
 
-    return res.json();
+    const payload = (await res.json()) as SearchSourcesResponse;
+    return {
+      trustpilot: payload.results?.trustpilot ?? [],
+      bbb: payload.results?.bbb ?? [],
+    };
   }
 
   async searchGooglePlaces(
     query: string,
     location?: string | null
   ): Promise<ApiSearchResult[]> {
-    if (IS_PORTFOLIO_MODE) {
-      throw new Error('Google Places lookup is available in the full cloned app.');
-    }
-
-    const googleConfig = await db.apiConfigs
-      .where('provider')
-      .equals('google_places')
-      .first();
+    const googleConfig = await getStoredConfig('google_places');
 
     const apiKey = googleConfig?.enabled ? googleConfig.api_key : undefined;
 
@@ -612,21 +698,15 @@ export class IndexedDBAdapter implements StorageAdapter {
       throw new Error(`Google Places search API returned ${res.status}`);
     }
 
-    return res.json();
+    const payload = (await res.json()) as ApiSearchResponse;
+    return payload.results ?? [];
   }
 
   async searchYelp(
     query: string,
     location?: string | null
   ): Promise<ApiSearchResult[]> {
-    if (IS_PORTFOLIO_MODE) {
-      throw new Error('Yelp lookup is available in the full cloned app.');
-    }
-
-    const yelpConfig = await db.apiConfigs
-      .where('provider')
-      .equals('yelp_fusion')
-      .first();
+    const yelpConfig = await getStoredConfig('yelp_fusion');
 
     const apiKey = yelpConfig?.enabled ? yelpConfig.api_key : undefined;
 
@@ -640,7 +720,8 @@ export class IndexedDBAdapter implements StorageAdapter {
       throw new Error(`Yelp search API returned ${res.status}`);
     }
 
-    return res.json();
+    const payload = (await res.json()) as ApiSearchResponse;
+    return payload.results ?? [];
   }
 
   // ─── CSV export ────────────────────────────────────────────────────────────

@@ -13,6 +13,8 @@ interface ApiKeyCardProps {
   onSave: (key: string) => Promise<void>;
   onDelete: () => Promise<void>;
   onToggle: () => Promise<void>;
+  inputType?: 'text' | 'email' | 'password';
+  placeholder?: string;
 }
 
 export function ApiKeyCard({
@@ -24,6 +26,8 @@ export function ApiKeyCard({
   onSave,
   onDelete,
   onToggle,
+  inputType = 'text',
+  placeholder,
 }: ApiKeyCardProps) {
   const [editing, setEditing] = useState(false);
   const [newKey, setNewKey] = useState('');
@@ -133,8 +137,8 @@ export function ApiKeyCard({
             <form onSubmit={handleSave} className="flex gap-3">
               <input
                 ref={addInputRef}
-                type="text"
-                placeholder={`Enter ${label} key`}
+                type={inputType}
+                placeholder={placeholder ?? `Enter ${label}`}
                 className="flex-1 border border-[var(--border)] bg-[var(--bg-surface)] text-[var(--text-primary)] rounded-none px-3 py-2.5 placeholder-[var(--text-muted)]"
               />
               <Button type="submit" loading={saving}>
@@ -150,10 +154,10 @@ export function ApiKeyCard({
         <form onSubmit={handleSave} className="flex gap-3">
           <input
             ref={editInputRef}
-            type="text"
+            type={inputType}
             value={newKey}
             onChange={(e) => setNewKey(e.target.value)}
-            placeholder="Enter new API key"
+            placeholder={placeholder ?? `Enter ${label}`}
             className="flex-1 border border-[var(--border)] bg-[var(--bg-surface)] text-[var(--text-primary)] rounded-none px-3 py-2.5 placeholder-[var(--text-muted)]"
           />
           <Button type="submit" loading={saving}>
