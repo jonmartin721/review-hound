@@ -10,6 +10,14 @@ Stop checking TrustPilot, BBB, and Yelp separately. Review Hound scrapes them al
 
 **Why?** Bad reviews spread. A 1-star complaint on Yelp can sit for days before you notice. Review Hound catches them within hours.
 
+## Hosted Portfolio Demo
+
+The public Vercel deployment is intentionally a browser-local portfolio demo. It starts with seeded sample data, lets you switch to an empty local workspace, and keeps that data in your browser storage only.
+
+The full scraping, API key, scheduler, and alerting workflows live in the main project. Clone or fork the repo if you want the full self-hosted app:
+
+- GitHub: https://github.com/jonmartin721/review-hound
+
 ## Features
 
 - **One command, three sources**: `reviewhound scrape --all` hits TrustPilot, BBB, and Yelp

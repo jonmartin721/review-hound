@@ -1,7 +1,9 @@
 'use client';
 
+import Link from 'next/link';
 import type { BusinessWithStats } from '@/lib/storage/types';
 import { BusinessCard } from './BusinessCard';
+import { GITHUB_REPO_URL, IS_PORTFOLIO_MODE } from '@/lib/portfolio';
 
 interface BusinessGridProps {
   businesses: BusinessWithStats[];
@@ -20,7 +22,11 @@ export function BusinessGrid({ businesses, onEdit, onDelete, onAddBusiness }: Bu
           </svg>
         </div>
         <p className="text-[var(--text-primary)] font-medium text-lg">No businesses tracked yet</p>
-        <p className="text-[var(--text-muted)] mt-1">Get started by adding your first business to track reviews.</p>
+        <p className="text-[var(--text-muted)] mt-1">
+          {IS_PORTFOLIO_MODE
+            ? 'Start a local workspace in this browser, or clone the full app for scraping and alerts.'
+            : 'Get started by adding your first business to track reviews.'}
+        </p>
         {onAddBusiness && (
           <button
             onClick={onAddBusiness}
@@ -31,6 +37,16 @@ export function BusinessGrid({ businesses, onEdit, onDelete, onAddBusiness }: Bu
             </svg>
             Add Business
           </button>
+        )}
+        {IS_PORTFOLIO_MODE && (
+          <Link
+            href={GITHUB_REPO_URL}
+            target="_blank"
+            rel="noreferrer"
+            className="mt-4 inline-flex text-sm text-[var(--accent)] hover:brightness-110"
+          >
+            View the full project on GitHub
+          </Link>
         )}
       </div>
     );

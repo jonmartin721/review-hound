@@ -64,7 +64,13 @@ html:not(.dark) {
 
 /* Base */
 html {
-  scrollbar-gutter: stable;
+  overflow-y: auto;
+  scrollbar-width: thin;
+}
+@supports (overflow: overlay) {
+  html {
+    overflow-y: overlay;
+  }
 }
 body {
   background: var(--bg-page);

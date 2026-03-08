@@ -5,6 +5,7 @@ import type { StorageAdapter } from './adapter';
 import { IndexedDBAdapter } from './indexeddb-adapter';
 import { APIAdapter } from './api-adapter';
 import { Spinner } from '@/components/ui/Spinner';
+import { getWorkspaceMode } from '@/lib/portfolio';
 
 const StorageContext = createContext<StorageAdapter | null>(null);
 
@@ -18,7 +19,7 @@ export function StorageProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     const init = async () => {
-      if (process.env.NEXT_PUBLIC_DEMO_MODE === 'true') {
+      if (process.env.NEXT_PUBLIC_DEMO_MODE === 'true' && getWorkspaceMode() === 'sample') {
         const { seedDemoData } = await import('../db/seed');
         await seedDemoData();
       }

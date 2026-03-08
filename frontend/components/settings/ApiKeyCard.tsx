@@ -5,7 +5,6 @@ import { Button } from '@/components/ui/Button';
 import type { ApiKeyInfo } from '@/lib/storage/types';
 
 interface ApiKeyCardProps {
-  provider: string;
   label: string;
   description: string;
   helpUrl: string;
@@ -17,7 +16,6 @@ interface ApiKeyCardProps {
 }
 
 export function ApiKeyCard({
-  provider,
   label,
   description,
   helpUrl,

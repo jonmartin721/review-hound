@@ -9,6 +9,7 @@ import { EditBusinessModal } from '@/components/dashboard/EditBusinessModal';
 import { DeleteConfirmModal } from '@/components/dashboard/DeleteConfirmModal';
 import { Button } from '@/components/ui/Button';
 import { Spinner } from '@/components/ui/Spinner';
+import { GITHUB_REPO_URL, IS_PORTFOLIO_MODE, getWorkspaceMode } from '@/lib/portfolio';
 
 export default function DashboardPage() {
   const storage = useStorage();
@@ -18,6 +19,7 @@ export default function DashboardPage() {
   const [showAdd, setShowAdd] = useState(false);
   const [editId, setEditId] = useState<number | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<{ id: number; name: string } | null>(null);
+  const [workspaceMode] = useState<'sample' | 'blank'>(() => (IS_PORTFOLIO_MODE ? getWorkspaceMode() : 'sample'));
 
   const loadBusinesses = useCallback(async () => {
     try {
@@ -73,7 +75,11 @@ export default function DashboardPage() {
       <div className="flex justify-between items-center mb-8">
         <div>
           <h1 className="text-2xl font-semibold text-[var(--text-primary)]">Business Dashboard</h1>
-          <p className="text-[var(--text-muted)] mt-1">Track and analyze your business reviews</p>
+          <p className="text-[var(--text-muted)] mt-1">
+            {IS_PORTFOLIO_MODE
+              ? 'Explore a browser-local sample workspace or build your own local dataset.'
+              : 'Track and analyze your business reviews'}
+          </p>
         </div>
         <Button onClick={() => setShowAdd(true)}>
           <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -82,6 +88,21 @@ export default function DashboardPage() {
           Add Business
         </Button>
       </div>
+
+      {IS_PORTFOLIO_MODE && (
+        <div className="mb-8 bg-[var(--bg-surface)] border border-[var(--border)] border-t-2 border-t-[var(--accent)] p-5">
+          <p className="text-[var(--text-primary)] font-medium">
+            {workspaceMode === 'sample' ? 'Sample workspace' : 'Local workspace'} only
+          </p>
+          <p className="text-sm text-[var(--text-muted)] mt-1">
+            Data lives in this browser only. Search, scraping, API keys, and email alerts are part of the full project on{' '}
+            <a href={GITHUB_REPO_URL} target="_blank" rel="noreferrer" className="text-[var(--accent)] hover:brightness-110">
+              GitHub
+            </a>
+            .
+          </p>
+        </div>
+      )}
 
       <BusinessGrid
         businesses={businesses}

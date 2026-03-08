@@ -6,6 +6,9 @@ import type { ApiKeyInfo } from '@/lib/storage/types';
 import { ApiKeyCard } from '@/components/settings/ApiKeyCard';
 import { SentimentSliders } from '@/components/settings/SentimentSliders';
 import { Spinner } from '@/components/ui/Spinner';
+import { Button } from '@/components/ui/Button';
+import { clearLocalWorkspace, getWorkspaceMode, GITHUB_REPO_URL, IS_PORTFOLIO_MODE, setWorkspaceMode, type WorkspaceMode } from '@/lib/portfolio';
+import { seedDemoData } from '@/lib/db/seed';
 
 const PROVIDERS = [
   {
@@ -28,10 +31,12 @@ const PROVIDERS = [
 export default function SettingsPage() {
   const storage = useStorage();
   const [apiKeys, setApiKeys] = useState<Record<string, ApiKeyInfo>>({});
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(!IS_PORTFOLIO_MODE);
   const [error, setError] = useState<string | null>(null);
+  const [workspaceMode] = useState<WorkspaceMode>(() => (IS_PORTFOLIO_MODE ? getWorkspaceMode() : 'sample'));
 
   const loadData = useCallback(async () => {
+    if (IS_PORTFOLIO_MODE) return;
     try {
       setError(null);
       const keys = await storage.getApiKeys();
@@ -45,6 +50,7 @@ export default function SettingsPage() {
   }, [storage]);
 
   useEffect(() => {
+    if (IS_PORTFOLIO_MODE) return;
     loadData();
   }, [loadData]);
 
@@ -61,6 +67,70 @@ export default function SettingsPage() {
   async function handleToggle(provider: string) {
     await storage.toggleApiKey(provider);
     await loadData();
+  }
+
+  async function handleStartEmptyWorkspace() {
+    await clearLocalWorkspace();
+    setWorkspaceMode('blank');
+    window.location.reload();
+  }
+
+  async function handleReloadSample() {
+    await clearLocalWorkspace();
+    setWorkspaceMode('sample');
+    await seedDemoData();
+    window.location.reload();
+  }
+
+  if (IS_PORTFOLIO_MODE) {
+    return (
+      <div className="max-w-3xl space-y-6">
+        <div>
+          <h1 className="text-2xl font-semibold text-[var(--text-primary)]">
+            Settings
+          </h1>
+          <p className="text-[var(--text-muted)] mt-1">
+            Manage this browser-local workspace and jump to the full project.
+          </p>
+        </div>
+
+        <div className="bg-[var(--bg-surface)] rounded-none border border-[var(--border)] border-t-2 border-t-[var(--accent)] p-6">
+          <h2 className="text-lg font-semibold text-[var(--text-primary)] mb-3">
+            Workspace Storage
+          </h2>
+          <p className="text-sm text-[var(--text-muted)] mb-5">
+            {workspaceMode === 'sample'
+              ? 'Sample data is currently loaded in this browser.'
+              : 'You are using a blank local workspace in this browser.'}{' '}
+            Resetting here only affects this device and browser profile.
+          </p>
+          <div className="flex flex-wrap gap-3">
+            <Button
+              onClick={workspaceMode === 'sample' ? handleStartEmptyWorkspace : handleReloadSample}
+            >
+              {workspaceMode === 'sample' ? 'Start Empty Workspace' : 'Reload Sample Data'}
+            </Button>
+          </div>
+        </div>
+
+        <div className="bg-[var(--bg-surface)] rounded-none border border-[var(--border)] border-t-2 border-t-[var(--accent)] p-6">
+          <h2 className="text-lg font-semibold text-[var(--text-primary)] mb-3">
+            Full Project
+          </h2>
+          <p className="text-sm text-[var(--text-muted)] mb-4">
+            This hosted portfolio build stays local to your browser. Source search, scraping, API keys, automation, and email alerts live in the full self-hosted project.
+          </p>
+          <a
+            href={GITHUB_REPO_URL}
+            target="_blank"
+            rel="noreferrer"
+            className="inline-flex items-center gap-2 text-[var(--accent)] hover:brightness-110 font-medium"
+          >
+            View or clone the GitHub repo
+          </a>
+        </div>
+      </div>
+    );
   }
 
   return (
@@ -101,7 +171,6 @@ export default function SettingsPage() {
               <div key={p.provider}>
                 <div className={idx < PROVIDERS.length - 1 ? 'mb-6 pb-6 border-b border-[var(--border)]' : 'mb-2'}>
                   <ApiKeyCard
-                    provider={p.provider}
                     label={p.label}
                     description={p.description}
                     helpUrl={p.helpUrl}

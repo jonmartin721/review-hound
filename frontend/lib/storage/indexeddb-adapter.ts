@@ -18,6 +18,7 @@ import type {
   SchedulerConfig,
 } from './types';
 import { db } from '../db/schema';
+import { IS_PORTFOLIO_MODE } from '../portfolio';
 import { calculateReviewStats, getScrapeHealth } from '../utils/stats';
 import { generateReviewsCsv } from '../utils/csv';
 import { maskApiKey } from '../utils/format';
@@ -246,6 +247,10 @@ export class IndexedDBAdapter implements StorageAdapter {
   // ─── Scraping ──────────────────────────────────────────────────────────────
 
   async triggerScrape(businessId: number): Promise<ScrapeResult> {
+    if (IS_PORTFOLIO_MODE) {
+      throw new Error('Scraping is available in the full cloned app.');
+    }
+
     const biz = await this.getBusiness(businessId);
     if (!biz) {
       return { success: false, new_reviews: 0, failed_sources: [] };
@@ -565,6 +570,10 @@ export class IndexedDBAdapter implements StorageAdapter {
     query: string,
     location?: string | null
   ): Promise<{ trustpilot: SearchResult[]; bbb: SearchResult[] }> {
+    if (IS_PORTFOLIO_MODE) {
+      throw new Error('Source search is available in the full cloned app.');
+    }
+
     const res = await fetch('/api/search_sources', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -582,6 +591,10 @@ export class IndexedDBAdapter implements StorageAdapter {
     query: string,
     location?: string | null
   ): Promise<ApiSearchResult[]> {
+    if (IS_PORTFOLIO_MODE) {
+      throw new Error('Google Places lookup is available in the full cloned app.');
+    }
+
     const googleConfig = await db.apiConfigs
       .where('provider')
       .equals('google_places')
@@ -606,6 +619,10 @@ export class IndexedDBAdapter implements StorageAdapter {
     query: string,
     location?: string | null
   ): Promise<ApiSearchResult[]> {
+    if (IS_PORTFOLIO_MODE) {
+      throw new Error('Yelp lookup is available in the full cloned app.');
+    }
+
     const yelpConfig = await db.apiConfigs
       .where('provider')
       .equals('yelp_fusion')

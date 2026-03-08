@@ -1,11 +1,36 @@
 'use client';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import { useState } from 'react';
 import { ThemeToggle } from './ThemeToggle';
+import { clearLocalWorkspace, getWorkspaceMode, GITHUB_REPO_URL, setWorkspaceMode, type WorkspaceMode } from '@/lib/portfolio';
+import { seedDemoData } from '@/lib/db/seed';
 
 export function Navbar() {
   const pathname = usePathname();
-  const isDemo = process.env.NEXT_PUBLIC_DEMO_MODE === 'true';
+  const isPortfolioMode = process.env.NEXT_PUBLIC_DEMO_MODE === 'true';
+  const [workspaceMode] = useState<WorkspaceMode>(() => (isPortfolioMode ? getWorkspaceMode() : 'sample'));
+
+  const handleStartEmptyWorkspace = async () => {
+    try {
+      await clearLocalWorkspace();
+      setWorkspaceMode('blank');
+      window.location.reload();
+    } catch (e) {
+      console.error('Failed to start empty workspace:', e);
+    }
+  };
+
+  const handleReloadSample = async () => {
+    try {
+      await clearLocalWorkspace();
+      setWorkspaceMode('sample');
+      await seedDemoData();
+      window.location.reload();
+    } catch (e) {
+      console.error('Failed to reload sample data:', e);
+    }
+  };
 
   const linkClass = (path: string) => {
     const active = pathname === path;
@@ -32,10 +57,30 @@ export function Navbar() {
           <ThemeToggle />
         </div>
       </div>
-      {isDemo && (
+      {isPortfolioMode && (
         <div className="bg-[var(--accent-dim)] border-b border-[var(--border)]">
           <div className="container mx-auto px-6 py-1.5 text-center text-xs text-[var(--accent)]">
-            Demo mode — data stored in your browser. Clear browser data = data gone.
+            {workspaceMode === 'sample'
+              ? 'Sample workspace loaded from this browser.'
+              : 'Local workspace stored only in this browser.'}
+            <span className="mx-2 text-[var(--text-muted)]">Resetting only affects this browser.</span>
+            {workspaceMode === 'sample' ? (
+              <button onClick={handleStartEmptyWorkspace} className="underline hover:opacity-80 transition-opacity">
+                Start empty workspace
+              </button>
+            ) : (
+              <button onClick={handleReloadSample} className="underline hover:opacity-80 transition-opacity">
+                Reload sample data
+              </button>
+            )}
+            <a
+              href={GITHUB_REPO_URL}
+              target="_blank"
+              rel="noreferrer"
+              className="ml-3 underline hover:opacity-80 transition-opacity"
+            >
+              View full project
+            </a>
           </div>
         </div>
       )}

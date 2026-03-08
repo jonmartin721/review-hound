@@ -8,6 +8,7 @@ import { Input } from '@/components/ui/Input';
 import { SourceSearchModal } from './SourceSearchModal';
 import { useStorage } from '@/lib/storage/hooks';
 import type { SearchResult } from '@/lib/storage/types';
+import { IS_PORTFOLIO_MODE } from '@/lib/portfolio';
 
 interface AddBusinessModalProps {
   isOpen: boolean;
@@ -45,6 +46,26 @@ export function AddBusinessModal({ isOpen, onClose, onSuccess }: AddBusinessModa
   const handleStep1Submit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!name.trim()) return;
+
+    if (IS_PORTFOLIO_MODE) {
+      setSaving(true);
+      setSaveError(null);
+      try {
+        const result = await storage.createBusiness({
+          name: name.trim(),
+          address: location.trim() || null,
+        });
+        handleClose();
+        onSuccess();
+        router.push(`/business/${result.business.id}`);
+      } catch (err) {
+        console.error('Failed to create business:', err);
+        setSaveError(err instanceof Error ? err.message : 'Failed to create business. Please try again.');
+      } finally {
+        setSaving(false);
+      }
+      return;
+    }
 
     setSearching(true);
     setShowSourceModal(true);
@@ -106,32 +127,50 @@ export function AddBusinessModal({ isOpen, onClose, onSuccess }: AddBusinessModa
               value={location}
               onChange={(e) => setLocation(e.target.value)}
               placeholder="City, State"
-              helpText="Helps find the right business on review sites"
+              helpText={
+                IS_PORTFOLIO_MODE
+                  ? 'Saved only in this browser. Use the full cloned app for scraping and source search.'
+                  : 'Helps find the right business on review sites'
+              }
             />
+            {IS_PORTFOLIO_MODE && (
+              <p className="text-sm text-[var(--text-muted)]">
+                This portfolio build is a local browser workspace. It does not call hosted search or scraping APIs.
+              </p>
+            )}
+            {saveError && (
+              <p className="text-sm text-[var(--negative)]">{saveError}</p>
+            )}
           </div>
           <div className="flex justify-end gap-3 mt-6">
             <Button type="button" variant="secondary" onClick={handleClose}>
               Cancel
             </Button>
-            <Button type="submit" loading={searching} disabled={!name.trim()}>
-              Next: Find Sources
+            <Button
+              type="submit"
+              loading={IS_PORTFOLIO_MODE ? saving : searching}
+              disabled={!name.trim()}
+            >
+              {IS_PORTFOLIO_MODE ? 'Add Business' : 'Next: Find Sources'}
             </Button>
           </div>
         </form>
       </Modal>
 
-      <SourceSearchModal
-        isOpen={showSourceModal}
-        onClose={handleClose}
-        businessName={name}
-        trustpilotResults={trustpilotResults}
-        bbbResults={bbbResults}
-        isLoading={sourceLoading}
-        searchError={searchError}
-        saveError={saveError}
-        onSave={handleSave}
-        isSaving={saving}
-      />
+      {!IS_PORTFOLIO_MODE && (
+        <SourceSearchModal
+          isOpen={showSourceModal}
+          onClose={handleClose}
+          businessName={name}
+          trustpilotResults={trustpilotResults}
+          bbbResults={bbbResults}
+          isLoading={sourceLoading}
+          searchError={searchError}
+          saveError={saveError}
+          onSave={handleSave}
+          isSaving={saving}
+        />
+      )}
     </>
   );
 }

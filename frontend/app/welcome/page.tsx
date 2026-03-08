@@ -1,6 +1,7 @@
 import Image from 'next/image';
 import Link from 'next/link';
 import { LightboxImage } from '@/components/ui/Lightbox';
+import { GITHUB_REPO_URL } from '@/lib/portfolio';
 
 export default function WelcomePage() {
   return (
@@ -9,16 +10,31 @@ export default function WelcomePage() {
       <div className="text-center mb-16">
         <Image src="/logo.png" alt="Review Hound" width={160} height={160} className="mx-auto mb-6" priority />
         <h1 className="text-3xl font-semibold text-[var(--text-primary)] mb-3">Welcome to Review Hound</h1>
-        <p className="text-lg text-[var(--text-muted)] mb-6">Monitor and analyze your business reviews across platforms</p>
-        <Link
-          href="/"
-          className="inline-flex items-center gap-2 bg-[var(--accent)] text-[var(--accent-contrast)] px-6 py-3 rounded-none hover:brightness-110 transition font-medium"
-        >
-          Get Started
-          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-          </svg>
-        </Link>
+        <p className="text-lg text-[var(--text-muted)] mb-6">
+          Explore a browser-local sample workspace, then switch to an empty local workspace if you want to click around with your own data.
+        </p>
+        <div className="flex flex-wrap items-center justify-center gap-3">
+          <Link
+            href="/"
+            className="inline-flex items-center gap-2 bg-[var(--accent)] text-[var(--accent-contrast)] px-6 py-3 rounded-none hover:brightness-110 transition font-medium"
+          >
+            Open Sample Workspace
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+            </svg>
+          </Link>
+          <a
+            href={GITHUB_REPO_URL}
+            target="_blank"
+            rel="noreferrer"
+            className="inline-flex items-center gap-2 border border-[var(--border)] px-6 py-3 text-[var(--text-primary)] hover:bg-[var(--bg-surface-hover)] transition font-medium"
+          >
+            View Full Project
+          </a>
+        </div>
+        <p className="text-sm text-[var(--text-muted)] mt-4">
+          This hosted version keeps data in your browser only. The full scraping and alerting app lives in the GitHub repo.
+        </p>
       </div>
 
       {/* Section 1: Add a Business */}
@@ -27,7 +43,7 @@ export default function WelcomePage() {
         <div>
           <h2 className="text-xl font-semibold text-[var(--text-primary)] mb-3">Add a Business</h2>
           <p className="text-[var(--text-secondary)]">
-            Enter your business name and Review Hound will search TrustPilot, BBB, and other platforms to find your listings. Select the correct matches or enter URLs manually.
+            In this hosted portfolio build, you can create businesses locally in your browser and explore the interface without sending data to a backend.
           </p>
         </div>
       </div>
@@ -64,7 +80,7 @@ export default function WelcomePage() {
         <div className="md:order-1">
           <h2 className="text-xl font-semibold text-[var(--text-primary)] mb-3">Alerts</h2>
           <p className="text-[var(--text-secondary)]">
-            Get notified when new negative reviews come in. Configure email alerts with customizable thresholds so you can respond quickly to customer concerns.
+            The full project supports alerts and scraping workflows when you clone the repo and run the complete local app.
           </p>
         </div>
       </div>
@@ -75,7 +91,7 @@ export default function WelcomePage() {
         <div>
           <h2 className="text-xl font-semibold text-[var(--text-primary)] mb-3">Settings</h2>
           <p className="text-[var(--text-secondary)]">
-            Add API keys for Google Places and Yelp Fusion to access official review data. Fine-tune sentiment analysis weights to match your business needs.
+            Reset the local workspace, reload sample data, and jump to the full GitHub project when you want the full self-hosted feature set.
           </p>
         </div>
       </div>
@@ -86,7 +102,7 @@ export default function WelcomePage() {
           href="/"
           className="inline-flex items-center gap-2 bg-[var(--accent)] text-[var(--accent-contrast)] px-6 py-3 rounded-none hover:brightness-110 transition font-medium"
         >
-          Get Started
+          Open Sample Workspace
           <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
           </svg>

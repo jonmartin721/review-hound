@@ -345,7 +345,8 @@ export class APIAdapter implements StorageAdapter {
     };
   }
 
-  async saveSchedulerConfig(_config: SchedulerConfig): Promise<void> {
+  async saveSchedulerConfig(config: SchedulerConfig): Promise<void> {
+    void config;
     // No-op: scheduling is handled server-side in API mode
   }
 }
