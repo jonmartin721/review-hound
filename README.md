@@ -2,7 +2,7 @@
 
 [![PyPI](https://img.shields.io/pypi/v/reviewhound?style=flat)](https://pypi.org/project/reviewhound/)
 [![CI](https://img.shields.io/github/actions/workflow/status/jonmartin721/review-hound/ci.yml?branch=main&style=flat)](https://github.com/jonmartin721/review-hound/actions)
-[![Python 3.11+](https://img.shields.io/badge/python-3.11+-3776ab?style=flat)](https://www.python.org)
+[![Python 3.12+](https://img.shields.io/badge/python-3.12+-3776ab?style=flat)](https://www.python.org)
 [![License: MIT](https://img.shields.io/badge/license-MIT-green?style=flat)](LICENSE)
 [![codecov](https://codecov.io/gh/jonmartin721/review-hound/graph/badge.svg)](https://codecov.io/gh/jonmartin721/review-hound)
 
