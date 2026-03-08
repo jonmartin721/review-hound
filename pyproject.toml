@@ -8,7 +8,7 @@ version = "1.0.0"
 description = "Business review aggregator and monitoring tool with sentiment analysis"
 readme = "README.md"
 license = "MIT"
-requires-python = ">=3.11"
+requires-python = ">=3.12"
 keywords = [
     "reviews",
     "scraping",
@@ -26,7 +26,6 @@ classifiers = [
     "Intended Audience :: Developers",
     "Operating System :: OS Independent",
     "Programming Language :: Python :: 3",
-    "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
     "Topic :: Internet :: WWW/HTTP :: Dynamic Content",
 ]
@@ -73,7 +72,7 @@ reviewhound = ["py.typed"]
 "reviewhound.web" = ["templates/*.html", "static/*.css", "static/*.js"]
 
 [tool.ruff]
-target-version = "py311"
+target-version = "py312"
 line-length = 110
 
 [tool.ruff.lint]
