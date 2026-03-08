@@ -101,6 +101,7 @@ export function RatingChart({ businessId }: RatingChartProps) {
 
   const options = {
     responsive: true,
+    maintainAspectRatio: false,
     plugins: {
       legend: { display: false },
     },
@@ -118,5 +119,9 @@ export function RatingChart({ businessId }: RatingChartProps) {
     },
   };
 
-  return <Line ref={chartRef} data={data} options={options} />;
+  return (
+    <div className="h-64 sm:h-72 xl:h-80">
+      <Line ref={chartRef} data={data} options={options} />
+    </div>
+  );
 }

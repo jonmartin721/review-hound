@@ -9,7 +9,7 @@ import { EditBusinessModal } from '@/components/dashboard/EditBusinessModal';
 import { DeleteConfirmModal } from '@/components/dashboard/DeleteConfirmModal';
 import { Button } from '@/components/ui/Button';
 import { Spinner } from '@/components/ui/Spinner';
-import { GITHUB_REPO_URL, IS_PORTFOLIO_MODE, getWorkspaceMode } from '@/lib/portfolio';
+import { IS_PORTFOLIO_MODE, getWorkspaceMode } from '@/lib/portfolio';
 
 export default function DashboardPage() {
   const storage = useStorage();
@@ -95,11 +95,7 @@ export default function DashboardPage() {
             {workspaceMode === 'sample' ? 'Sample workspace' : 'Local workspace'} only
           </p>
           <p className="text-sm text-[var(--text-muted)] mt-1">
-            Data lives in this browser only. Search, scraping, API keys, and email alerts are part of the full project on{' '}
-            <a href={GITHUB_REPO_URL} target="_blank" rel="noreferrer" className="accent-link">
-              GitHub
-            </a>
-            .
+            Data lives in this browser only. Search, scraping, API keys, and email alerts are unavailable in this portfolio build.
           </p>
         </div>
       )}

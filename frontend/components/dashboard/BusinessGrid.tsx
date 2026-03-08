@@ -1,9 +1,8 @@
 'use client';
 
-import Link from 'next/link';
 import type { BusinessWithStats } from '@/lib/storage/types';
 import { BusinessCard } from './BusinessCard';
-import { GITHUB_REPO_URL, IS_PORTFOLIO_MODE } from '@/lib/portfolio';
+import { IS_PORTFOLIO_MODE } from '@/lib/portfolio';
 
 interface BusinessGridProps {
   businesses: BusinessWithStats[];
@@ -37,16 +36,6 @@ export function BusinessGrid({ businesses, onEdit, onDelete, onAddBusiness }: Bu
             </svg>
             Add Business
           </button>
-        )}
-        {IS_PORTFOLIO_MODE && (
-          <Link
-            href={GITHUB_REPO_URL}
-            target="_blank"
-            rel="noreferrer"
-            className="accent-link mt-4 inline-flex text-sm"
-          >
-            View the full project on GitHub
-          </Link>
         )}
       </div>
     );

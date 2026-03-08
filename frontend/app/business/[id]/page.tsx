@@ -15,7 +15,7 @@ import { EditBusinessModal } from '@/components/dashboard/EditBusinessModal';
 import { Spinner } from '@/components/ui/Spinner';
 import { SourceBadge } from '@/components/ui/SourceBadge';
 import type { BusinessWithStats, Review, AlertConfig } from '@/lib/storage/types';
-import { GITHUB_REPO_URL, IS_PORTFOLIO_MODE } from '@/lib/portfolio';
+import { IS_PORTFOLIO_MODE } from '@/lib/portfolio';
 
 export default function BusinessDetailPage() {
   const params = useParams();
@@ -189,30 +189,23 @@ export default function BusinessDetailPage() {
         </div>
       </div>
 
-      {/* Rating Trend Chart */}
-      <div className="panel-shell rounded-none p-6 mb-6">
-        <h2 className="text-lg font-semibold text-[var(--text-primary)] mb-4">Rating Trend</h2>
-        <RatingChart businessId={businessId} />
-      </div>
+      <div className="grid grid-cols-1 xl:grid-cols-[minmax(0,1.7fr)_minmax(22rem,1fr)] gap-6 items-start">
+        {/* Rating Trend Chart */}
+        <div className="panel-shell rounded-none p-6">
+          <h2 className="text-lg font-semibold text-[var(--text-primary)] mb-4">Rating Trend</h2>
+          <RatingChart businessId={businessId} />
+        </div>
 
-      {/* Recent Reviews */}
-      <RecentReviews reviews={reviews} businessId={businessId} />
+        {/* Recent Reviews */}
+        <RecentReviews reviews={reviews} businessId={businessId} />
+      </div>
 
       {/* Email Alerts */}
       {IS_PORTFOLIO_MODE ? (
         <div className="panel-shell-info rounded-none p-6 mt-6">
           <h2 className="text-lg font-semibold text-[var(--text-primary)]">Full App Features</h2>
           <p className="text-sm text-[var(--text-muted)] mt-2">
-            Email alerts and live scraping are intentionally disabled in this browser-local portfolio build. Use the{' '}
-            <a
-              href={GITHUB_REPO_URL}
-              target="_blank"
-              rel="noreferrer"
-              className="accent-link"
-            >
-              full GitHub project
-            </a>{' '}
-            to run those workflows locally.
+            Email alerts and live scraping are intentionally disabled in this browser-local portfolio build.
           </p>
         </div>
       ) : (
