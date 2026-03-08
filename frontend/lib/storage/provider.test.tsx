@@ -39,9 +39,14 @@ import { StorageContext, StorageProvider } from './provider';
 
 function AdapterProbe({ children }: { children?: ReactNode }) {
   const adapter = useContext(StorageContext);
+  const kind =
+    adapter && typeof adapter === 'object' && 'kind' in adapter
+      ? String((adapter as Record<string, unknown>).kind)
+      : 'missing';
+
   return (
     <div>
-      <span>{adapter ? (adapter as { kind: string }).kind : 'missing'}</span>
+      <span>{kind}</span>
       {children}
     </div>
   );
