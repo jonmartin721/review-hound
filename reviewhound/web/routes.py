@@ -101,6 +101,149 @@ def _get_scrape_health(session, business_id: int) -> dict:
 bp = Blueprint("main", __name__)
 
 
+@bp.route("/api/businesses")
+def api_list_businesses():
+    """List all businesses with computed stats."""
+    with get_session() as session:
+        businesses = session.query(Business).all()
+
+        result = []
+        for b in businesses:
+            reviews = session.query(Review).filter(Review.business_id == b.id).all()
+            stats = calculate_review_stats(reviews)
+            scrape_health = _get_scrape_health(session, b.id)
+
+            result.append(
+                {
+                    "id": b.id,
+                    "name": b.name,
+                    "address": b.address,
+                    "trustpilot_url": b.trustpilot_url,
+                    "bbb_url": b.bbb_url,
+                    "yelp_url": b.yelp_url,
+                    "google_place_id": b.google_place_id,
+                    "yelp_business_id": b.yelp_business_id,
+                    "created_at": b.created_at.isoformat() if b.created_at else None,
+                    "updated_at": b.updated_at.isoformat() if b.updated_at else None,
+                    "total_reviews": stats["total"],
+                    "avg_rating": stats["avg_rating"],
+                    "positive_pct": stats["positive_pct"],
+                    "negative_pct": stats["negative_pct"],
+                    "trend_direction": stats["trend_direction"],
+                    "trend_delta": stats["trend_delta"],
+                    "recent_count": stats["recent_count"],
+                    "last_review_date": (
+                        stats["last_review_date"].isoformat() if stats["last_review_date"] else None
+                    ),
+                    "recent_negative_count": stats["recent_negative_count"],
+                    "scrape_issues": scrape_health["has_issues"],
+                    "scrape_issue_sources": scrape_health["issue_sources"],
+                    "scrape_issue_type": scrape_health["issue_type"],
+                }
+            )
+
+        has_google_api = get_api_config(session, "google_places") is not None
+        has_yelp_api = get_api_config(session, "yelp_fusion") is not None
+
+        return jsonify(
+            {
+                "success": True,
+                "businesses": result,
+                "has_google_api": has_google_api,
+                "has_yelp_api": has_yelp_api,
+            }
+        )
+
+
+@bp.route("/api/business/<int:business_id>/reviews")
+def api_list_reviews(business_id):
+    """List reviews for a business with pagination and filters."""
+    with get_session() as session:
+        business = session.query(Business).get(business_id)
+        if not business:
+            return jsonify({"success": False, "error": "Business not found"}), 404
+
+        page = request.args.get("page", 1, type=int)
+        per_page = request.args.get("per_page", Config.REVIEWS_PER_PAGE, type=int)
+        source = request.args.get("source", "")
+        sentiment = request.args.get("sentiment", "")
+
+        query = session.query(Review).filter(Review.business_id == business_id)
+        if source:
+            query = query.filter(Review.source == source)
+        if sentiment:
+            query = query.filter(Review.sentiment_label == sentiment)
+
+        total = query.count()
+        total_pages = (total + per_page - 1) // per_page
+
+        reviews = query.order_by(Review.scraped_at.desc()).offset((page - 1) * per_page).limit(per_page).all()
+
+        return jsonify(
+            {
+                "success": True,
+                "reviews": [
+                    {
+                        "id": r.id,
+                        "business_id": r.business_id,
+                        "source": r.source,
+                        "external_id": r.external_id,
+                        "review_url": r.review_url,
+                        "author_name": r.author_name,
+                        "rating": r.rating,
+                        "text": r.text,
+                        "review_date": str(r.review_date) if r.review_date else None,
+                        "sentiment_score": r.sentiment_score,
+                        "sentiment_label": r.sentiment_label,
+                        "scraped_at": r.scraped_at.isoformat() if r.scraped_at else None,
+                    }
+                    for r in reviews
+                ],
+                "total": total,
+                "total_pages": total_pages,
+                "page": page,
+                "per_page": per_page,
+            }
+        )
+
+
+@bp.route("/api/business/<int:business_id>/scrape-logs")
+def api_list_scrape_logs(business_id):
+    """List scrape logs for a business."""
+    with get_session() as session:
+        business = session.query(Business).get(business_id)
+        if not business:
+            return jsonify({"success": False, "error": "Business not found"}), 404
+
+        limit = request.args.get("limit", 10, type=int)
+        logs = (
+            session.query(ScrapeLog)
+            .filter(ScrapeLog.business_id == business_id)
+            .order_by(ScrapeLog.started_at.desc())
+            .limit(limit)
+            .all()
+        )
+
+        return jsonify(
+            {
+                "success": True,
+                "logs": [
+                    {
+                        "id": entry.id,
+                        "business_id": entry.business_id,
+                        "source": entry.source,
+                        "status": entry.status,
+                        "reviews_found": entry.reviews_found or 0,
+                        "error_message": entry.error_message,
+                        "started_at": entry.started_at.isoformat() if entry.started_at else None,
+                        "completed_at": entry.completed_at.isoformat() if entry.completed_at else None,
+                    }
+                    for entry in logs
+                ],
+            }
+        )
+
+
 @bp.route("/welcome")
 def welcome():
     return render_template("welcome.html")
