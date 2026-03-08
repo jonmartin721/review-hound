@@ -2,40 +2,13 @@
 
 [![PyPI](https://img.shields.io/pypi/v/reviewhound?style=flat)](https://pypi.org/project/reviewhound/)
 [![CI](https://img.shields.io/github/actions/workflow/status/jonmartin721/review-hound/ci.yml?branch=main&style=flat)](https://github.com/jonmartin721/review-hound/actions)
-[![Python 3.11+](https://img.shields.io/badge/python-3.11+-3776ab?style=flat)](https://www.python.org)
+[![Python 3.12+](https://img.shields.io/badge/python-3.12+-3776ab?style=flat)](https://www.python.org)
 [![License: MIT](https://img.shields.io/badge/license-MIT-green?style=flat)](LICENSE)
 [![codecov](https://codecov.io/gh/jonmartin721/review-hound/graph/badge.svg)](https://codecov.io/gh/jonmartin721/review-hound)
 
 Stop checking TrustPilot, BBB, and Yelp separately. Review Hound scrapes them all, flags negative reviews, and emails you before customers start talking.
 
 **Why?** Bad reviews spread. A 1-star complaint on Yelp can sit for days before you notice. Review Hound catches them within hours.
-
-## Hosted Portfolio Demo
-
-The public Vercel deployment is a browser-local hosted version of Review Hound. It starts with seeded sample data, lets you switch to an empty local workspace, and keeps workspace data in your browser storage only.
-
-### Hosted Web Version Includes
-
-- Local browser storage for businesses, reviews, scrape logs, alert rules, API keys, and sentiment settings
-- Source search for TrustPilot and BBB
-- On-demand scraping from the web UI
-- Review filtering, charts, and CSV export
-- Google Places and Yelp lookups with user-supplied API keys
-- Email alerts with user-supplied Resend credentials and sender address
-- Automatic checks while the browser tab is open
-
-### Hosted Web Version Does Not Include
-
-- Server-side persistent storage for your workspace
-- Always-on background monitoring when the browser tab is closed
-- CLI workflows
-- TUI workflows
-- Docker/self-hosted runtime controls
-- Built-in server-managed email delivery; hosted users must bring their own Resend credentials if they want email alerts
-
-Clone or fork the repo if you want the full self-hosted app:
-
-- GitHub: https://github.com/jonmartin721/review-hound
 
 ## Features
 
@@ -221,6 +194,34 @@ The web dashboard provides:
 - **One-Click Scraping**: Trigger scrapes directly from the UI
 
 Access at `http://localhost:5000` after starting with `reviewhound web`.
+
+## Public Demo
+
+The public web deployment is a limited browser-local demo of Review Hound, not the full product.
+
+### Demo Includes
+
+- Sample data plus an option to switch to an empty browser-local workspace
+- Browser storage for businesses, reviews, scrape logs, alert rules, API keys, and sentiment settings
+- TrustPilot and BBB source search
+- On-demand scraping from the web UI
+- Review filtering, charts, and CSV export
+- Google Places and Yelp lookups with user-supplied API keys
+- Email alerts with user-supplied Resend credentials and sender address
+- Automatic checks while the browser tab is open
+
+### Demo Limits
+
+- No server-side persistent workspace storage
+- No always-on background monitoring when the browser tab is closed
+- No CLI workflows
+- No TUI workflows
+- No Docker or self-hosted runtime controls
+- No built-in server-managed email delivery
+
+Clone or fork the repo for the full self-hosted app:
+
+- GitHub: https://github.com/jonmartin721/review-hound
 
 ## Project Structure
 
