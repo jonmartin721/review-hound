@@ -168,7 +168,7 @@ export class IndexedDBAdapter implements StorageAdapter {
     const perPage = opts?.per_page ?? REVIEWS_PER_PAGE;
     const page = opts?.page ?? 1;
 
-    let collection = db.reviews.where('business_id').equals(businessId);
+    const collection = db.reviews.where('business_id').equals(businessId);
     let all = (await collection.toArray()) as Review[];
 
     if (opts?.source) {

@@ -13,6 +13,7 @@ import { ScrapeHistory } from '@/components/business/ScrapeHistory';
 import { DeleteConfirmModal } from '@/components/business/DeleteConfirmModal';
 import { EditBusinessModal } from '@/components/dashboard/EditBusinessModal';
 import { Spinner } from '@/components/ui/Spinner';
+import { SourceBadge } from '@/components/ui/SourceBadge';
 import type { BusinessWithStats, Review, AlertConfig } from '@/lib/storage/types';
 
 export default function BusinessDetailPage() {
@@ -106,7 +107,7 @@ export default function BusinessDetailPage() {
         <p className="text-[var(--text-muted)] text-lg mb-4">Business not found.</p>
         <Link
           href="/"
-          className="text-indigo-600 dark:text-indigo-400 hover:text-indigo-700 dark:hover:text-indigo-300 font-medium"
+          className="text-[var(--accent)] hover:brightness-110 font-medium"
         >
           ← Back to Dashboard
         </Link>
@@ -120,7 +121,7 @@ export default function BusinessDetailPage() {
       <div className="mb-6">
         <Link
           href="/"
-          className="text-[var(--text-muted)] hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors inline-flex items-center gap-1"
+          className="text-[var(--text-muted)] hover:text-[var(--accent)] transition-colors inline-flex items-center gap-1"
         >
           <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
@@ -130,7 +131,7 @@ export default function BusinessDetailPage() {
       </div>
 
       {/* Header card */}
-      <div className="bg-[var(--bg-surface)] rounded-xl shadow-sm border border-[var(--border)] p-6 mb-6">
+      <div className="bg-[var(--bg-surface)] rounded-none border-t-2 border-t-[var(--accent)] border border-[var(--border)] p-6 mb-6">
         <div className="flex justify-between items-start">
           <div>
             <h1 className="text-2xl font-semibold text-[var(--text-primary)]">{business.name}</h1>
@@ -141,13 +142,13 @@ export default function BusinessDetailPage() {
           <div className="flex gap-2 flex-wrap justify-end">
             <button
               onClick={() => setEditOpen(true)}
-              className="px-4 py-2 border border-[var(--border)] rounded-lg text-[var(--text-secondary)] hover:bg-[var(--bg-muted)] transition font-medium"
+              className="px-4 py-2 border border-[var(--border)] rounded-none text-[var(--text-secondary)] hover:bg-[var(--bg-surface-hover)] transition font-medium"
             >
               Edit
             </button>
             <button
               onClick={() => setDeleteOpen(true)}
-              className="px-4 py-2 border border-red-200 dark:border-red-800 bg-red-50 dark:bg-red-900/30 text-red-700 dark:text-red-400 rounded-lg hover:bg-red-100 dark:hover:bg-red-900/50 transition font-medium"
+              className="px-4 py-2 border border-(--negative)/30 bg-(--negative)/10 text-[var(--negative)] rounded-none hover:bg-(--negative)/20 transition font-medium"
             >
               Delete
             </button>
@@ -168,50 +169,25 @@ export default function BusinessDetailPage() {
         {/* Source links */}
         <div className="flex flex-wrap gap-2 mt-6">
           {business.trustpilot_url && (
-            <a
-              href={business.trustpilot_url}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="px-3 py-1 bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 rounded hover:bg-green-200 dark:hover:bg-green-900/50 transition"
-            >
-              TrustPilot ↗
-            </a>
+            <SourceBadge source="trustpilot" url={business.trustpilot_url} size="md" />
           )}
           {business.bbb_url && (
-            <a
-              href={business.bbb_url}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="px-3 py-1 bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 rounded hover:bg-blue-200 dark:hover:bg-blue-900/50 transition"
-            >
-              BBB ↗
-            </a>
+            <SourceBadge source="bbb" url={business.bbb_url} size="md" />
           )}
           {business.yelp_url && (
-            <a
-              href={business.yelp_url}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="px-3 py-1 bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400 rounded hover:bg-red-200 dark:hover:bg-red-900/50 transition"
-            >
-              Yelp ↗
-            </a>
+            <SourceBadge source="yelp" url={business.yelp_url} size="md" />
           )}
           {business.google_place_id && (
-            <span className="px-3 py-1 bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-400 rounded">
-              Google (API)
-            </span>
+            <SourceBadge source="google_places" size="md" />
           )}
           {business.yelp_business_id && (
-            <span className="px-3 py-1 bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400 rounded">
-              Yelp (API)
-            </span>
+            <SourceBadge source="yelp_api" size="md" />
           )}
         </div>
       </div>
 
       {/* Rating Trend Chart */}
-      <div className="bg-[var(--bg-surface)] rounded-xl shadow-sm border border-[var(--border)] p-6 mb-6">
+      <div className="bg-[var(--bg-surface)] rounded-none border-t-2 border-t-[var(--accent)] border border-[var(--border)] p-6 mb-6">
         <h2 className="text-lg font-semibold text-[var(--text-primary)] mb-4">Rating Trend</h2>
         <RatingChart businessId={businessId} />
       </div>

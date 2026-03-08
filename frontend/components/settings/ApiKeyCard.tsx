@@ -31,6 +31,7 @@ export function ApiKeyCard({
   const [newKey, setNewKey] = useState('');
   const [saving, setSaving] = useState(false);
   const [deleting, setDeleting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const editInputRef = useRef<HTMLInputElement>(null);
   const addInputRef = useRef<HTMLInputElement>(null);
 
@@ -39,10 +40,14 @@ export function ApiKeyCard({
     const key = editing ? newKey : (addInputRef.current?.value ?? '');
     if (!key.trim()) return;
     setSaving(true);
+    setError(null);
     try {
       await onSave(key.trim());
       setNewKey('');
       setEditing(false);
+    } catch (err) {
+      console.error('Failed to save API key:', err);
+      setError('Failed to save API key.');
     } finally {
       setSaving(false);
     }
@@ -51,8 +56,12 @@ export function ApiKeyCard({
   async function handleDelete() {
     if (!confirm('Are you sure you want to delete this API key?')) return;
     setDeleting(true);
+    setError(null);
     try {
       await onDelete();
+    } catch (err) {
+      console.error('Failed to delete API key:', err);
+      setError('Failed to delete API key.');
     } finally {
       setDeleting(false);
     }
@@ -85,9 +94,17 @@ export function ApiKeyCard({
               type="checkbox"
               className="sr-only peer"
               checked={keyInfo.enabled}
-              onChange={onToggle}
+              onChange={async () => {
+                setError(null);
+                try {
+                  await onToggle();
+                } catch (err) {
+                  console.error('Failed to toggle API key:', err);
+                  setError('Failed to toggle API key.');
+                }
+              }}
             />
-            <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-indigo-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-indigo-600" />
+            <div className="w-11 h-6 bg-[var(--border-bright)] peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-(--accent)/30 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-[var(--border)] after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[var(--accent)]" />
           </label>
         )}
       </div>
@@ -97,19 +114,19 @@ export function ApiKeyCard({
         <>
           {keyInfo ? (
             <div className="flex items-center gap-3">
-              <div className="flex-1 bg-[var(--bg-muted)] rounded px-3 py-2 font-mono text-sm text-[var(--text-secondary)] truncate">
+              <div className="flex-1 bg-[var(--bg-elevated)] rounded-none px-3 py-2 font-code text-sm text-[var(--text-secondary)] truncate">
                 {keyInfo.key_preview}
               </div>
               <button
                 onClick={handleShowEdit}
-                className="text-indigo-600 dark:text-indigo-400 hover:text-indigo-800 dark:hover:text-indigo-300 text-sm shrink-0"
+                className="text-[var(--accent)] hover:brightness-110 text-sm shrink-0"
               >
                 Edit
               </button>
               <button
                 onClick={handleDelete}
                 disabled={deleting}
-                className="text-red-600 dark:text-red-400 hover:text-red-800 dark:hover:text-red-300 text-sm shrink-0 disabled:opacity-50"
+                className="text-[var(--negative)] hover:brightness-110 text-sm shrink-0 disabled:opacity-50"
               >
                 {deleting ? 'Deleting…' : 'Delete'}
               </button>
@@ -120,7 +137,7 @@ export function ApiKeyCard({
                 ref={addInputRef}
                 type="text"
                 placeholder={`Enter ${label} key`}
-                className="flex-1 border border-[var(--border)] bg-[var(--bg-surface)] text-[var(--text-primary)] rounded-lg px-3 py-2.5 placeholder-[var(--text-muted)]"
+                className="flex-1 border border-[var(--border)] bg-[var(--bg-surface)] text-[var(--text-primary)] rounded-none px-3 py-2.5 placeholder-[var(--text-muted)]"
               />
               <Button type="submit" loading={saving}>
                 Save
@@ -139,7 +156,7 @@ export function ApiKeyCard({
             value={newKey}
             onChange={(e) => setNewKey(e.target.value)}
             placeholder="Enter new API key"
-            className="flex-1 border border-[var(--border)] bg-[var(--bg-surface)] text-[var(--text-primary)] rounded-lg px-3 py-2.5 placeholder-[var(--text-muted)]"
+            className="flex-1 border border-[var(--border)] bg-[var(--bg-surface)] text-[var(--text-primary)] rounded-none px-3 py-2.5 placeholder-[var(--text-muted)]"
           />
           <Button type="submit" loading={saving}>
             Save
@@ -150,13 +167,15 @@ export function ApiKeyCard({
         </form>
       )}
 
+      {error && <p className="text-xs text-[var(--negative)] mt-2">{error}</p>}
+
       {/* Help link */}
       <p className="text-xs text-[var(--text-muted)] mt-2">
         <a
           href={helpUrl}
           target="_blank"
           rel="noopener noreferrer"
-          className="text-indigo-600 dark:text-indigo-400 hover:underline"
+          className="text-[var(--accent)] hover:underline"
         >
           {helpLinkText}
         </a>

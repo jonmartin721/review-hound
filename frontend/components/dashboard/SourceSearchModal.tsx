@@ -13,6 +13,8 @@ interface SourceSearchModalProps {
   trustpilotResults: SearchResult[];
   bbbResults: SearchResult[];
   isLoading: boolean;
+  searchError: string | null;
+  saveError: string | null;
   onSave: (sources: { trustpilot: string | null; bbb: string | null }) => Promise<void>;
   isSaving: boolean;
 }
@@ -47,7 +49,7 @@ function SourceSection({ source, label, dotColor, results, isLoading, selectedUr
         <span className={`w-3 h-3 ${dotColor} rounded-full mr-2`} />
         {label}
       </h3>
-      <div className="border border-[var(--border)] rounded p-3 bg-[var(--bg-muted)]">
+      <div className="border border-[var(--border)] rounded-none p-3 bg-[var(--bg-elevated)]">
         {isLoading ? (
           <div className="text-center text-[var(--text-muted)] py-4 flex items-center justify-center gap-2">
             <Spinner size="sm" />
@@ -63,7 +65,7 @@ function SourceSection({ source, label, dotColor, results, isLoading, selectedUr
               return (
                 <label
                   key={index}
-                  className="flex items-start p-2 rounded hover:bg-[var(--bg-surface-hover)] cursor-pointer"
+                  className="flex items-start p-2 rounded-none hover:bg-[var(--bg-surface-hover)] cursor-pointer"
                 >
                   <input
                     type="radio"
@@ -102,7 +104,7 @@ function SourceSection({ source, label, dotColor, results, isLoading, selectedUr
           <button
             type="button"
             onClick={() => setShowManual((v) => !v)}
-            className="text-indigo-600 dark:text-indigo-400 hover:text-indigo-800 dark:hover:text-indigo-300 text-sm"
+            className="text-[var(--accent)] hover:brightness-110 text-sm"
           >
             Enter URL manually
           </button>
@@ -113,7 +115,7 @@ function SourceSection({ source, label, dotColor, results, isLoading, selectedUr
                 value={manualUrl}
                 onChange={(e) => handleManualChange(e.target.value)}
                 placeholder="https://..."
-                className="w-full border border-[var(--border)] bg-[var(--bg-surface)] text-[var(--text-primary)] rounded px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-500 focus:outline-none"
+                className="w-full border border-[var(--border)] bg-[var(--bg-surface)] text-[var(--text-primary)] rounded-none px-3 py-2 text-sm focus:ring-2 focus:ring-[var(--accent)] focus:outline-none"
               />
             </div>
           )}
@@ -130,6 +132,8 @@ export function SourceSearchModal({
   trustpilotResults,
   bbbResults,
   isLoading,
+  searchError,
+  saveError,
   onSave,
   isSaving,
 }: SourceSearchModalProps) {
@@ -153,11 +157,15 @@ export function SourceSearchModal({
     >
       <p className="text-[var(--text-muted)] mb-4">Select the correct business listing from each platform, or enter URLs manually.</p>
 
+      {searchError && (
+        <p className="text-sm text-[var(--negative)] mb-4">{searchError}</p>
+      )}
+
       <div className="overflow-y-auto max-h-[60vh] pr-1">
         <SourceSection
           source="trustpilot"
           label="TrustPilot"
-          dotColor="bg-green-500"
+          dotColor="bg-[var(--positive)]"
           results={trustpilotResults}
           isLoading={isLoading}
           selectedUrl={trustpilotUrl}
@@ -166,13 +174,17 @@ export function SourceSearchModal({
         <SourceSection
           source="bbb"
           label="BBB"
-          dotColor="bg-blue-500"
+          dotColor="bg-[var(--accent)]"
           results={bbbResults}
           isLoading={isLoading}
           selectedUrl={bbbUrl}
           onSelect={setBbbUrl}
         />
       </div>
+
+      {saveError && (
+        <p className="text-sm text-[var(--negative)] mt-4">{saveError}</p>
+      )}
 
       <div className="flex justify-end gap-3 mt-6 border-t border-[var(--border)] pt-4">
         <Button variant="secondary" onClick={handleSkip} disabled={isSaving}>

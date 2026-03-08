@@ -35,13 +35,19 @@ export function SentimentSliders() {
   );
   const [saving, setSaving] = useState(false);
   const [savedMsg, setSavedMsg] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    storage.getSentimentConfig().then((cfg) => {
-      setRatingWeight(Math.round(cfg.rating_weight * 100));
-      setTextWeight(Math.round(cfg.text_weight * 100));
-      setThresholdInt(Math.round(cfg.threshold * 100));
-    });
+    storage.getSentimentConfig()
+      .then((cfg) => {
+        setRatingWeight(Math.round(cfg.rating_weight * 100));
+        setTextWeight(Math.round(cfg.text_weight * 100));
+        setThresholdInt(Math.round(cfg.threshold * 100));
+      })
+      .catch((err) => {
+        console.error('Failed to load sentiment config:', err);
+        setError('Failed to load sentiment config.');
+      });
   }, [storage]);
 
   useEffect(() => {
@@ -52,6 +58,7 @@ export function SentimentSliders() {
 
   async function handleSave() {
     setSaving(true);
+    setError(null);
     try {
       await storage.saveSentimentConfig({
         rating_weight: ratingWeight / 100,
@@ -60,6 +67,9 @@ export function SentimentSliders() {
       });
       setSavedMsg(true);
       savedMsgTimeoutRef.current = setTimeout(() => setSavedMsg(false), 2500);
+    } catch (err) {
+      console.error('Failed to save sentiment config:', err);
+      setError('Failed to save settings.');
     } finally {
       setSaving(false);
     }
@@ -71,15 +81,26 @@ export function SentimentSliders() {
     ) {
       return;
     }
+    const prevRating = ratingWeight;
+    const prevText = textWeight;
+    const prevThreshold = thresholdInt;
+
     setRatingWeight(Math.round(DEFAULTS.rating_weight * 100));
     setTextWeight(Math.round(DEFAULTS.text_weight * 100));
     setThresholdInt(Math.round(DEFAULTS.threshold * 100));
 
     setSaving(true);
+    setError(null);
     try {
       await storage.saveSentimentConfig(DEFAULTS);
       setSavedMsg(true);
       savedMsgTimeoutRef.current = setTimeout(() => setSavedMsg(false), 2500);
+    } catch (err) {
+      console.error('Failed to reset sentiment config:', err);
+      setRatingWeight(prevRating);
+      setTextWeight(prevText);
+      setThresholdInt(prevThreshold);
+      setError('Failed to reset settings.');
     } finally {
       setSaving(false);
     }
@@ -90,10 +111,10 @@ export function SentimentSliders() {
       {/* Rating Weight */}
       <div>
         <div className="flex justify-between mb-2">
-          <label className="text-sm font-medium text-[var(--text-secondary)]">
+          <label className="text-xs font-medium uppercase tracking-wider text-[var(--text-secondary)]">
             Star Rating Weight
           </label>
-          <span className="text-sm text-[var(--text-secondary)]">
+          <span className="text-sm font-code text-[var(--text-secondary)]">
             {ratingWeight}%
           </span>
         </div>
@@ -103,7 +124,7 @@ export function SentimentSliders() {
           max={100}
           value={ratingWeight}
           onChange={(e) => setRatingWeight(Number(e.target.value))}
-          className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
+          className="w-full"
         />
         <p className="text-xs text-[var(--text-muted)] mt-1">
           How much the star rating (1–5) influences the sentiment score
@@ -113,10 +134,10 @@ export function SentimentSliders() {
       {/* Text Weight */}
       <div>
         <div className="flex justify-between mb-2">
-          <label className="text-sm font-medium text-[var(--text-secondary)]">
+          <label className="text-xs font-medium uppercase tracking-wider text-[var(--text-secondary)]">
             Text Analysis Weight
           </label>
-          <span className="text-sm text-[var(--text-secondary)]">
+          <span className="text-sm font-code text-[var(--text-secondary)]">
             {textWeight}%
           </span>
         </div>
@@ -126,7 +147,7 @@ export function SentimentSliders() {
           max={100}
           value={textWeight}
           onChange={(e) => setTextWeight(Number(e.target.value))}
-          className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
+          className="w-full"
         />
         <p className="text-xs text-[var(--text-muted)] mt-1">
           How much the review text analysis influences the sentiment score
@@ -136,10 +157,10 @@ export function SentimentSliders() {
       {/* Classification Threshold */}
       <div className="pt-4 border-t border-[var(--border)]">
         <div className="flex justify-between mb-2">
-          <label className="text-sm font-medium text-[var(--text-secondary)]">
+          <label className="text-xs font-medium uppercase tracking-wider text-[var(--text-secondary)]">
             Classification Threshold
           </label>
-          <span className="text-sm text-[var(--text-secondary)]">
+          <span className="text-sm font-code text-[var(--text-secondary)]">
             {(thresholdInt / 100).toFixed(2)}
           </span>
         </div>
@@ -149,7 +170,7 @@ export function SentimentSliders() {
           max={50}
           value={thresholdInt}
           onChange={(e) => setThresholdInt(Number(e.target.value))}
-          className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
+          className="w-full"
         />
         <p className="text-xs text-[var(--text-muted)] mt-1">
           Score must be above this value to be classified as positive/negative
@@ -158,6 +179,7 @@ export function SentimentSliders() {
       </div>
 
       {/* Actions */}
+      {error && <p className="text-sm text-[var(--negative)]">{error}</p>}
       <div className="flex items-center justify-between pt-4">
         <Button onClick={handleSave} loading={saving}>
           {savedMsg ? 'Saved!' : 'Save Settings'}

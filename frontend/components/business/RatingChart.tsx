@@ -15,13 +15,17 @@ import type { ChartData } from '@/lib/storage/types';
 
 ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Filler, Tooltip);
 
+function getCssVar(name: string) {
+  return getComputedStyle(document.documentElement).getPropertyValue(name).trim();
+}
+
 function getChartColors() {
-  const isDark = document.documentElement.classList.contains('dark');
+  const accent = getCssVar('--accent');
   return {
-    borderColor: isDark ? '#818cf8' : '#4f46e5',
-    backgroundColor: isDark ? 'rgba(129, 140, 248, 0.1)' : 'rgba(79, 70, 229, 0.1)',
-    gridColor: isDark ? '#2e2c29' : '#e5e7eb',
-    textColor: isDark ? '#9ca3af' : '#6b7280',
+    borderColor: accent,
+    backgroundColor: accent + '26',
+    gridColor: getCssVar('--border'),
+    textColor: getCssVar('--text-secondary'),
   };
 }
 
@@ -32,20 +36,26 @@ interface RatingChartProps {
 export function RatingChart({ businessId }: RatingChartProps) {
   const storage = useStorage();
   const [chartData, setChartData] = useState<ChartData | null>(null);
+  const [error, setError] = useState<string | null>(null);
   const [colors, setColors] = useState(() =>
     typeof window !== 'undefined'
       ? getChartColors()
       : {
-          borderColor: '#4f46e5',
-          backgroundColor: 'rgba(79, 70, 229, 0.1)',
-          gridColor: '#e5e7eb',
-          textColor: '#6b7280',
+          borderColor: '#E5A84B',
+          backgroundColor: 'rgba(229, 168, 75, 0.15)',
+          gridColor: '#2A2A2A',
+          textColor: '#8A8A8A',
         }
   );
   const chartRef = useRef<ChartJS<'line'> | null>(null);
 
   useEffect(() => {
-    storage.getChartData(businessId).then(setChartData);
+    storage.getChartData(businessId)
+      .then(setChartData)
+      .catch((err) => {
+        console.error('Failed to load chart data:', err);
+        setError('Could not load rating history.');
+      });
   }, [businessId, storage]);
 
   useEffect(() => {
@@ -58,6 +68,14 @@ export function RatingChart({ businessId }: RatingChartProps) {
     });
     return () => observer.disconnect();
   }, []);
+
+  if (error) {
+    return (
+      <div className="h-32 flex items-center justify-center text-[var(--text-muted)]">
+        {error}
+      </div>
+    );
+  }
 
   if (!chartData) {
     return (

@@ -66,7 +66,7 @@ export function ScrapeButton({ businessId, onComplete }: ScrapeButtonProps) {
         {label}
       </Button>
       {errorMsg && (
-        <p className="text-xs text-amber-600 dark:text-amber-400 max-w-48 text-right">
+        <p className="text-xs text-[var(--accent)] max-w-48 text-right">
           {errorMsg}
         </p>
       )}

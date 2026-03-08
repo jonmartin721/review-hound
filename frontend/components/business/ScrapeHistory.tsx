@@ -10,15 +10,17 @@ interface ScrapeHistoryProps {
 }
 
 function StatusBadge({ status }: { status: string }) {
-  const classes =
-    status === 'success'
-      ? 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400'
-      : status === 'failed'
-      ? 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400'
-      : 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-400';
+  let classes: string;
+  if (status === 'success') {
+    classes = 'bg-(--positive)/10 text-[var(--positive)]';
+  } else if (status === 'failed') {
+    classes = 'bg-(--negative)/10 text-[var(--negative)]';
+  } else {
+    classes = 'bg-[var(--accent-dim)] text-[var(--accent)]';
+  }
 
   return (
-    <span className={`px-2 py-0.5 rounded text-xs ${classes}`}>{status}</span>
+    <span className={`px-2 py-0.5 rounded-none text-xs ${classes}`}>{status}</span>
   );
 }
 
@@ -26,38 +28,49 @@ export function ScrapeHistory({ businessId, refreshKey }: ScrapeHistoryProps) {
   const storage = useStorage();
   const [logs, setLogs] = useState<ScrapeLog[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  const fetchKey = `${businessId}-${refreshKey}`;
+  const [prevFetchKey, setPrevFetchKey] = useState(fetchKey);
+  if (fetchKey !== prevFetchKey) {
+    setPrevFetchKey(fetchKey);
+    setLoading(true);
+    setError(null);
+  }
 
   useEffect(() => {
-    setLoading(true);
     storage
       .getScrapeHistory(businessId, 10)
       .then(setLogs)
+      .catch(() => setError('Failed to load scrape history.'))
       .finally(() => setLoading(false));
   }, [businessId, storage, refreshKey]);
 
   return (
-    <div className="bg-[var(--bg-surface)] rounded-xl shadow-sm border border-[var(--border)] p-6 mt-6">
+    <div className="bg-[var(--bg-surface)] rounded-none border-t-2 border-t-[var(--accent)] border border-[var(--border)] p-6 mt-6">
       <h2 className="text-lg font-semibold text-[var(--text-primary)] mb-4">Scrape History</h2>
 
       {loading ? (
         <p className="text-[var(--text-muted)] text-center py-4">Loading...</p>
+      ) : error ? (
+        <p className="text-[var(--negative)] text-center py-4">{error}</p>
       ) : logs.length === 0 ? (
         <p className="text-[var(--text-muted)] text-center py-4">No scrape history yet.</p>
       ) : (
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
-            <thead className="bg-[var(--bg-muted)]">
+            <thead className="bg-[var(--bg-elevated)]">
               <tr>
-                <th className="px-4 py-2 text-left text-[var(--text-secondary)]">Source</th>
-                <th className="px-4 py-2 text-left text-[var(--text-secondary)]">Status</th>
-                <th className="px-4 py-2 text-left text-[var(--text-secondary)]">New Reviews</th>
-                <th className="px-4 py-2 text-left text-[var(--text-secondary)]">Time</th>
+                <th className="px-4 py-2 text-left text-xs uppercase tracking-wider text-[var(--text-secondary)]">Source</th>
+                <th className="px-4 py-2 text-left text-xs uppercase tracking-wider text-[var(--text-secondary)]">Status</th>
+                <th className="px-4 py-2 text-left text-xs uppercase tracking-wider text-[var(--text-secondary)]">New Reviews</th>
+                <th className="px-4 py-2 text-left text-xs uppercase tracking-wider text-[var(--text-secondary)]">Time</th>
               </tr>
             </thead>
             <tbody>
               {logs.slice(0, 10).map((log) => (
                 <tr key={log.id} className="border-t border-[var(--border)]">
-                  <td className="px-4 py-2 text-[var(--text-primary)]">{log.source}</td>
+                  <td className="px-4 py-2 text-[var(--text-primary)] font-code">{log.source}</td>
                   <td className="px-4 py-2">
                     <StatusBadge status={log.status} />
                   </td>
@@ -65,7 +78,7 @@ export function ScrapeHistory({ businessId, refreshKey }: ScrapeHistoryProps) {
                     {log.reviews_found || 0}
                     {log.status === 'success' && (log.reviews_found || 0) === 0 && (
                       <span
-                        className="ml-1 text-amber-500 dark:text-amber-400 inline-flex items-center"
+                        className="ml-1 text-[var(--accent)] inline-flex items-center"
                         title="No new reviews found - check if the source URL is correct"
                       >
                         <svg
@@ -84,7 +97,7 @@ export function ScrapeHistory({ businessId, refreshKey }: ScrapeHistoryProps) {
                       </span>
                     )}
                   </td>
-                  <td className="px-4 py-2 text-[var(--text-muted)]">
+                  <td className="px-4 py-2 text-[var(--text-muted)] font-code">
                     {log.completed_at ? formatDateTime(log.completed_at) : 'Running...'}
                   </td>
                 </tr>

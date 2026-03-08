@@ -1,15 +1,18 @@
+import Image from 'next/image';
 import Link from 'next/link';
+import { LightboxImage } from '@/components/ui/Lightbox';
 
 export default function WelcomePage() {
   return (
-    <div className="max-w-4xl mx-auto">
+    <div className="max-w-4xl mx-auto fade-in">
       {/* Header */}
       <div className="text-center mb-16">
+        <Image src="/logo.png" alt="Review Hound" width={160} height={160} className="mx-auto mb-6" priority />
         <h1 className="text-3xl font-semibold text-[var(--text-primary)] mb-3">Welcome to Review Hound</h1>
         <p className="text-lg text-[var(--text-muted)] mb-6">Monitor and analyze your business reviews across platforms</p>
         <Link
           href="/"
-          className="inline-flex items-center gap-2 bg-indigo-600 text-white px-6 py-3 rounded-lg hover:bg-indigo-700 transition font-medium"
+          className="inline-flex items-center gap-2 bg-[var(--accent)] text-[var(--accent-contrast)] px-6 py-3 rounded-none hover:brightness-110 transition font-medium"
         >
           Get Started
           <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -20,9 +23,7 @@ export default function WelcomePage() {
 
       {/* Section 1: Add a Business */}
       <div className="grid md:grid-cols-2 gap-8 items-center mb-16">
-        <div className="bg-[var(--bg-muted)] rounded-lg aspect-video flex items-center justify-center border border-[var(--border)]">
-          <span className="text-[var(--text-muted)] text-sm">Screenshot: Add business modal with source search results</span>
-        </div>
+        <LightboxImage src="/screenshots/add-business.png" alt="Add business modal with source search results" width={1280} height={800} />
         <div>
           <h2 className="text-xl font-semibold text-[var(--text-primary)] mb-3">Add a Business</h2>
           <p className="text-[var(--text-secondary)]">
@@ -33,8 +34,8 @@ export default function WelcomePage() {
 
       {/* Section 2: Dashboard Overview */}
       <div className="grid md:grid-cols-2 gap-8 items-center mb-16">
-        <div className="md:order-2 bg-[var(--bg-muted)] rounded-lg aspect-video flex items-center justify-center border border-[var(--border)]">
-          <span className="text-[var(--text-muted)] text-sm">Screenshot: Dashboard with business cards</span>
+        <div className="md:order-2">
+          <LightboxImage src="/screenshots/dashboard.png" alt="Dashboard with business cards showing ratings and sentiment" width={1280} height={800} />
         </div>
         <div className="md:order-1">
           <h2 className="text-xl font-semibold text-[var(--text-primary)] mb-3">Dashboard Overview</h2>
@@ -46,9 +47,7 @@ export default function WelcomePage() {
 
       {/* Section 3: Review Details */}
       <div className="grid md:grid-cols-2 gap-8 items-center mb-16">
-        <div className="bg-[var(--bg-muted)] rounded-lg aspect-video flex items-center justify-center border border-[var(--border)]">
-          <span className="text-[var(--text-muted)] text-sm">Screenshot: Business detail page with chart and reviews</span>
-        </div>
+        <LightboxImage src="/screenshots/business-detail.png" alt="Business detail page with rating trend chart and reviews" width={1280} height={800} />
         <div>
           <h2 className="text-xl font-semibold text-[var(--text-primary)] mb-3">Review Details</h2>
           <p className="text-[var(--text-secondary)]">
@@ -59,8 +58,8 @@ export default function WelcomePage() {
 
       {/* Section 4: Alerts */}
       <div className="grid md:grid-cols-2 gap-8 items-center mb-16">
-        <div className="md:order-2 bg-[var(--bg-muted)] rounded-lg aspect-video flex items-center justify-center border border-[var(--border)]">
-          <span className="text-[var(--text-muted)] text-sm">Screenshot: Alert configuration panel</span>
+        <div className="md:order-2">
+          <LightboxImage src="/screenshots/alerts.png" alt="Alert configuration modal with email and threshold settings" width={1280} height={800} />
         </div>
         <div className="md:order-1">
           <h2 className="text-xl font-semibold text-[var(--text-primary)] mb-3">Alerts</h2>
@@ -72,9 +71,7 @@ export default function WelcomePage() {
 
       {/* Section 5: Settings */}
       <div className="grid md:grid-cols-2 gap-8 items-center mb-16">
-        <div className="bg-[var(--bg-muted)] rounded-lg aspect-video flex items-center justify-center border border-[var(--border)]">
-          <span className="text-[var(--text-muted)] text-sm">Screenshot: Settings page with API keys</span>
-        </div>
+        <LightboxImage src="/screenshots/settings.png" alt="Settings page with API keys and sentiment analysis configuration" width={1280} height={800} />
         <div>
           <h2 className="text-xl font-semibold text-[var(--text-primary)] mb-3">Settings</h2>
           <p className="text-[var(--text-secondary)]">
@@ -87,7 +84,7 @@ export default function WelcomePage() {
       <div className="text-center py-8 border-t border-[var(--border)]">
         <Link
           href="/"
-          className="inline-flex items-center gap-2 bg-indigo-600 text-white px-6 py-3 rounded-lg hover:bg-indigo-700 transition font-medium"
+          className="inline-flex items-center gap-2 bg-[var(--accent)] text-[var(--accent-contrast)] px-6 py-3 rounded-none hover:brightness-110 transition font-medium"
         >
           Get Started
           <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">

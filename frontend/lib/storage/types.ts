@@ -105,7 +105,7 @@ export interface CreateBusinessData {
   yelp_business_id?: string | null;
 }
 
-export interface UpdateBusinessData extends Partial<CreateBusinessData> {}
+export type UpdateBusinessData = Partial<CreateBusinessData>;
 
 export interface CreateAlertData {
   email: string;

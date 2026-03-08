@@ -59,12 +59,17 @@ export default function ReviewsPage() {
   };
 
   const handleExport = async () => {
-    const csv = await storage.exportReviewsCsv(businessId, {
-      source: source || undefined,
-      sentiment: sentiment || undefined,
-    });
-    const safeName = (business?.name || 'reviews').toLowerCase().replace(/\s+/g, '_');
-    downloadCsv(csv, `${safeName}_reviews.csv`);
+    try {
+      const csv = await storage.exportReviewsCsv(businessId, {
+        source: source || undefined,
+        sentiment: sentiment || undefined,
+      });
+      const safeName = (business?.name || 'reviews').toLowerCase().replace(/\s+/g, '_');
+      downloadCsv(csv, `${safeName}_reviews.csv`);
+    } catch (err) {
+      console.error('Failed to export reviews:', err);
+      setError('Failed to export reviews. Please try again.');
+    }
   };
 
   return (
@@ -72,7 +77,7 @@ export default function ReviewsPage() {
       <div className="mb-6">
         <Link
           href={`/business/${businessId}`}
-          className="text-indigo-600 dark:text-indigo-400 hover:text-indigo-800 dark:hover:text-indigo-300"
+          className="text-[var(--accent)] hover:brightness-110"
         >
           &larr; Back to {business?.name || 'Business'}
         </Link>
@@ -90,8 +95,8 @@ export default function ReviewsPage() {
       />
 
       {error ? (
-        <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-xl p-8 text-center">
-          <p className="text-red-700 dark:text-red-400 font-medium mb-2">Connection Error</p>
+        <div className="bg-[var(--bg-surface)] border border-[var(--border)] border-t-2 border-t-[var(--negative)] rounded-none p-8 text-center">
+          <p className="text-[var(--negative)] font-medium mb-2">Connection Error</p>
           <p className="text-[var(--text-muted)] text-sm">{error}</p>
         </div>
       ) : loading ? (
@@ -99,7 +104,7 @@ export default function ReviewsPage() {
           <Spinner size="lg" />
         </div>
       ) : reviews.length === 0 ? (
-        <div className="bg-[var(--bg-surface)] rounded-lg shadow-md border border-[var(--border)] p-8 text-center">
+        <div className="bg-[var(--bg-surface)] rounded-none border border-[var(--border)] p-8 text-center">
           <p className="text-[var(--text-muted)]">No reviews found matching your filters.</p>
         </div>
       ) : (

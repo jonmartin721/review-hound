@@ -110,14 +110,14 @@ export function AlertModal({
               id="alertEnabled"
               checked={enabled}
               onChange={(e) => setEnabled(e.target.checked)}
-              className="rounded text-indigo-600 w-4 h-4"
+              className="rounded-none text-[var(--accent)] w-4 h-4"
             />
             <label htmlFor="alertEnabled" className="text-sm text-[var(--text-secondary)]">
               Enabled
             </label>
           </div>
 
-          {error && <p className="text-sm text-red-500">{error}</p>}
+          {error && <p className="text-sm text-[var(--negative)]">{error}</p>}
         </div>
 
         <div className="flex justify-end gap-3 mt-6">

@@ -2,6 +2,8 @@
 
 import { createContext, useMemo, useState, useEffect, type ReactNode } from 'react';
 import type { StorageAdapter } from './adapter';
+import { IndexedDBAdapter } from './indexeddb-adapter';
+import { APIAdapter } from './api-adapter';
 import { Spinner } from '@/components/ui/Spinner';
 
 const StorageContext = createContext<StorageAdapter | null>(null);
@@ -11,13 +13,7 @@ export function StorageProvider({ children }: { children: ReactNode }) {
 
   const adapter = useMemo(() => {
     const isDemo = process.env.NEXT_PUBLIC_DEMO_MODE === 'true';
-    if (isDemo) {
-      const { IndexedDBAdapter } = require('./indexeddb-adapter');
-      return new IndexedDBAdapter() as StorageAdapter;
-    } else {
-      const { APIAdapter } = require('./api-adapter');
-      return new APIAdapter() as StorageAdapter;
-    }
+    return isDemo ? new IndexedDBAdapter() : new APIAdapter();
   }, []);
 
   useEffect(() => {
