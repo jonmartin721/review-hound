@@ -18,6 +18,14 @@ import type {
   SchedulerConfig,
 } from './types';
 import { db } from '../db/schema';
+import {
+  getSampleGooglePlacesResults,
+  getSampleScrapeReviews,
+  getSampleSourceSearchResults,
+  getSampleSentiment,
+  getSampleYelpResults,
+  isSampleModeWorkspace,
+} from '../demo/sample-mode';
 import { calculateReviewStats, getScrapeHealth } from '../utils/stats';
 import { generateReviewsCsv } from '../utils/csv';
 import { maskApiKey } from '../utils/format';
@@ -60,6 +68,43 @@ interface ApiSearchResponse {
   error?: string;
 }
 
+async function getSentimentForReview(
+  raw: ScrapeApiReview
+): Promise<{ sentimentScore: number | null; sentimentLabel: string | null }> {
+  if (isSampleModeWorkspace()) {
+    const sampleSentiment = getSampleSentiment(raw.text ?? null, raw.rating ?? null);
+    return {
+      sentimentScore: sampleSentiment.score,
+      sentimentLabel: sampleSentiment.label,
+    };
+  }
+
+  try {
+    const sentRes = await fetch('/api/sentiment', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        text: raw.text ?? '',
+        rating: raw.rating ?? null,
+      }),
+    });
+    if (sentRes.ok) {
+      const sentData: { score: number; label: string } = await sentRes.json();
+      return {
+        sentimentScore: sentData.score,
+        sentimentLabel: sentData.label,
+      };
+    }
+  } catch {
+    // Leave sentiment null if the call fails.
+  }
+
+  return {
+    sentimentScore: null,
+    sentimentLabel: null,
+  };
+}
+
 async function getStoredConfig(provider: string) {
   return db.apiConfigs.where('provider').equals(provider).first();
 }
@@ -73,8 +118,8 @@ async function sendAlertEmail(
     text: string | null;
     source: string;
     review_date: string | null;
-      }>
-    ): Promise<void> {
+  }>
+): Promise<void> {
   const resendConfig = await getStoredConfig('resend');
   const fromEmailConfig = await getStoredConfig('resend_from_email');
 
@@ -83,6 +128,10 @@ async function sendAlertEmail(
   }
   if (!fromEmailConfig?.enabled || !fromEmailConfig.api_key) {
     throw new Error('Resend sender email is not configured.');
+  }
+
+  if (isSampleModeWorkspace()) {
+    return;
   }
 
   const response = await fetch('/api/send_alert', {
@@ -368,21 +417,41 @@ export class IndexedDBAdapter implements StorageAdapter {
       let errorMessage: string | null = null;
 
       try {
-        const requestBody: Record<string, string> = { source: s.source, url: s.url };
-        if (s.api_key) requestBody.api_key = s.api_key;
+        let scraped: ScrapeApiReview[] = [];
 
-        const res = await fetch('/api/scrape', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(requestBody),
-        });
+        if (isSampleModeWorkspace()) {
+          if ((s.source === 'google_places' || s.source === 'yelp_api') && !s.api_key) {
+            throw new Error('API key is required');
+          }
 
-        if (!res.ok) {
-          throw new Error(`Scrape API returned ${res.status}`);
+          const existingSourceReviews = (await db.reviews
+            .where('business_id')
+            .equals(businessId)
+            .filter((review) => review.source === s.source)
+            .toArray()) as Review[];
+
+          scraped = getSampleScrapeReviews(
+            s.source as 'trustpilot' | 'bbb' | 'yelp' | 'google_places' | 'yelp_api',
+            s.url,
+            existingSourceReviews.map((review) => review.external_id)
+          );
+        } else {
+          const requestBody: Record<string, string> = { source: s.source, url: s.url };
+          if (s.api_key) requestBody.api_key = s.api_key;
+
+          const res = await fetch('/api/scrape', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(requestBody),
+          });
+
+          if (!res.ok) {
+            throw new Error(`Scrape API returned ${res.status}`);
+          }
+
+          const scrapePayload = (await res.json()) as ScrapeApiResponse | ScrapeApiReview[];
+          scraped = Array.isArray(scrapePayload) ? scrapePayload : scrapePayload.reviews ?? [];
         }
-
-        const scrapePayload = (await res.json()) as ScrapeApiResponse | ScrapeApiReview[];
-        const scraped = Array.isArray(scrapePayload) ? scrapePayload : scrapePayload.reviews ?? [];
 
         for (const raw of scraped) {
           // Deduplicate via compound index [source+external_id]
@@ -393,27 +462,7 @@ export class IndexedDBAdapter implements StorageAdapter {
 
           if (existing) continue;
 
-          // Get sentiment
-          let sentimentScore: number | null = null;
-          let sentimentLabel: string | null = null;
-
-          try {
-            const sentRes = await fetch('/api/sentiment', {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({
-                text: raw.text ?? '',
-                rating: raw.rating ?? null,
-              }),
-            });
-            if (sentRes.ok) {
-              const sentData: { score: number; label: string } = await sentRes.json();
-              sentimentScore = sentData.score;
-              sentimentLabel = sentData.label;
-            }
-          } catch {
-            // Leave sentiment null if the call fails
-          }
+          const { sentimentScore, sentimentLabel } = await getSentimentForReview(raw);
 
           await db.reviews.add({
             business_id: businessId,
@@ -663,6 +712,10 @@ export class IndexedDBAdapter implements StorageAdapter {
     query: string,
     location?: string | null
   ): Promise<{ trustpilot: SearchResult[]; bbb: SearchResult[] }> {
+    if (isSampleModeWorkspace()) {
+      return getSampleSourceSearchResults(query, location);
+    }
+
     const res = await fetch('/api/search_sources', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -688,6 +741,13 @@ export class IndexedDBAdapter implements StorageAdapter {
 
     const apiKey = googleConfig?.enabled ? googleConfig.api_key : undefined;
 
+    if (isSampleModeWorkspace()) {
+      if (!apiKey) {
+        throw new Error('API key is required');
+      }
+      return getSampleGooglePlacesResults(query, location);
+    }
+
     const res = await fetch('/api/search_google_places', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -709,6 +769,13 @@ export class IndexedDBAdapter implements StorageAdapter {
     const yelpConfig = await getStoredConfig('yelp_fusion');
 
     const apiKey = yelpConfig?.enabled ? yelpConfig.api_key : undefined;
+
+    if (isSampleModeWorkspace()) {
+      if (!apiKey) {
+        throw new Error('API key is required');
+      }
+      return getSampleYelpResults(query, location);
+    }
 
     const res = await fetch('/api/search_yelp', {
       method: 'POST',
