@@ -23,12 +23,12 @@ Stop checking TrustPilot, BBB, and Yelp separately. Review Hound scrapes them al
 ## Screenshots
 
 ### Dashboard
-Track all your businesses at a glance with ratings, sentiment breakdowns, and trend indicators.
+Track all your businesses at a glance with ratings, sentiment breakdowns, and source health indicators.
 
 ![Dashboard](docs/screenshots/dashboard.png)
 
 ### Business Detail
-See individual business metrics with rating trends and quick actions.
+See per-business stats, rating trends, recent reviews, and scrape controls in one place.
 
 ![Business Detail](docs/screenshots/business_detail.png)
 
