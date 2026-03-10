@@ -80,7 +80,10 @@ describe('seedDemoData', () => {
     expect(scrapeLogAddMock).toHaveBeenCalledTimes(SAMPLE_SCRAPE_LOGS.length);
     expect(apiConfigAddMock).toHaveBeenCalledTimes(SAMPLE_API_CONFIGS.length);
 
-    const providers = apiConfigAddMock.mock.calls.map(([arg]) => arg.provider);
+    const apiConfigCalls = apiConfigAddMock.mock.calls as unknown as Array<
+      [{ provider: string }]
+    >;
+    const providers = apiConfigCalls.map(([arg]) => arg.provider);
     expect(providers).toEqual(SAMPLE_API_CONFIGS.map((config) => config.provider));
     expect(apiConfigAddMock).toHaveBeenCalledWith(
       expect.objectContaining({

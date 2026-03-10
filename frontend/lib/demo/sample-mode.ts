@@ -51,11 +51,11 @@ export interface SeedApiConfigRecord {
 
 export interface SampleScrapeReview {
   external_id: string;
-  author_name?: string | null;
-  rating?: number | null;
-  text?: string | null;
-  review_date?: string | null;
-  review_url?: string | null;
+  author_name?: string;
+  rating?: number;
+  text?: string;
+  review_date?: string;
+  review_url?: string;
 }
 
 interface ApiSearchCatalogEntry {
