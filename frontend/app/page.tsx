@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
+import { useRouter } from 'next/navigation';
 import { useStorage } from '@/lib/storage/hooks';
 import type { BusinessWithStats } from '@/lib/storage/types';
 import { BusinessGrid } from '@/components/dashboard/BusinessGrid';
@@ -12,6 +13,18 @@ import { Spinner } from '@/components/ui/Spinner';
 import { IS_PORTFOLIO_MODE, getWorkspaceMode } from '@/lib/portfolio';
 
 export default function DashboardPage() {
+  const router = useRouter();
+
+  // First-time visitors in demo mode go to /welcome
+  useEffect(() => {
+    if (!IS_PORTFOLIO_MODE) return;
+    try {
+      if (!localStorage.getItem('rh_visited')) {
+        localStorage.setItem('rh_visited', '1');
+        router.replace('/welcome');
+      }
+    } catch { /* private browsing */ }
+  }, [router]);
   const storage = useStorage();
   const [businesses, setBusinesses] = useState<BusinessWithStats[]>([]);
   const [loading, setLoading] = useState(true);
