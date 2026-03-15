@@ -6,6 +6,10 @@
 [![License: MIT](https://img.shields.io/badge/license-MIT-green?style=flat)](LICENSE)
 [![codecov](https://codecov.io/gh/jonmartin721/review-hound/graph/badge.svg)](https://codecov.io/gh/jonmartin721/review-hound)
 
+<p align="center">
+  <video src="https://github.com/jonmartin721/review-hound/raw/main/assets/hero-dark.mp4" autoplay loop muted playsinline width="720"></video>
+</p>
+
 Stop checking TrustPilot, BBB, and Yelp separately. Review Hound scrapes them all, flags negative reviews, and emails you before customers start talking.
 
 **Why?** Bad reviews spread. A 1-star complaint on Yelp can sit for days before you notice. Review Hound catches them within hours.
