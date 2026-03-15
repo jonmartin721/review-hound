@@ -37,6 +37,19 @@ export default function WelcomePage() {
         </p>
       </div>
 
+      {/* Hero video */}
+      <div className="mb-16">
+        <video
+          autoPlay
+          loop
+          muted
+          playsInline
+          className="w-full h-auto border border-[var(--border)]"
+        >
+          <source src="/hero-video.mp4" type="video/mp4" />
+        </video>
+      </div>
+
       {/* Section 1: Add a Business */}
       <div className="grid md:grid-cols-2 gap-8 items-center mb-16">
         <LightboxImage src="/screenshots/add-business.png" alt="Add business modal with source search results" width={1280} height={800} />
