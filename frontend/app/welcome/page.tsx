@@ -1,6 +1,7 @@
 import Image from 'next/image';
 import Link from 'next/link';
 import { LightboxImage } from '@/components/ui/Lightbox';
+import { HeroVideo } from '@/components/ui/HeroVideo';
 import { GITHUB_REPO_URL } from '@/lib/portfolio';
 
 export default function WelcomePage() {
@@ -39,15 +40,7 @@ export default function WelcomePage() {
 
       {/* Hero video */}
       <div className="mb-16">
-        <video
-          autoPlay
-          loop
-          muted
-          playsInline
-          className="w-full h-auto border border-[var(--border)]"
-        >
-          <source src="/hero-video.mp4" type="video/mp4" />
-        </video>
+        <HeroVideo />
       </div>
 
       {/* Section 1: Add a Business */}
