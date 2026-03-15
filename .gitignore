@@ -83,3 +83,11 @@ Thumbs.db
 CLAUDE.md
 .claude*
 .vercel
+.superpowers/
+docs/superpowers/
+
+# Remotion video project (local only)
+video/
+scene*.png
+v2-*.png
+video-*.png
