@@ -1,20 +1,23 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useSyncExternalStore } from 'react';
+
+function subscribe(callback: () => void) {
+  const observer = new MutationObserver(callback);
+  observer.observe(document.documentElement, { attributes: true, attributeFilter: ['class'] });
+  return () => observer.disconnect();
+}
+
+function getIsDark() {
+  return document.documentElement.classList.contains('dark');
+}
+
+function getServerSnapshot() {
+  return true; // default to dark on server
+}
 
 export function HeroVideo() {
-  const [isDark, setIsDark] = useState(true);
-
-  useEffect(() => {
-    const html = document.documentElement;
-    setIsDark(html.classList.contains('dark'));
-
-    const observer = new MutationObserver(() => {
-      setIsDark(html.classList.contains('dark'));
-    });
-    observer.observe(html, { attributes: true, attributeFilter: ['class'] });
-    return () => observer.disconnect();
-  }, []);
+  const isDark = useSyncExternalStore(subscribe, getIsDark, getServerSnapshot);
 
   return (
     <video
