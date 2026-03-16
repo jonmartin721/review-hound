@@ -32,6 +32,9 @@ env/
 *.swp
 *.swo
 
+# Design mockups
+.mockups/
+
 # Testing
 .pytest_cache/
 .coverage
