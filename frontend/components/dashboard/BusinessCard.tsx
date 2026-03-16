@@ -25,8 +25,8 @@ export function BusinessCard({ business, onEdit, onDelete }: BusinessCardProps) 
   };
 
   return (
-    <Card data-testid="business-card" className="gap-0 py-0">
-      <CardContent className="p-6">
+    <Card data-testid="business-card" className="gap-0 py-0 h-full">
+      <CardContent className="p-6 flex flex-col h-full">
         {/* Header: name + warning icon + edit/delete buttons */}
         <div className="flex justify-between items-start mb-2">
           <div className="flex items-center gap-2 min-w-0">
@@ -52,7 +52,7 @@ export function BusinessCard({ business, onEdit, onDelete }: BusinessCardProps) 
               size="icon-sm"
               onClick={() => onDelete(business.id, business.name)}
               title="Delete business"
-              className="text-muted-foreground hover:text-negative hover:bg-negative/10"
+              className="text-muted-foreground hover:text-destructive hover:bg-destructive/10"
             >
               <Trash2 />
             </Button>
@@ -123,18 +123,6 @@ export function BusinessCard({ business, onEdit, onDelete }: BusinessCardProps) 
           )}
         </div>
 
-        {/* Sentiment bar */}
-        <div className="mb-4">
-          <div className="flex justify-between text-xs text-muted-foreground mb-1">
-            <span>Sentiment</span>
-            <span>{Math.round(business.positive_pct)}% positive</span>
-          </div>
-          <div className="h-1.5 bg-muted rounded-full overflow-hidden flex">
-            <div className="bg-positive" style={{ width: `${business.positive_pct}%` }} />
-            <div className="bg-negative" style={{ width: `${business.negative_pct}%` }} />
-          </div>
-        </div>
-
         {/* Source badges */}
         <div className="flex flex-wrap gap-1.5 text-xs mb-4">
           {business.trustpilot_url && <SourceBadge source="trustpilot" />}
@@ -143,12 +131,24 @@ export function BusinessCard({ business, onEdit, onDelete }: BusinessCardProps) 
           {business.google_place_id && <SourceBadge source="google_places" />}
         </div>
 
-        {/* View Details button */}
-        <Button asChild className="w-full">
-          <Link href={`/business/${business.id}`}>
-            View Details
-          </Link>
-        </Button>
+        {/* Pinned bottom: sentiment + view details */}
+        <div className="mt-auto pt-4">
+          <div className="mb-4">
+            <div className="flex justify-between text-xs text-muted-foreground mb-1">
+              <span>Sentiment</span>
+              <span>{Math.round(business.positive_pct)}% positive</span>
+            </div>
+            <div className="h-1.5 bg-muted rounded-full overflow-hidden flex">
+              <div className="bg-positive" style={{ width: `${business.positive_pct}%` }} />
+              <div className="bg-negative" style={{ width: `${business.negative_pct}%` }} />
+            </div>
+          </div>
+          <Button asChild className="w-full">
+            <Link href={`/business/${business.id}`}>
+              View Details
+            </Link>
+          </Button>
+        </div>
       </CardContent>
     </Card>
   );
