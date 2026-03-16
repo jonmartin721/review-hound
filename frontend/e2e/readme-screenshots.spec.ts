@@ -7,7 +7,7 @@ const screenshotsDir = path.resolve(process.cwd(), '../docs/screenshots');
 async function prepareForScreenshot(page: import('@playwright/test').Page) {
   await page.addStyleTag({
     content: `
-      .panel-shell-info {
+      [data-testid="workspace-info-banner"] {
         display: none !important;
       }
 
@@ -34,7 +34,7 @@ test.describe('README screenshots', () => {
     await prepareForScreenshot(page);
     await page.screenshot({ path: path.join(screenshotsDir, 'dashboard.png') });
 
-    const acmeCard = page.locator('div.panel-shell', {
+    const acmeCard = page.locator('[data-testid="business-card"]', {
       has: page.getByRole('heading', { name: 'Acme Coffee Co.' }),
     }).first();
     await acmeCard.getByRole('link', { name: 'View Details' }).click();

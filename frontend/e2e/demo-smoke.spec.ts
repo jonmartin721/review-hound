@@ -7,7 +7,7 @@ test('loads the sample workspace and navigates into a seeded business', async ({
   await expect(page.getByText('Sample workspace only')).toBeVisible();
   await expect(page.getByText('Acme Coffee Co.')).toBeVisible();
 
-  const acmeCard = page.locator('div.panel-shell', {
+  const acmeCard = page.locator('[data-testid="business-card"]', {
     has: page.getByRole('heading', { name: 'Acme Coffee Co.' }),
   }).first();
   await acmeCard.getByRole('link', { name: 'View Details' }).click();
@@ -44,7 +44,7 @@ test('can start an empty workspace and add a browser-local business without back
   await expect(page.getByText('Test Bakery')).toBeVisible();
 
   const detailHref = await page
-    .locator('div.panel-shell', {
+    .locator('[data-testid="business-card"]', {
       has: page.getByRole('heading', { name: 'Test Bakery' }),
     })
     .first()
