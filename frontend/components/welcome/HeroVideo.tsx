@@ -26,7 +26,7 @@ export function HeroVideo() {
       loop
       muted
       playsInline
-      className="w-full h-auto border border-[var(--border)]"
+      className="w-full h-auto border border-border rounded-lg"
     >
       <source
         src={isDark ? '/hero-video.mp4' : '/hero-video-light.mp4'}

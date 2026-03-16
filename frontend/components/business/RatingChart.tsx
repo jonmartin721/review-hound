@@ -20,12 +20,12 @@ function getCssVar(name: string) {
 }
 
 function getChartColors() {
-  const accent = getCssVar('--accent');
+  const primary = getCssVar('--primary');
   return {
-    borderColor: accent,
-    backgroundColor: accent + '26',
+    borderColor: primary,
+    backgroundColor: primary + '26',
     gridColor: getCssVar('--border'),
-    textColor: getCssVar('--text-secondary'),
+    textColor: getCssVar('--muted-foreground'),
   };
 }
 
@@ -41,10 +41,10 @@ export function RatingChart({ businessId }: RatingChartProps) {
     typeof window !== 'undefined'
       ? getChartColors()
       : {
-          borderColor: '#E5A84B',
-          backgroundColor: 'rgba(229, 168, 75, 0.15)',
-          gridColor: '#2A2A2A',
-          textColor: '#8A8A8A',
+          borderColor: '#4455A0',
+          backgroundColor: 'rgba(68, 85, 160, 0.15)',
+          gridColor: '#e2e8f0',
+          textColor: '#64748b',
         }
   );
   const chartRef = useRef<ChartJS<'line'> | null>(null);
@@ -71,7 +71,7 @@ export function RatingChart({ businessId }: RatingChartProps) {
 
   if (error) {
     return (
-      <div className="h-32 flex items-center justify-center text-[var(--text-muted)]">
+      <div className="h-32 flex items-center justify-center text-muted-foreground">
         {error}
       </div>
     );
@@ -79,7 +79,7 @@ export function RatingChart({ businessId }: RatingChartProps) {
 
   if (!chartData) {
     return (
-      <div className="h-32 flex items-center justify-center text-[var(--text-muted)]">
+      <div className="h-32 flex items-center justify-center text-muted-foreground">
         Loading chart...
       </div>
     );

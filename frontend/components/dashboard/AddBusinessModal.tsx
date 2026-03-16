@@ -2,9 +2,16 @@
 
 import { useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
-import { Modal } from '@/components/ui/Modal';
-import { Button } from '@/components/ui/Button';
-import { Input } from '@/components/ui/Input';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Spinner } from '@/components/ui/Spinner';
 import { SourceSearchModal } from './SourceSearchModal';
 import { useStorage } from '@/lib/storage/hooks';
 import type { SearchResult } from '@/lib/storage/types';
@@ -92,50 +99,63 @@ export function AddBusinessModal({ isOpen, onClose, onSuccess }: AddBusinessModa
 
   return (
     <>
-      <Modal isOpen={isOpen && !showSourceModal} onClose={handleClose} title="Add Business">
-        <form onSubmit={handleStep1Submit}>
-          <div className="space-y-4">
-            <Input
-              label="Business Name *"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              required
-              autoFocus
-            />
-            <Input
-              label="Location (optional)"
-              value={location}
-              onChange={(e) => setLocation(e.target.value)}
-              placeholder="City, State"
-              helpText={
-                IS_PORTFOLIO_MODE
-                  ? 'Saved only in this browser. You can still search for sources and scrape on demand.'
-                  : 'Helps find the right business on review sites'
-              }
-            />
-            {IS_PORTFOLIO_MODE && (
-              <p className="text-sm text-[var(--text-muted)]">
-                This hosted workspace stays local in your browser, but it can still call stateless search and scraping endpoints.
-              </p>
-            )}
-            {saveError && (
-              <p className="text-sm text-[var(--negative)]">{saveError}</p>
-            )}
-          </div>
-          <div className="flex justify-end gap-3 mt-6">
-            <Button type="button" variant="secondary" onClick={handleClose}>
-              Cancel
-            </Button>
-            <Button
-              type="submit"
-              loading={searching}
-              disabled={!name.trim()}
-            >
-              Next: Find Sources
-            </Button>
-          </div>
-        </form>
-      </Modal>
+      <Dialog open={isOpen && !showSourceModal} onOpenChange={(open) => { if (!open) handleClose(); }}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Add Business</DialogTitle>
+          </DialogHeader>
+          <form onSubmit={handleStep1Submit}>
+            <div className="space-y-4">
+              <div>
+                <Label htmlFor="add-business-name">Business Name *</Label>
+                <Input
+                  id="add-business-name"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  required
+                  autoFocus
+                  className="mt-1.5"
+                />
+              </div>
+              <div>
+                <Label htmlFor="add-business-location">Location (optional)</Label>
+                <Input
+                  id="add-business-location"
+                  value={location}
+                  onChange={(e) => setLocation(e.target.value)}
+                  placeholder="City, State"
+                  className="mt-1.5"
+                />
+                <p className="text-sm text-muted-foreground mt-1.5">
+                  {IS_PORTFOLIO_MODE
+                    ? 'Saved only in this browser. You can still search for sources and scrape on demand.'
+                    : 'Helps find the right business on review sites'}
+                </p>
+              </div>
+              {IS_PORTFOLIO_MODE && (
+                <p className="text-sm text-muted-foreground">
+                  This hosted workspace stays local in your browser, but it can still call stateless search and scraping endpoints.
+                </p>
+              )}
+              {saveError && (
+                <p className="text-sm text-destructive">{saveError}</p>
+              )}
+            </div>
+            <div className="flex justify-end gap-3 mt-6">
+              <Button type="button" variant="outline" onClick={handleClose}>
+                Cancel
+              </Button>
+              <Button
+                type="submit"
+                disabled={!name.trim() || searching}
+              >
+                {searching && <Spinner size="sm" className="mr-1" />}
+                Next: Find Sources
+              </Button>
+            </div>
+          </form>
+        </DialogContent>
+      </Dialog>
 
       <SourceSearchModal
         isOpen={showSourceModal}

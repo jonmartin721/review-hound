@@ -1,24 +1,21 @@
+import { Badge } from "@/components/ui/badge";
+
 interface SentimentBadgeProps {
   label: string | null | undefined;
   score?: number | null;
-  size?: 'sm' | 'md';
+  size?: "sm" | "md";
 }
 
-const SENTIMENT_CLASSES: Record<string, string> = {
-  positive: 'border border-(--positive)/30 text-[var(--positive)] bg-(--positive)/10',
-  negative: 'border border-(--negative)/30 text-[var(--negative)] bg-(--negative)/10',
-  neutral: 'border border-(--neutral)/30 text-[var(--neutral)] bg-(--neutral)/10',
-};
-
-export function SentimentBadge({ label, score, size = 'sm' }: SentimentBadgeProps) {
-  const sentiment = label || 'neutral';
-  const sizeClasses = size === 'sm' ? 'px-2 py-0.5 text-xs' : 'px-2 py-1 text-sm';
-  const colorClasses = SENTIMENT_CLASSES[sentiment] || SENTIMENT_CLASSES.neutral;
+export function SentimentBadge({ label, score, size = "sm" }: SentimentBadgeProps) {
+  const sentiment = label || "neutral";
+  const variant = (sentiment === "positive" || sentiment === "negative" || sentiment === "neutral")
+    ? sentiment as "positive" | "negative" | "neutral"
+    : "neutral";
 
   return (
-    <span className={`${sizeClasses} rounded-none uppercase tracking-wider font-medium ${colorClasses}`}>
-      {sentiment}
+    <Badge variant={variant} className={size === "md" ? "px-2 py-1 text-sm" : undefined}>
+      {sentiment.toUpperCase()}
       {score != null && ` (${score.toFixed(2)})`}
-    </span>
+    </Badge>
   );
 }

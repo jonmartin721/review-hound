@@ -77,13 +77,13 @@ export default function ReviewsPage() {
       <div className="mb-6">
         <Link
           href={`/business/${businessId}`}
-          className="accent-link"
+          className="text-primary hover:text-primary/80 transition"
         >
           &larr; Back to {business?.name || 'Business'}
         </Link>
       </div>
 
-      <h1 className="text-3xl font-bold text-[var(--text-primary)] mb-6">
+      <h1 className="text-3xl font-bold text-foreground mb-6">
         Reviews{business ? ` for ${business.name}` : ''}
       </h1>
 
@@ -95,17 +95,17 @@ export default function ReviewsPage() {
       />
 
       {error ? (
-        <div className="bg-[var(--bg-surface)] border border-[var(--border)] border-t-2 border-t-[var(--negative)] rounded-none p-8 text-center">
-          <p className="text-[var(--negative)] font-medium mb-2">Connection Error</p>
-          <p className="text-[var(--text-muted)] text-sm">{error}</p>
+        <div className="bg-card border border-border border-t-2 border-t-negative rounded-lg p-8 text-center">
+          <p className="text-negative font-medium mb-2">Connection Error</p>
+          <p className="text-muted-foreground text-sm">{error}</p>
         </div>
       ) : loading ? (
         <div className="flex justify-center py-16">
           <Spinner size="lg" />
         </div>
       ) : reviews.length === 0 ? (
-        <div className="bg-[var(--bg-surface)] rounded-none border border-[var(--border)] p-8 text-center">
-          <p className="text-[var(--text-muted)]">No reviews found matching your filters.</p>
+        <div className="bg-card rounded-lg border border-border p-8 text-center">
+          <p className="text-muted-foreground">No reviews found matching your filters.</p>
         </div>
       ) : (
         <div className="space-y-4">

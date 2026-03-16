@@ -1,3 +1,5 @@
+import { Button } from '@/components/ui/button';
+
 interface PaginationProps {
   page: number;
   totalPages: number;
@@ -10,17 +12,15 @@ export function Pagination({ page, totalPages, onPageChange }: PaginationProps) 
   return (
     <div className="flex justify-center gap-2 mt-6">
       {Array.from({ length: totalPages }, (_, i) => i + 1).map(p => (
-        <button
+        <Button
           key={p}
+          variant={p === page ? 'default' : 'outline'}
+          size="sm"
           onClick={() => onPageChange(p)}
-          className={`px-3 py-1 rounded-none transition font-code ${
-            p === page
-              ? 'bg-[var(--accent)] text-[var(--accent-contrast)]'
-              : 'bg-[var(--bg-elevated)] text-[var(--text-secondary)] hover:bg-[var(--border)]'
-          }`}
+          className="font-mono"
         >
           {p}
-        </button>
+        </Button>
       ))}
     </div>
   );

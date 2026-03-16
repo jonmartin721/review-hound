@@ -1,7 +1,9 @@
 'use client';
 
 import { useState, useRef } from 'react';
-import { Button } from '@/components/ui/Button';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Switch } from '@/components/ui/switch';
 import type { ApiKeyInfo } from '@/lib/storage/types';
 
 interface ApiKeyCardProps {
@@ -86,28 +88,23 @@ export function ApiKeyCard({
       {/* Header row */}
       <div className="flex items-center justify-between mb-3">
         <div>
-          <h3 className="font-medium text-[var(--text-primary)]">{label}</h3>
-          <p className="text-sm text-[var(--text-muted)]">{description}</p>
+          <h3 className="font-medium text-foreground">{label}</h3>
+          <p className="text-sm text-muted-foreground">{description}</p>
         </div>
 
         {keyInfo && (
-          <label className="relative inline-flex items-center cursor-pointer">
-            <input
-              type="checkbox"
-              className="sr-only peer"
-              checked={keyInfo.enabled}
-              onChange={async () => {
-                setError(null);
-                try {
-                  await onToggle();
-                } catch (err) {
-                  console.error('Failed to toggle API key:', err);
-                  setError('Failed to toggle API key.');
-                }
-              }}
-            />
-            <div className="w-11 h-6 bg-[var(--border-bright)] peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-(--accent)/30 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-[var(--border)] after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[var(--accent)]" />
-          </label>
+          <Switch
+            checked={keyInfo.enabled}
+            onCheckedChange={async () => {
+              setError(null);
+              try {
+                await onToggle();
+              } catch (err) {
+                console.error('Failed to toggle API key:', err);
+                setError('Failed to toggle API key.');
+              }
+            }}
+          />
         )}
       </div>
 
@@ -116,33 +113,33 @@ export function ApiKeyCard({
         <>
           {keyInfo ? (
             <div className="flex items-center gap-3">
-              <div className="flex-1 bg-[var(--bg-elevated)] rounded-none px-3 py-2 font-code text-sm text-[var(--text-secondary)] truncate">
+              <div className="flex-1 bg-muted rounded-lg px-3 py-2 font-mono text-sm text-muted-foreground truncate">
                 {keyInfo.key_preview}
               </div>
               <button
                 onClick={handleShowEdit}
-                className="accent-link text-sm shrink-0"
+                className="text-primary hover:text-primary/80 transition text-sm shrink-0 cursor-pointer"
               >
                 Edit
               </button>
               <button
                 onClick={handleDelete}
                 disabled={deleting}
-                className="text-[var(--negative)] hover:opacity-80 transition-opacity text-sm shrink-0 disabled:opacity-50"
+                className="text-negative hover:opacity-80 transition-opacity text-sm shrink-0 disabled:opacity-50 cursor-pointer"
               >
                 {deleting ? 'Deleting…' : 'Delete'}
               </button>
             </div>
           ) : (
             <form onSubmit={handleSave} className="flex gap-3">
-              <input
+              <Input
                 ref={addInputRef}
                 type={inputType}
                 placeholder={placeholder ?? `Enter ${label}`}
-                className="flex-1 border border-[var(--border)] bg-[var(--bg-surface)] text-[var(--text-primary)] rounded-none px-3 py-2.5 placeholder-[var(--text-muted)]"
+                className="flex-1"
               />
-              <Button type="submit" loading={saving}>
-                Save
+              <Button type="submit" disabled={saving}>
+                {saving ? 'Saving…' : 'Save'}
               </Button>
             </form>
           )}
@@ -152,16 +149,16 @@ export function ApiKeyCard({
       {/* Edit form */}
       {editing && (
         <form onSubmit={handleSave} className="flex gap-3">
-          <input
+          <Input
             ref={editInputRef}
             type={inputType}
             value={newKey}
             onChange={(e) => setNewKey(e.target.value)}
             placeholder={placeholder ?? `Enter ${label}`}
-            className="flex-1 border border-[var(--border)] bg-[var(--bg-surface)] text-[var(--text-primary)] rounded-none px-3 py-2.5 placeholder-[var(--text-muted)]"
+            className="flex-1"
           />
-          <Button type="submit" loading={saving}>
-            Save
+          <Button type="submit" disabled={saving}>
+            {saving ? 'Saving…' : 'Save'}
           </Button>
           <Button type="button" variant="secondary" onClick={handleCancelEdit}>
             Cancel
@@ -169,15 +166,15 @@ export function ApiKeyCard({
         </form>
       )}
 
-      {error && <p className="text-xs text-[var(--negative)] mt-2">{error}</p>}
+      {error && <p className="text-xs text-negative mt-2">{error}</p>}
 
       {/* Help link */}
-      <p className="text-xs text-[var(--text-muted)] mt-2">
+      <p className="text-xs text-muted-foreground mt-2">
         <a
           href={helpUrl}
           target="_blank"
           rel="noopener noreferrer"
-          className="accent-link"
+          className="text-primary hover:text-primary/80 transition"
         >
           {helpLinkText}
         </a>
