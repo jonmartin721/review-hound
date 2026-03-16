@@ -6,6 +6,7 @@ import { ArrowRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
+import { cn } from '@/lib/utils';
 import { clearLocalWorkspace, getWorkspaceMode, setWorkspaceMode, type WorkspaceMode } from '@/lib/portfolio';
 import { seedDemoData } from '@/lib/db/seed';
 
@@ -31,39 +32,54 @@ export function WorkspaceSelector() {
         <div className="flex items-center gap-3 mb-4">
           <h2 className="text-lg font-semibold text-foreground">Workspace</h2>
           <Badge variant={mode === 'sample' ? 'secondary' : 'outline'}>
-            {mode === 'sample' ? 'Sample Mode' : 'Local Mode'}
+            {mode === 'sample' ? 'Demo Mode' : 'Local Mode'}
           </Badge>
         </div>
 
-        <p className="text-sm text-muted-foreground mb-5">
-          {mode === 'sample'
-            ? 'You are exploring pre-loaded sample data. Switch to an empty workspace to add your own businesses and API keys.'
-            : 'You are using a local workspace with your own data. Switch back to sample mode to explore the demo.'}
-        </p>
+        <div className="grid sm:grid-cols-2 gap-4 mb-5">
+          <div className={cn(
+            "rounded-lg border p-4",
+            mode === 'sample' ? "border-primary/30 bg-primary/5" : "border-border"
+          )}>
+            <p className="text-sm font-medium text-foreground mb-1">Demo Mode</p>
+            <p className="text-xs text-muted-foreground leading-relaxed">
+              Pre-loaded businesses and reviews so you can explore the dashboard, charts, filters, and alerts without setting anything up.
+            </p>
+          </div>
+          <div className={cn(
+            "rounded-lg border p-4",
+            mode === 'blank' ? "border-primary/30 bg-primary/5" : "border-border"
+          )}>
+            <p className="text-sm font-medium text-foreground mb-1">Local Mode</p>
+            <p className="text-xs text-muted-foreground leading-relaxed">
+              Empty workspace where you add your own businesses, connect API keys, and run real scrapes. Data stays in your browser.
+            </p>
+          </div>
+        </div>
 
         <div className="flex flex-wrap items-center gap-3">
           {mode === 'sample' ? (
             <>
               <Button asChild>
                 <Link href="/">
-                  Open Sample Workspace
+                  Continue with Demo Data
                   <ArrowRight className="h-4 w-4" />
                 </Link>
               </Button>
               <Button variant="secondary" onClick={handleStartEmpty}>
-                Start Empty Workspace
+                Switch to Local Mode
               </Button>
             </>
           ) : (
             <>
               <Button asChild>
                 <Link href="/">
-                  Open Local Workspace
+                  Continue with Local Data
                   <ArrowRight className="h-4 w-4" />
                 </Link>
               </Button>
               <Button variant="secondary" onClick={handleLoadSample}>
-                Reload Sample Data
+                Switch to Demo Mode
               </Button>
             </>
           )}

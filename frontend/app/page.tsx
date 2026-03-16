@@ -104,7 +104,7 @@ export default function DashboardPage() {
       {IS_PORTFOLIO_MODE && (
         <div data-testid="workspace-info-banner" className="bg-muted border border-border rounded-lg mb-8 p-5">
           <p className="text-foreground font-medium">
-            {workspaceMode === 'sample' ? 'Sample workspace' : 'Local workspace'} only
+            {workspaceMode === 'sample' ? 'Demo workspace' : 'Local workspace'} only
           </p>
           <p className="text-sm text-muted-foreground mt-1">
             Data lives in this browser only. Searches, scraping, API keys, and alert rules stay local to this browser profile. Automatic checks only run while this tab is open.

@@ -47,7 +47,7 @@ export function Navbar() {
                 : "bg-primary/10 text-primary hover:bg-primary/20"
             )}
           >
-            {workspaceMode === 'sample' ? 'Sample Mode' : 'Local Mode'}
+            {workspaceMode === 'sample' ? 'Demo Mode' : 'Local Mode'}
           </Link>
         )}
         <div className="flex items-center space-x-2">
