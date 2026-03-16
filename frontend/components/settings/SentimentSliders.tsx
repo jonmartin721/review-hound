@@ -6,6 +6,16 @@ import { Button } from '@/components/ui/button';
 import { Slider } from '@/components/ui/slider';
 import { Label } from '@/components/ui/label';
 import {
+  AlertDialog,
+  AlertDialogContent,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogCancel,
+  AlertDialogAction,
+} from '@/components/ui/alert-dialog';
+import {
   SENTIMENT_RATING_WEIGHT,
   SENTIMENT_TEXT_WEIGHT,
   SENTIMENT_THRESHOLD,
@@ -38,6 +48,7 @@ export function SentimentSliders() {
   const [saving, setSaving] = useState(false);
   const [savedMsg, setSavedMsg] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [confirmReset, setConfirmReset] = useState(false);
 
   useEffect(() => {
     storage.getSentimentConfig()
@@ -78,11 +89,7 @@ export function SentimentSliders() {
   }
 
   async function handleReset() {
-    if (
-      !confirm('Reset sentiment settings to defaults (70% rating, 30% text)?')
-    ) {
-      return;
-    }
+    setConfirmReset(false);
     const prevRating = ratingWeight;
     const prevText = textWeight;
     const prevThreshold = thresholdInt;
@@ -180,10 +187,25 @@ export function SentimentSliders() {
         <Button onClick={handleSave} disabled={saving}>
           {savedMsg ? 'Saved!' : saving ? 'Saving…' : 'Save Settings'}
         </Button>
-        <Button variant="secondary" onClick={handleReset} disabled={saving}>
+        <Button variant="secondary" onClick={() => setConfirmReset(true)} disabled={saving}>
           Reset to Defaults
         </Button>
       </div>
+
+      <AlertDialog open={confirmReset} onOpenChange={setConfirmReset}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Reset to defaults?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This will reset sentiment settings to 70% rating weight, 30% text weight.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={handleReset}>Reset</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

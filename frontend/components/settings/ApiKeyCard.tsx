@@ -4,6 +4,16 @@ import { useState, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Switch } from '@/components/ui/switch';
+import {
+  AlertDialog,
+  AlertDialogContent,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogCancel,
+  AlertDialogAction,
+} from '@/components/ui/alert-dialog';
 import type { ApiKeyInfo } from '@/lib/storage/types';
 
 interface ApiKeyCardProps {
@@ -35,6 +45,7 @@ export function ApiKeyCard({
   const [newKey, setNewKey] = useState('');
   const [saving, setSaving] = useState(false);
   const [deleting, setDeleting] = useState(false);
+  const [confirmDelete, setConfirmDelete] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const editInputRef = useRef<HTMLInputElement>(null);
   const addInputRef = useRef<HTMLInputElement>(null);
@@ -58,7 +69,7 @@ export function ApiKeyCard({
   }
 
   async function handleDelete() {
-    if (!confirm('Are you sure you want to delete this API key?')) return;
+    setConfirmDelete(false);
     setDeleting(true);
     setError(null);
     try {
@@ -123,7 +134,7 @@ export function ApiKeyCard({
                 Edit
               </button>
               <button
-                onClick={handleDelete}
+                onClick={() => setConfirmDelete(true)}
                 disabled={deleting}
                 className="text-negative hover:opacity-80 transition-opacity text-sm shrink-0 disabled:opacity-50 cursor-pointer"
               >
@@ -179,6 +190,21 @@ export function ApiKeyCard({
           {helpLinkText}
         </a>
       </p>
+
+      <AlertDialog open={confirmDelete} onOpenChange={setConfirmDelete}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete {label}?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This will permanently remove this key. You can always add a new one later.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={handleDelete} variant="destructive">Delete</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
