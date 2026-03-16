@@ -1,8 +1,10 @@
 'use client';
 
 import { useState } from 'react';
+import { Download } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
+import { Label } from '@/components/ui/label';
 import {
   Select,
   SelectContent,
@@ -30,7 +32,7 @@ export function ReviewFilters({ source, sentiment, onFilter, onExport }: ReviewF
     <Card className="mb-6"><CardContent>
       <div className="flex flex-wrap gap-4 items-end">
         <div className="flex flex-col gap-1.5">
-          <label className="text-sm font-medium text-foreground">Source</label>
+          <Label>Source</Label>
           <Select value={localSource || '__all__'} onValueChange={(v) => setLocalSource(v === '__all__' ? '' : v)}>
             <SelectTrigger className="w-40">
               <SelectValue />
@@ -47,7 +49,7 @@ export function ReviewFilters({ source, sentiment, onFilter, onExport }: ReviewF
         </div>
 
         <div className="flex flex-col gap-1.5">
-          <label className="text-sm font-medium text-foreground">Sentiment</label>
+          <Label>Sentiment</Label>
           <Select value={localSentiment || '__all__'} onValueChange={(v) => setLocalSentiment(v === '__all__' ? '' : v)}>
             <SelectTrigger className="w-40">
               <SelectValue />
@@ -69,9 +71,7 @@ export function ReviewFilters({ source, sentiment, onFilter, onExport }: ReviewF
           variant="success"
           onClick={onExport}
         >
-          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
-          </svg>
+          <Download className="h-4 w-4" />
           Export CSV
         </Button>
       </div>

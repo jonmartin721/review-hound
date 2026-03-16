@@ -9,6 +9,14 @@ import {
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import { Switch } from '@/components/ui/switch';
 import { useStorage } from '@/lib/storage/hooks';
 import type { AlertConfig } from '@/lib/storage/types';
 
@@ -96,34 +104,32 @@ export function AlertModal({
             </div>
 
             <div>
-              <Label htmlFor="alert-threshold">Rating Threshold</Label>
-              <select
-                id="alert-threshold"
-                value={threshold}
-                onChange={(e) => setThreshold(e.target.value)}
-                className="mt-1.5 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
-              >
-                <option value="1">1 star</option>
-                <option value="2">2 stars</option>
-                <option value="3">3 stars</option>
-                <option value="4">4 stars</option>
-              </select>
+              <Label>Rating Threshold</Label>
+              <Select value={threshold} onValueChange={setThreshold}>
+                <SelectTrigger className="mt-1.5 w-full">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="1">1 star</SelectItem>
+                  <SelectItem value="2">2 stars</SelectItem>
+                  <SelectItem value="3">3 stars</SelectItem>
+                  <SelectItem value="4">4 stars</SelectItem>
+                </SelectContent>
+              </Select>
               <p className="text-xs text-muted-foreground mt-1.5">
                 Alert when rating is at or below this value
               </p>
             </div>
 
             <div className="flex items-center gap-2">
-              <input
-                type="checkbox"
+              <Switch
                 id="alertEnabled"
                 checked={enabled}
-                onChange={(e) => setEnabled(e.target.checked)}
-                className="rounded text-primary w-4 h-4"
+                onCheckedChange={setEnabled}
               />
-              <label htmlFor="alertEnabled" className="text-sm text-muted-foreground">
+              <Label htmlFor="alertEnabled" className="text-sm text-muted-foreground font-normal">
                 Enabled
-              </label>
+              </Label>
             </div>
 
             {error && <p className="text-sm text-negative">{error}</p>}

@@ -12,6 +12,7 @@ import { AlertModal } from '@/components/business/AlertModal';
 import { ScrapeHistory } from '@/components/business/ScrapeHistory';
 import { DeleteConfirmModal } from '@/components/business/DeleteConfirmModal';
 import { EditBusinessModal } from '@/components/dashboard/EditBusinessModal';
+import { ChevronLeft } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Spinner } from '@/components/ui/Spinner';
@@ -125,9 +126,7 @@ export default function BusinessDetailPage() {
           href="/"
           className="text-muted-foreground hover:text-primary transition inline-flex items-center gap-1"
         >
-          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-          </svg>
+          <ChevronLeft className="w-4 h-4" />
           Back to Dashboard
         </Link>
       </div>

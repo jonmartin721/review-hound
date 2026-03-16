@@ -8,6 +8,7 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import { Spinner } from '@/components/ui/Spinner';
 import type { SearchResult } from '@/lib/storage/types';
 
@@ -78,7 +79,7 @@ function SourceSection({ source, label, dotColor, results, isLoading, selectedUr
                     value={result.url}
                     checked={selectedUrl === result.url && !manualUrl}
                     onChange={() => handleRadioChange(result.url)}
-                    className="mt-1 mr-3"
+                    className="mt-1 mr-3 accent-primary cursor-pointer"
                   />
                   <div className="flex-1">
                     <div className="font-medium text-foreground">{result.name}</div>
@@ -115,12 +116,11 @@ function SourceSection({ source, label, dotColor, results, isLoading, selectedUr
           </button>
           {showManual && (
             <div className="mt-2">
-              <input
+              <Input
                 type="url"
                 value={manualUrl}
                 onChange={(e) => handleManualChange(e.target.value)}
                 placeholder="https://..."
-                className="w-full border border-input bg-background text-foreground rounded-md px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:border-ring placeholder:text-muted-foreground"
               />
             </div>
           )}
