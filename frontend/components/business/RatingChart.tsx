@@ -15,17 +15,17 @@ import type { ChartData } from '@/lib/storage/types';
 
 ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Filler, Tooltip);
 
-function getCssVar(name: string) {
-  return getComputedStyle(document.documentElement).getPropertyValue(name).trim();
+function isDark() {
+  return document.documentElement.classList.contains('dark');
 }
 
 function getChartColors() {
-  const primary = getCssVar('--primary');
+  const dark = isDark();
   return {
-    borderColor: primary,
-    backgroundColor: primary + '26',
-    gridColor: getCssVar('--border'),
-    textColor: getCssVar('--muted-foreground'),
+    borderColor: dark ? '#8ba3c4' : '#5b7a9d',
+    backgroundColor: dark ? 'rgba(139, 163, 196, 0.3)' : 'rgba(91, 122, 157, 0.25)',
+    gridColor: dark ? '#3a3a3a' : '#dcdcdc',
+    textColor: dark ? '#999999' : '#777777',
   };
 }
 
@@ -41,10 +41,10 @@ export function RatingChart({ businessId }: RatingChartProps) {
     typeof window !== 'undefined'
       ? getChartColors()
       : {
-          borderColor: '#4455A0',
-          backgroundColor: 'rgba(68, 85, 160, 0.15)',
-          gridColor: '#e2e8f0',
-          textColor: '#64748b',
+          borderColor: '#5b7a9d',
+          backgroundColor: 'rgba(91, 122, 157, 0.25)',
+          gridColor: '#dcdcdc',
+          textColor: '#777777',
         }
   );
   const chartRef = useRef<ChartJS<'line'> | null>(null);
