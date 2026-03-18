@@ -10,17 +10,20 @@
   <video src="https://github.com/jonmartin721/review-hound/raw/main/assets/hero-dark.mp4" autoplay loop muted playsinline width="720"></video>
 </p>
 
-Stop checking TrustPilot, BBB, and Yelp separately. Review Hound scrapes them all, flags negative reviews, and emails you before customers start talking.
+Stop checking review sites one by one. Review Hound pulls from TrustPilot, BBB, Yelp, Google Places, and the Yelp Fusion API—flags negative reviews and emails you before customers start talking.
 
-**Why?** Bad reviews spread. A 1-star complaint on Yelp can sit for days before you notice. Review Hound catches them within hours.
+**Why?** Bad reviews spread. A 1-star complaint can sit for days before you notice. Review Hound catches them within hours.
 
 ## Features
 
-- **One command, three sources**: `reviewhound scrape --all` hits TrustPilot, BBB, and Yelp
+- **Five review sources**: Scrape TrustPilot, BBB, and Yelp pages, or pull via Google Places and Yelp Fusion APIs
+- **Source search**: Find business pages on TrustPilot and BBB directly from the web UI
 - **Sentiment scoring**: Flags negative reviews automatically so you know what needs attention
-- **Web dashboard**: See all your businesses, ratings, and trends in one place
-- **Email alerts**: Get notified when someone leaves a bad review
-- **CLI or web**: Use whichever fits your workflow
+- **Web dashboard**: Next.js frontend with per-business stats, rating trends, and scrape controls
+- **TUI dashboard**: Full terminal UI built with Textual—manage businesses, trigger scrapes, and monitor services without leaving the terminal
+- **Email alerts**: Get notified via SMTP or the Resend API when someone leaves a bad review
+- **Encrypted API keys**: API credentials are encrypted at rest with Fernet symmetric encryption
+- **CLI, web, or TUI**: Use whichever fits your workflow
 - **Scheduled scraping**: Set it and forget it—runs every few hours
 - **CSV export**: Pull data out for spreadsheets or reporting
 
@@ -160,6 +163,15 @@ reviewhound watch --interval 2
 reviewhound web --with-scheduler
 ```
 
+### TUI Dashboard
+
+```bash
+# Launch the terminal UI
+reviewhound tui
+```
+
+Full-screen Textual app with a sidebar, live logs, service health monitoring, and scrape controls—all from the terminal.
+
 ## Configuration
 
 Create a `.env` file in the project root:
@@ -176,30 +188,42 @@ MAX_PAGES_PER_SOURCE=3
 # Scheduler
 SCRAPE_INTERVAL_HOURS=6
 
-# Email Alerts (optional)
+# Email Alerts (optional — SMTP)
 SMTP_HOST=smtp.gmail.com
 SMTP_PORT=587
 SMTP_USER=your-email@gmail.com
 SMTP_PASSWORD=your-app-password
 SMTP_FROM=alerts@yourdomain.com
 
+# Encryption (optional — auto-generated if not set)
+ENCRYPTION_KEY=
+
 # Web Dashboard
 FLASK_SECRET_KEY=change-this-in-production
 FLASK_DEBUG=false
 ```
 
+Google Places, Yelp Fusion, and Resend API keys are managed through the Settings page in the web UI and stored encrypted—they don't go in `.env`.
+
 ## Web Dashboard
 
-The web dashboard provides:
+There are two web UIs depending on how you run Review Hound:
+
+**Next.js app** — the hosted frontend at [review-hound.vercel.app](https://review-hound.vercel.app/) and what you get when developing locally with `npm run dev` in `frontend/`. Built with React 19, shadcn/ui, Tailwind, and Chart.js.
+
+**Flask UI** — bundled with the CLI. Run `reviewhound web` and open `http://localhost:5000`. Server-rendered with Jinja2 templates, no build step required.
+
+Both provide:
 
 - **Dashboard**: Overview of all businesses with sentiment bars and ratings
-- **Business Detail**: Individual business stats, rating trends, and recent reviews
-- **Reviews Page**: Filterable list of all reviews with pagination
+- **Business Detail**: Per-business stats, rating trends, and recent reviews
+- **Reviews Page**: Filterable list of all reviews with CSV export
 - **One-Click Scraping**: Trigger scrapes directly from the UI
-
-Access at `http://localhost:5000` after starting with `reviewhound web`.
+- **Settings**: Manage API keys, configure sentiment thresholds
 
 ## Public Demo
+
+**[Try it live →](https://review-hound.vercel.app/)**
 
 The public web deployment is a limited browser-local demo of Review Hound, not the full product.
 
@@ -231,40 +255,24 @@ Clone or fork the repo for the full self-hosted app:
 
 ```
 review-hound/
-├── reviewhound/
-│   ├── __init__.py
-│   ├── __main__.py
-│   ├── cli.py              # CLI commands
-│   ├── config.py           # Configuration
-│   ├── database.py         # Database setup
-│   ├── models.py           # SQLAlchemy models
-│   ├── scheduler.py        # APScheduler setup
-│   ├── scrapers/
-│   │   ├── base.py         # Abstract scraper
-│   │   ├── trustpilot.py
-│   │   ├── bbb.py
-│   │   └── yelp.py
-│   ├── analysis/
-│   │   └── sentiment.py    # TextBlob analysis
-│   ├── alerts/
-│   │   └── email.py        # SMTP alerts
-│   └── web/
-│       ├── app.py          # Flask factory
-│       ├── routes.py       # Web routes
-│       ├── templates/
-│       └── static/
+├── reviewhound/           # Python backend
+│   ├── scrapers/          # TrustPilot, BBB, Yelp, Google Places, Yelp Fusion
+│   ├── analysis/          # Sentiment scoring
+│   ├── alerts/            # SMTP + Resend email alerts
+│   ├── tui/               # Terminal UI (Textual)
+│   └── web/               # Flask UI
+├── frontend/              # Next.js web app
+├── api/                   # Vercel serverless functions
 ├── tests/
-├── data/                   # SQLite database
-├── exports/                # CSV exports
 ├── Dockerfile
-├── docker-compose.yml
-└── requirements.txt
+└── docker-compose.yml
 ```
 
 ## Development
 
+### Backend
+
 ```bash
-# Clone and install with dev dependencies
 git clone https://github.com/jonmartin721/review-hound.git
 cd review-hound
 pip install -e ".[dev]"
@@ -272,12 +280,27 @@ pip install -e ".[dev]"
 # Run tests
 pytest tests/ -v
 
-# Run with debug mode
+# Run Flask UI in debug mode
 reviewhound web --debug
+```
+
+### Frontend
+
+```bash
+cd frontend
+npm install
+
+# Start dev server (http://localhost:3000)
+npm run dev
+
+# Run tests
+npx vitest
+npx playwright test
 ```
 
 ## What's Next?
 
+- Try the TUI dashboard: `reviewhound tui`
 - Set up email alerts: `reviewhound alert 1 you@email.com`
 - Run the scheduler for hands-off monitoring: `reviewhound watch`
 - Found a bug? [Open an issue](https://github.com/jonmartin721/review-hound/issues)
