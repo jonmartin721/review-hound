@@ -26,7 +26,7 @@ export function Navbar() {
 
   return (
     <nav className="bg-card border-b border-border sticky top-0 z-40">
-      <div className="container mx-auto px-6 py-4 flex justify-between items-center">
+      <div className="container mx-auto px-6 py-4 flex justify-between items-center relative">
         <Link href="/" className="text-sm font-semibold uppercase tracking-wider text-foreground inline-flex items-center gap-2">
           <svg className="w-5 h-5" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
             <ellipse cx="16" cy="20" rx="6" ry="5" className="fill-primary"/>
@@ -41,7 +41,7 @@ export function Navbar() {
           <Link
             href="/welcome"
             className={cn(
-              "font-medium uppercase tracking-wider text-xs px-3 py-1.5 rounded-md transition-colors cursor-pointer",
+              "absolute left-1/2 -translate-x-1/2 font-medium uppercase tracking-wider text-xs px-3 py-1.5 rounded-md transition-colors cursor-pointer",
               workspaceMode === 'sample'
                 ? "bg-accent text-accent-foreground hover:bg-accent/80"
                 : "bg-primary/10 text-primary hover:bg-primary/20"

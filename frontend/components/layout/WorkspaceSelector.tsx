@@ -42,7 +42,7 @@ export function WorkspaceSelector() {
             mode === 'sample' ? "border-primary/30 bg-primary/5" : "border-border"
           )}>
             <p className="text-sm font-medium text-foreground mb-1">Demo Mode</p>
-            <p className="text-xs text-muted-foreground leading-relaxed">
+            <p className="text-sm text-muted-foreground leading-relaxed">
               Pre-loaded businesses and reviews so you can explore the dashboard, charts, filters, and alerts without setting anything up.
             </p>
           </div>
@@ -51,7 +51,7 @@ export function WorkspaceSelector() {
             mode === 'blank' ? "border-primary/30 bg-primary/5" : "border-border"
           )}>
             <p className="text-sm font-medium text-foreground mb-1">Local Mode</p>
-            <p className="text-xs text-muted-foreground leading-relaxed">
+            <p className="text-sm text-muted-foreground leading-relaxed">
               Empty workspace where you add your own businesses, connect API keys, and run real scrapes. Data stays in your browser.
             </p>
           </div>
