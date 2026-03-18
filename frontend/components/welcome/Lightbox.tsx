@@ -2,7 +2,8 @@
 
 import Image from 'next/image';
 import { useState } from 'react';
-import { Dialog, DialogContent } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog';
+import { VisuallyHidden } from '@radix-ui/react-visually-hidden';
 
 interface LightboxImageProps {
   src: string;
@@ -21,8 +22,18 @@ export function LightboxImage({ src, alt, width, height }: LightboxImageProps) {
       </button>
 
       <Dialog open={open} onOpenChange={setOpen}>
-        <DialogContent className="max-w-[90vw] max-h-[90vh] p-0 border-none bg-transparent shadow-none">
-          <Image src={src} alt={alt} width={width} height={height} className="max-w-full max-h-[90vh] w-auto h-auto object-contain" />
+        <DialogContent
+          className="sm:max-w-[90vw] max-h-[90vh] p-0 border-none bg-transparent shadow-none"
+          showCloseButton={false}
+        >
+          <VisuallyHidden><DialogTitle>{alt}</DialogTitle></VisuallyHidden>
+          <Image
+            src={src}
+            alt={alt}
+            width={width * 2}
+            height={height * 2}
+            className="max-w-full max-h-[85vh] w-auto h-auto object-contain rounded-lg"
+          />
         </DialogContent>
       </Dialog>
     </>
