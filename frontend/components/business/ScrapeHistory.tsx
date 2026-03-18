@@ -2,6 +2,7 @@
 import { useEffect, useState } from 'react';
 import { AlertTriangle } from 'lucide-react';
 import { useStorage } from '@/lib/storage/hooks';
+import { cn } from '@/lib/utils';
 import { Card, CardContent } from '@/components/ui/card';
 import { formatDateTime } from '@/lib/utils/format';
 import type { ScrapeLog } from '@/lib/storage/types';
@@ -22,7 +23,7 @@ function StatusBadge({ status }: { status: string }) {
   }
 
   return (
-    <span className={`px-2 py-0.5 rounded-lg text-xs ${classes}`}>{status}</span>
+    <span className={cn("px-2 py-0.5 rounded-lg text-xs", classes)}>{status}</span>
   );
 }
 

@@ -12,6 +12,7 @@ import {
   AlertDialogCancel,
   AlertDialogAction,
 } from '@/components/ui/alert-dialog';
+import { cn } from '@/lib/utils';
 import { useStorage } from '@/lib/storage/hooks';
 import type { AlertConfig } from '@/lib/storage/types';
 
@@ -103,11 +104,12 @@ export function AlertsList({ businessId, onAdd, onEdit, refreshKey }: AlertsList
                     Alert on ≤{alert.negative_threshold}★
                   </span>
                   <span
-                    className={`px-2 py-0.5 text-xs rounded-lg ${
+                    className={cn(
+                      "px-2 py-0.5 text-xs rounded-lg",
                       alert.enabled
-                        ? 'bg-positive/10 text-positive'
-                        : 'bg-muted text-muted-foreground'
-                    }`}
+                        ? "bg-positive/10 text-positive"
+                        : "bg-muted text-muted-foreground"
+                    )}
                   >
                     {alert.enabled ? 'Active' : 'Disabled'}
                   </span>

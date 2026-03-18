@@ -17,6 +17,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
+import { cn } from '@/lib/utils';
 import { useStorage } from '@/lib/storage/hooks';
 import type { AlertConfig } from '@/lib/storage/types';
 
@@ -99,7 +100,7 @@ export function AlertModal({
                 onChange={(e) => setEmail(e.target.value)}
                 required
                 readOnly={!!editingAlert}
-                className={`mt-1.5 ${editingAlert ? 'opacity-70 cursor-not-allowed' : ''}`}
+                className={cn("mt-1.5", editingAlert && "opacity-70 cursor-not-allowed")}
               />
             </div>
 

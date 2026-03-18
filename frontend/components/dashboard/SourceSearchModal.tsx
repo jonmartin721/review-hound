@@ -9,6 +9,7 @@ import {
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { cn } from '@/lib/utils';
 import { Spinner } from '@/components/ui/Spinner';
 import type { SearchResult } from '@/lib/storage/types';
 
@@ -52,7 +53,7 @@ function SourceSection({ source, label, dotColor, results, isLoading, selectedUr
   return (
     <div className="mb-6">
       <h3 className="font-semibold text-foreground mb-2 flex items-center">
-        <span className={`w-3 h-3 ${dotColor} rounded-full mr-2`} />
+        <span className={cn("w-3 h-3 rounded-full mr-2", dotColor)} />
         {label}
       </h3>
       <div className="border border-border rounded-lg p-3 bg-muted">

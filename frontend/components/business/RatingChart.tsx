@@ -15,17 +15,14 @@ import type { ChartData } from '@/lib/storage/types';
 
 ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Filler, Tooltip);
 
-function isDark() {
-  return document.documentElement.classList.contains('dark');
-}
-
 function getChartColors() {
-  const dark = isDark();
+  const style = getComputedStyle(document.documentElement);
+  const chartColor = style.getPropertyValue('--chart-1').trim();
   return {
-    borderColor: dark ? '#8ba3c4' : '#5b7a9d',
-    backgroundColor: dark ? 'rgba(139, 163, 196, 0.3)' : 'rgba(91, 122, 157, 0.25)',
-    gridColor: dark ? '#3a3a3a' : '#dcdcdc',
-    textColor: dark ? '#999999' : '#777777',
+    borderColor: chartColor,
+    backgroundColor: chartColor.replace(')', ' / 0.25)'),
+    gridColor: style.getPropertyValue('--border').trim(),
+    textColor: style.getPropertyValue('--muted-foreground').trim(),
   };
 }
 
@@ -37,16 +34,7 @@ export function RatingChart({ businessId }: RatingChartProps) {
   const storage = useStorage();
   const [chartData, setChartData] = useState<ChartData | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [colors, setColors] = useState(() =>
-    typeof window !== 'undefined'
-      ? getChartColors()
-      : {
-          borderColor: '#5b7a9d',
-          backgroundColor: 'rgba(91, 122, 157, 0.25)',
-          gridColor: '#dcdcdc',
-          textColor: '#777777',
-        }
-  );
+  const [colors, setColors] = useState<ReturnType<typeof getChartColors> | null>(null);
   const chartRef = useRef<ChartJS<'line'> | null>(null);
 
   useEffect(() => {
@@ -59,6 +47,7 @@ export function RatingChart({ businessId }: RatingChartProps) {
   }, [businessId, storage]);
 
   useEffect(() => {
+    setColors(getChartColors());
     const observer = new MutationObserver(() => {
       setColors(getChartColors());
     });
@@ -77,7 +66,7 @@ export function RatingChart({ businessId }: RatingChartProps) {
     );
   }
 
-  if (!chartData) {
+  if (!chartData || !colors) {
     return (
       <div className="h-32 flex items-center justify-center text-muted-foreground">
         Loading chart...
