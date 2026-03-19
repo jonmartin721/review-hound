@@ -414,11 +414,12 @@ function renderSourceResults(source, results) {
         const stars = result.rating ? '★'.repeat(Math.round(result.rating)) + '☆'.repeat(5 - Math.round(result.rating)) : '';
         const ratingText = result.rating ? `${result.rating.toFixed(1)}` : '';
         const reviewText = result.review_count ? `(${result.review_count} reviews)` : '';
+        const safeUrl = escapeHtml(result.url || '');
 
         html += `
             <label class="flex items-start p-2 rounded hover:bg-[var(--bg-surface-hover)] cursor-pointer">
-                <input type="radio" name="${source}Source" value="${result.url}"
-                       onchange="selectSource('${source}', '${result.url}')"
+                <input type="radio" name="${source}Source" value="${safeUrl}"
+                       onchange="selectSource('${source}', this.value)"
                        class="mt-1 mr-3">
                 <div class="flex-1">
                     <div class="font-medium text-[var(--text-primary)]">${escapeHtml(result.name)}</div>

@@ -574,7 +574,7 @@ export class IndexedDBAdapter implements StorageAdapter {
       business_id: businessId,
       email: data.email,
       alert_on_negative: true,
-      negative_threshold: data.negative_threshold ?? 0.3,
+      negative_threshold: data.negative_threshold ?? 3.0,
       enabled: data.enabled ?? true,
     });
 

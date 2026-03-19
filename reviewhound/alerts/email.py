@@ -2,6 +2,7 @@ import logging
 import smtplib
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
+from html import escape as html_escape
 
 from reviewhound.config import Config
 
@@ -47,6 +48,10 @@ def format_review_alert(
     sentiment_color = {"positive": "#22c55e", "negative": "#ef4444", "neutral": "#eab308"}.get(
         sentiment_label, "#6b7280"
     )
+    safe_business_name = html_escape(business_name)
+    safe_source = html_escape(source.title())
+    safe_author = html_escape(author or "Anonymous")
+    safe_text = html_escape(text or "No text provided")
 
     body = f"""
     <html>
@@ -56,13 +61,13 @@ def format_review_alert(
         </div>
 
         <div style="padding: 20px; background: #f9fafb;">
-            <h2 style="color: #1f2937;">New Review for {business_name}</h2>
+            <h2 style="color: #1f2937;">New Review for {safe_business_name}</h2>
 
             <div style="background: white; border-radius: 8px; padding: 16px; margin: 16px 0;
                 box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
                 <div style="display: flex; justify-content: space-between; margin-bottom: 12px;">
                     <span style="color: #6b7280;">Source:</span>
-                    <strong>{source.title()}</strong>
+                    <strong>{safe_source}</strong>
                 </div>
                 <div style="display: flex; justify-content: space-between; margin-bottom: 12px;">
                     <span style="color: #6b7280;">Rating:</span>
@@ -75,14 +80,14 @@ def format_review_alert(
                 </div>
                 <div style="display: flex; justify-content: space-between; margin-bottom: 12px;">
                     <span style="color: #6b7280;">Author:</span>
-                    <strong>{author or "Anonymous"}</strong>
+                    <strong>{safe_author}</strong>
                 </div>
             </div>
 
             <div style="background: white; border-radius: 8px; padding: 16px;
                 box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
                 <h3 style="color: #1f2937; margin-top: 0;">Review Text</h3>
-                <p style="color: #4b5563; line-height: 1.6;">{text or "No text provided"}</p>
+                <p style="color: #4b5563; line-height: 1.6;">{safe_text}</p>
             </div>
         </div>
 

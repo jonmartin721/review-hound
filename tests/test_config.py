@@ -19,15 +19,16 @@ class TestGetDatabaseUrl:
         monkeypatch.chdir(tmp_path)
         with patch.object(Config, "DATABASE_PATH", "data/reviews.db"):
             url = Config.get_database_url()
-            assert url == f"sqlite:///{tmp_path}/data/reviews.db"
+            expected = (tmp_path / "data" / "reviews.db").as_posix()
+            assert url == f"sqlite:///{expected}"
             # Should have created parent directory
             assert (tmp_path / "data").is_dir()
 
     def test_absolute_path_used_directly(self, tmp_path):
         """Should use absolute path without modification."""
-        db_path = str(tmp_path / "data" / "reviews.db")
-        with patch.object(Config, "DATABASE_PATH", db_path):
+        db_path = tmp_path / "data" / "reviews.db"
+        with patch.object(Config, "DATABASE_PATH", str(db_path)):
             url = Config.get_database_url()
-            assert url == f"sqlite:///{db_path}"
+            assert url == f"sqlite:///{db_path.as_posix()}"
             # Should have created parent directory
             assert (tmp_path / "data").is_dir()

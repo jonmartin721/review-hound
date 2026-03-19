@@ -146,7 +146,6 @@ def sample_sentiment_config(db_session):
     return config
 
 
-
 @pytest.fixture
 def mock_scraper():
     """Create a mock scraper for testing."""

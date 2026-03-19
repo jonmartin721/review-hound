@@ -163,8 +163,12 @@ class TestKeyFileGeneration:
         encrypt("trigger-generation")
         key_path = tmp_path / ".encryption_key"
         mode = key_path.stat().st_mode
-        assert mode & stat.S_IRWXG == 0, "Group should have no permissions"
-        assert mode & stat.S_IRWXO == 0, "Other should have no permissions"
+        if os.name == "nt":
+            assert mode & stat.S_IRUSR, "Owner should have read permission"
+            assert mode & stat.S_IWUSR, "Owner should have write permission"
+        else:
+            assert mode & stat.S_IRWXG == 0, "Group should have no permissions"
+            assert mode & stat.S_IRWXO == 0, "Other should have no permissions"
 
     def test_empty_key_file_raises(self, tmp_path, monkeypatch):
         """Empty key file should raise with actionable message."""

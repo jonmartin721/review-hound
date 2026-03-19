@@ -13,6 +13,7 @@ vi.mock('../portfolio', () => ({
 }));
 
 import {
+  SAMPLE_ALERT_CONFIGS,
   getSampleGooglePlacesResults,
   getSampleScrapeReviews,
   getSampleSourceSearchResults,
@@ -125,5 +126,9 @@ describe('sample-mode helpers', () => {
       score: 0.04,
       label: 'neutral',
     });
+  });
+
+  it('keeps seeded alert thresholds within the UI-supported star range', () => {
+    expect(SAMPLE_ALERT_CONFIGS.every((config) => config.negative_threshold >= 1 && config.negative_threshold <= 5)).toBe(true);
   });
 });

@@ -314,6 +314,7 @@
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
 const businessId = {{ business.id }};
+let loadedAlerts = [];
 
 // Scrape functionality
 async function triggerScrape(businessId) {
@@ -429,14 +430,14 @@ async function searchGooglePlaces() {
 
         if (data.success && data.results.length > 0) {
             document.getElementById('searchResultsList').innerHTML = data.results.map(r => `
-                <div class="p-2 border rounded hover:bg-gray-50 cursor-pointer" onclick="selectGooglePlace('${r.place_id}')">
+                <div class="p-2 border rounded hover:bg-gray-50 cursor-pointer" onclick="selectGooglePlace('${escapeJsString(r.place_id || '')}')">
                     <div class="font-medium">${escapeHtml(r.name)}</div>
                     <div class="text-sm text-gray-500">${escapeHtml(r.address || '')}</div>
                     ${r.rating ? `<div class="text-sm text-yellow-600">${r.rating}★ (${r.review_count} reviews)</div>` : ''}
                 </div>
             `).join('');
         } else {
-            document.getElementById('searchResultsList').innerHTML = `<p class="text-gray-500">${data.error || 'No results found'}</p>`;
+            document.getElementById('searchResultsList').innerHTML = `<p class="text-gray-500">${escapeHtml(data.error || 'No results found')}</p>`;
         }
     } catch (e) {
         document.getElementById('searchResultsList').innerHTML = '<p class="text-red-500">Search failed</p>';
@@ -465,14 +466,14 @@ async function searchYelpBusiness() {
 
         if (data.success && data.results.length > 0) {
             document.getElementById('searchResultsList').innerHTML = data.results.map(r => `
-                <div class="p-2 border rounded hover:bg-gray-50 cursor-pointer" onclick="selectYelpBusiness('${r.business_id}')">
+                <div class="p-2 border rounded hover:bg-gray-50 cursor-pointer" onclick="selectYelpBusiness('${escapeJsString(r.business_id || '')}')">
                     <div class="font-medium">${escapeHtml(r.name)}</div>
                     <div class="text-sm text-gray-500">${escapeHtml(r.address || '')}</div>
                     ${r.rating ? `<div class="text-sm text-yellow-600">${r.rating}★ (${r.review_count} reviews)</div>` : ''}
                 </div>
             `).join('');
         } else {
-            document.getElementById('searchResultsList').innerHTML = `<p class="text-gray-500">${data.error || 'No results found'}</p>`;
+            document.getElementById('searchResultsList').innerHTML = `<p class="text-gray-500">${escapeHtml(data.error || 'No results found')}</p>`;
         }
     } catch (e) {
         document.getElementById('searchResultsList').innerHTML = '<p class="text-red-500">Search failed</p>';
@@ -494,6 +495,16 @@ function escapeHtml(text) {
     const div = document.createElement('div');
     div.textContent = text;
     return div.innerHTML;
+}
+
+function escapeJsString(text) {
+    return String(text ?? '')
+        .replace(/\\/g, '\\\\')
+        .replace(/'/g, "\\'")
+        .replace(/\r/g, '\\r')
+        .replace(/\n/g, '\\n')
+        .replace(/</g, '\\u003C')
+        .replace(/>/g, '\\u003E');
 }
 
 // Delete Modal
@@ -544,6 +555,13 @@ function openAlertModal(alertData = null) {
 function closeAlertModal() {
     document.getElementById('alertModal').classList.add('hidden');
     document.getElementById('alertModal').classList.remove('flex');
+}
+
+function openAlertModalByIndex(index) {
+    const alertData = loadedAlerts[index];
+    if (alertData) {
+        openAlertModal(alertData);
+    }
 }
 
 async function submitAlert(event) {
@@ -602,23 +620,26 @@ async function loadAlerts() {
         const response = await fetch(`/api/business/${businessId}/alerts`);
         const data = await response.json();
         if (data.success && data.alerts.length > 0) {
-            container.innerHTML = data.alerts.map(a => `
+            loadedAlerts = data.alerts;
+            container.innerHTML = data.alerts.map((a, index) => `
                 <div class="flex justify-between items-center py-3 border-b last:border-b-0">
                     <div>
-                        <span class="font-medium">${a.email}</span>
-                        <span class="text-sm text-gray-500 ml-2">Alert on ≤${a.negative_threshold}★</span>
+                        <span class="font-medium">${escapeHtml(a.email)}</span>
+                        <span class="text-sm text-gray-500 ml-2">Alert on ≤${escapeHtml(String(a.negative_threshold))}★</span>
                         <span class="ml-2 px-2 py-0.5 text-xs rounded ${a.enabled ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500'}">${a.enabled ? 'Active' : 'Disabled'}</span>
                     </div>
                     <div class="flex gap-2">
-                        <button onclick='openAlertModal(${JSON.stringify(a)})' class="text-indigo-600 hover:text-indigo-800 text-sm">Edit</button>
+                        <button onclick="openAlertModalByIndex(${index})" class="text-indigo-600 hover:text-indigo-800 text-sm">Edit</button>
                         <button onclick="deleteAlert(${a.id})" class="text-red-600 hover:text-red-800 text-sm">Delete</button>
                     </div>
                 </div>
             `).join('');
         } else {
+            loadedAlerts = [];
             container.innerHTML = '<p class="text-gray-400 text-center py-4">No alerts configured. Click "+ Add Alert" to get notified about negative reviews.</p>';
         }
     } catch (e) {
+        loadedAlerts = [];
         container.innerHTML = '<p class="text-red-400 text-center py-4">Failed to load alerts.</p>';
     }
 }

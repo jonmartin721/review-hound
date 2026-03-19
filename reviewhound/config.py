@@ -59,8 +59,8 @@ class Config:
         db_path = cls.DATABASE_PATH
         if not db_path.startswith(":"):
             path = Path(db_path)
-            if not path.is_absolute():
+            if not path.is_absolute() and not db_path.startswith(("/", "\\")):
                 path = Path.cwd() / path
             path.parent.mkdir(parents=True, exist_ok=True)
-            db_path = str(path)
+            db_path = path.as_posix()
         return f"sqlite:///{db_path}"

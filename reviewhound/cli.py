@@ -94,7 +94,7 @@ def scrape(identifier, scrape_all):
             businesses = session.query(Business).all()
         elif identifier:
             try:
-                business = session.query(Business).get(int(identifier))
+                business = session.get(Business, int(identifier))
             except ValueError:
                 business = session.query(Business).filter(Business.name.ilike(f"%{identifier}%")).first()
 
@@ -150,7 +150,7 @@ def _run_scraper(session, business: Business, scraper, url: str):
 def reviews(business_id, limit, source, sentiment):
     """Show reviews for a business."""
     with get_session() as session:
-        business = session.query(Business).get(business_id)
+        business = session.get(Business, business_id)
         if not business:
             console.print(f"[red]Business not found:[/red] {business_id}")
             return
@@ -197,7 +197,7 @@ def reviews(business_id, limit, source, sentiment):
 def stats(business_id):
     """Show summary statistics for a business."""
     with get_session() as session:
-        business = session.query(Business).get(business_id)
+        business = session.get(Business, business_id)
         if not business:
             console.print(f"[red]Business not found:[/red] {business_id}")
             return
@@ -234,7 +234,7 @@ def stats(business_id):
 def export(business_id, output):
     """Export reviews to CSV."""
     with get_session() as session:
-        business = session.query(Business).get(business_id)
+        business = session.get(Business, business_id)
         if not business:
             console.print(f"[red]Business not found:[/red] {business_id}")
             return
@@ -280,8 +280,12 @@ def export(business_id, output):
 @click.option("--disable", is_flag=True, help="Disable alerts instead of enabling")
 def alert(business_id, email, threshold, disable):
     """Configure email alerts for a business."""
+    if threshold < 1 or threshold > 5:
+        console.print("[red]Threshold must be between 1 and 5 stars[/red]")
+        return
+
     with get_session() as session:
-        business = session.query(Business).get(business_id)
+        business = session.get(Business, business_id)
         if not business:
             console.print(f"[red]Business not found:[/red] {business_id}")
             return
@@ -338,7 +342,7 @@ def list_alerts(business_id):
         table.add_column("Enabled", style="blue")
 
         for c in configs:
-            business = session.query(Business).get(c.business_id)
+            business = session.get(Business, c.business_id)
             table.add_row(
                 business.name if business else f"ID:{c.business_id}",
                 c.email,
@@ -362,7 +366,6 @@ def watch(interval):
     console.print(f"[green]Starting watch mode (every {Config.SCRAPE_INTERVAL_HOURS} hours)[/green]")
     console.print("[dim]Press Ctrl+C to stop[/dim]")
     run_scheduler()
-
 
 
 @cli.command()
