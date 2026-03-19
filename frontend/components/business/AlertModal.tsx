@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react';
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
@@ -76,7 +77,8 @@ export function AlertModal({
 
       onSaved();
       onClose();
-    } catch {
+    } catch (err) {
+      console.error('Failed to save alert:', err);
       setError('Failed to save alert. Please try again.');
     } finally {
       setSaving(false);
@@ -88,6 +90,9 @@ export function AlertModal({
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <DialogTitle>{editingAlert ? 'Edit Alert' : 'Add Alert'}</DialogTitle>
+          <DialogDescription>
+            Configure an email notification when new reviews fall at or below a rating threshold.
+          </DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit}>
           <div className="space-y-4">

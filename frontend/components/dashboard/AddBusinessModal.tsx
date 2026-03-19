@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
@@ -103,6 +104,9 @@ export function AddBusinessModal({ isOpen, onClose, onSuccess }: AddBusinessModa
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Add Business</DialogTitle>
+            <DialogDescription>
+              Enter a business name and optional location to search for review sources.
+            </DialogDescription>
           </DialogHeader>
           <form onSubmit={handleStep1Submit}>
             <div className="space-y-4">

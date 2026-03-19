@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
@@ -68,8 +69,9 @@ export function EditBusinessModal({ businessId, onClose, onSuccess }: EditBusine
       setGooglePlaceId(biz.google_place_id ?? '');
       setYelpBusinessId(biz.yelp_business_id ?? '');
       setLoading(false);
-    }).catch(() => {
+    }).catch((err) => {
       if (!cancelled) {
+        console.error('Failed to load business data:', err);
         setError('Failed to load business data.');
         setLoading(false);
       }
@@ -83,7 +85,8 @@ export function EditBusinessModal({ businessId, onClose, onSuccess }: EditBusine
     try {
       const results = await storage.searchGooglePlaces(name, address || null);
       setSearchPanel({ type: 'google', results, loading: false });
-    } catch {
+    } catch (err) {
+      console.error('Google Places search failed:', err);
       setSearchPanel({ type: 'google', results: [], loading: false, searchError: true });
     }
   };
@@ -93,7 +96,8 @@ export function EditBusinessModal({ businessId, onClose, onSuccess }: EditBusine
     try {
       const results = await storage.searchYelp(name, address || null);
       setSearchPanel({ type: 'yelp', results, loading: false });
-    } catch {
+    } catch (err) {
+      console.error('Yelp search failed:', err);
       setSearchPanel({ type: 'yelp', results: [], loading: false, searchError: true });
     }
   };
@@ -114,7 +118,8 @@ export function EditBusinessModal({ businessId, onClose, onSuccess }: EditBusine
       });
       onSuccess();
       onClose();
-    } catch {
+    } catch (err) {
+      console.error('Failed to save business changes:', err);
       setError('Failed to save changes. Please try again.');
     } finally {
       setSaving(false);
@@ -126,6 +131,9 @@ export function EditBusinessModal({ businessId, onClose, onSuccess }: EditBusine
       <DialogContent className="sm:max-w-lg">
         <DialogHeader>
           <DialogTitle>Edit Business</DialogTitle>
+          <DialogDescription>
+            Update business details, review source URLs, and API source IDs.
+          </DialogDescription>
         </DialogHeader>
         {loading ? (
           <div className="flex justify-center py-8">

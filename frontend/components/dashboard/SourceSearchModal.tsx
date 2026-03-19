@@ -4,6 +4,7 @@ import { useState } from 'react';
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
@@ -159,8 +160,10 @@ export function SourceSearchModal({
       <DialogContent className="sm:max-w-2xl">
         <DialogHeader>
           <DialogTitle>Find Review Sources for &quot;{businessName}&quot;</DialogTitle>
+          <DialogDescription>
+            Select the correct business listing from each platform, or enter URLs manually.
+          </DialogDescription>
         </DialogHeader>
-        <p className="text-muted-foreground">Select the correct business listing from each platform, or enter URLs manually.</p>
 
         {searchError && (
           <p className="text-sm text-destructive">{searchError}</p>

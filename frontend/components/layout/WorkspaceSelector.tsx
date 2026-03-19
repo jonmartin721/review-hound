@@ -14,16 +14,24 @@ export function WorkspaceSelector() {
   const [mode, setMode] = useState<WorkspaceMode>(getWorkspaceMode);
 
   async function handleStartEmpty() {
-    await clearLocalWorkspace();
-    setWorkspaceMode('blank');
-    window.location.href = '/';
+    try {
+      await clearLocalWorkspace();
+      setWorkspaceMode('blank');
+      window.location.href = '/';
+    } catch (err) {
+      console.error('Failed to switch to local mode:', err);
+    }
   }
 
   async function handleLoadSample() {
-    await clearLocalWorkspace();
-    setWorkspaceMode('sample');
-    await seedDemoData();
-    window.location.href = '/';
+    try {
+      await clearLocalWorkspace();
+      setWorkspaceMode('sample');
+      await seedDemoData();
+      window.location.href = '/';
+    } catch (err) {
+      console.error('Failed to switch to demo mode:', err);
+    }
   }
 
   return (

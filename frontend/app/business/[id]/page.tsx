@@ -29,6 +29,7 @@ export default function BusinessDetailPage() {
   const [reviews, setReviews] = useState<Review[]>([]);
   const [loading, setLoading] = useState(true);
   const [notFound, setNotFound] = useState(false);
+  const [loadError, setLoadError] = useState(false);
 
   // Refresh keys to re-trigger child data fetches after scrape
   const [historyRefreshKey, setHistoryRefreshKey] = useState(0);
@@ -42,6 +43,7 @@ export default function BusinessDetailPage() {
 
   const loadData = useCallback(async () => {
     setLoading(true);
+    setLoadError(false);
     try {
       const [businesses, recentReviews] = await Promise.all([
         storage.getBusinesses(),
@@ -58,7 +60,7 @@ export default function BusinessDetailPage() {
       setReviews(recentReviews);
     } catch (err) {
       console.error('Failed to load business data:', err);
-      setNotFound(true);
+      setLoadError(true);
     } finally {
       setLoading(false);
     }
@@ -100,6 +102,16 @@ export default function BusinessDetailPage() {
     return (
       <div className="flex justify-center items-center py-32">
         <Spinner size="lg" />
+      </div>
+    );
+  }
+
+  if (loadError) {
+    return (
+      <div className="text-center py-32">
+        <p className="text-foreground text-lg font-medium mb-2">Something went wrong</p>
+        <p className="text-muted-foreground mb-4">Failed to load business data.</p>
+        <Button onClick={loadData}>Retry</Button>
       </div>
     );
   }
