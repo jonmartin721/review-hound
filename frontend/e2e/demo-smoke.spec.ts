@@ -41,21 +41,8 @@ test('can switch to local mode and add a browser-local business without backend 
 
   await page.getByRole('button', { name: 'Skip for now' }).click();
 
-  await expect(page.getByRole('heading', { name: 'Business Dashboard' })).toBeVisible();
-  await expect(page.getByText('Test Bakery')).toBeVisible();
-
-  const detailHref = await page
-    .locator('[data-testid="business-card"]', {
-      has: page.getByRole('heading', { name: 'Test Bakery' }),
-    })
-    .first()
-    .locator('a[href^="/business/"]')
-    .last()
-    .getAttribute('href');
-
-  expect(detailHref).toBeTruthy();
-  await page.goto(detailHref!);
-
+  // Creating a business navigates to its detail page
+  await expect(page).toHaveURL(/\/business\/\d+$/);
   await expect(page.getByRole('heading', { name: 'Test Bakery' })).toBeVisible();
   await expect(page.getByText('No reviews yet. Click "Scrape Now" to fetch reviews.')).toBeVisible();
 });
