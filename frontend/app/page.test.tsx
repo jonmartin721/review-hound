@@ -64,7 +64,7 @@ describe('DashboardPage', () => {
     render(<DashboardPage />);
 
     expect(await screen.findByText('Acme Coffee Co.')).toBeInTheDocument();
-    expect(screen.getByText('Sample workspace only')).toBeInTheDocument();
+    expect(screen.getByText('Demo workspace only')).toBeInTheDocument();
     expect(getBusinesses).toHaveBeenCalledTimes(1);
   });
 
