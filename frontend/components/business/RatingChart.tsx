@@ -15,14 +15,29 @@ import type { ChartData } from '@/lib/storage/types';
 
 ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Filler, Tooltip);
 
+/** Resolve a CSS color value (including oklch) to an rgb() string Canvas2D can use. */
+function resolveColor(value: string): string {
+  const el = document.createElement('div');
+  el.style.color = value;
+  document.body.appendChild(el);
+  const resolved = getComputedStyle(el).color;
+  document.body.removeChild(el);
+  return resolved;
+}
+
 function getChartColors() {
   const style = getComputedStyle(document.documentElement);
-  const chartColor = style.getPropertyValue('--chart-1').trim();
+  const borderColor = resolveColor(style.getPropertyValue('--chart-1').trim());
+  // Build a transparent variant from the resolved rgb value
+  const match = borderColor.match(/^rgb\((\d+),\s*(\d+),\s*(\d+)\)$/);
+  const backgroundColor = match
+    ? `rgba(${match[1]}, ${match[2]}, ${match[3]}, 0.25)`
+    : borderColor;
   return {
-    borderColor: chartColor,
-    backgroundColor: chartColor.replace(')', ' / 0.25)'),
-    gridColor: style.getPropertyValue('--border').trim(),
-    textColor: style.getPropertyValue('--muted-foreground').trim(),
+    borderColor,
+    backgroundColor,
+    gridColor: resolveColor(style.getPropertyValue('--border').trim()),
+    textColor: resolveColor(style.getPropertyValue('--muted-foreground').trim()),
   };
 }
 

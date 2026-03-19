@@ -9,7 +9,7 @@ import { GITHUB_REPO_URL } from '@/lib/portfolio';
 
 export default function WelcomePage() {
   return (
-    <div className="max-w-4xl mx-auto fade-in">
+    <div className="max-w-4xl mx-auto animate-fade-in">
       {/* Workspace selector */}
       <div className="mb-10">
         <WorkspaceSelector />

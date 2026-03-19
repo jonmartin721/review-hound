@@ -39,7 +39,8 @@ export function ScrapeButton({ businessId, onComplete }: ScrapeButtonProps) {
         setErrorMsg('Scrape failed');
         timeoutRef.current = setTimeout(() => setState('idle'), 2000);
       }
-    } catch {
+    } catch (err) {
+      console.error('Scrape request failed:', err);
       setState('error');
       setErrorMsg('Error connecting to server');
       timeoutRef.current = setTimeout(() => setState('idle'), 2000);
@@ -72,7 +73,7 @@ export function ScrapeButton({ businessId, onComplete }: ScrapeButtonProps) {
         {label}
       </Button>
       {errorMsg && (
-        <p className="text-xs text-primary max-w-48 text-right">
+        <p className="text-xs text-destructive max-w-48 text-right">
           {errorMsg}
         </p>
       )}
