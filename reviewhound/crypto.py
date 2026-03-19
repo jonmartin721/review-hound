@@ -11,6 +11,7 @@ Key source (in priority order):
 import base64
 import logging
 import os
+import stat
 from pathlib import Path
 
 from cryptography.fernet import Fernet, InvalidToken
@@ -41,7 +42,7 @@ def _get_key_path() -> Path:
     if db_path_str == ":memory:":
         return Path.cwd() / ".encryption_key"
     db_path = Path(db_path_str)
-    if db_path.is_absolute():
+    if db_path.is_absolute() or db_path_str.startswith(("/", "\\")):
         return db_path.parent / ".encryption_key"
     return Path.cwd() / db_path.parent / ".encryption_key"
 
@@ -77,6 +78,7 @@ def _load_or_generate_key() -> bytes:
             os.write(fd, key)
         finally:
             os.close(fd)
+        os.chmod(key_path, stat.S_IRUSR | stat.S_IWUSR)
     except OSError as e:
         logger.warning(
             "Could not persist encryption key to %s: %s. "

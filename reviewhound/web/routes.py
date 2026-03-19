@@ -20,6 +20,8 @@ logger = logging.getLogger(__name__)
 MAX_NAME_LENGTH = 200
 MAX_ADDRESS_LENGTH = 500
 MAX_URL_LENGTH = 2000
+MIN_ALERT_THRESHOLD = 1.0
+MAX_ALERT_THRESHOLD = 5.0
 
 
 def _validate_url(url: str | None, field_name: str) -> str | None:
@@ -44,6 +46,21 @@ def _validate_string(value: str | None, field_name: str, max_length: int) -> str
     if len(value) > max_length:
         return f"{field_name} exceeds maximum length of {max_length} characters"
     return None
+
+
+def _validate_alert_threshold(value) -> tuple[str | None, float | None]:
+    """Validate alert threshold input and coerce it to float."""
+    try:
+        threshold = float(value)
+    except (TypeError, ValueError):
+        return "negative_threshold must be a number", None
+
+    if threshold < MIN_ALERT_THRESHOLD or threshold > MAX_ALERT_THRESHOLD:
+        return (
+            f"negative_threshold must be between {MIN_ALERT_THRESHOLD:.0f} and {MAX_ALERT_THRESHOLD:.0f}",
+            None,
+        )
+    return None, threshold
 
 
 def _get_scrape_health(session, business_id: int) -> dict:
@@ -159,7 +176,7 @@ def api_list_businesses():
 def api_list_reviews(business_id):
     """List reviews for a business with pagination and filters."""
     with get_session() as session:
-        business = session.query(Business).get(business_id)
+        business = session.get(Business, business_id)
         if not business:
             return jsonify({"success": False, "error": "Business not found"}), 404
 
@@ -211,7 +228,7 @@ def api_list_reviews(business_id):
 def api_list_scrape_logs(business_id):
     """List scrape logs for a business."""
     with get_session() as session:
-        business = session.query(Business).get(business_id)
+        business = session.get(Business, business_id)
         if not business:
             return jsonify({"success": False, "error": "Business not found"}), 404
 
@@ -297,7 +314,7 @@ def dashboard():
 @bp.route("/business/<int:business_id>")
 def business_detail(business_id):
     with get_session() as session:
-        business = session.query(Business).get(business_id)
+        business = session.get(Business, business_id)
         if not business:
             return "Business not found", 404
 
@@ -354,7 +371,7 @@ def business_detail(business_id):
 @bp.route("/business/<int:business_id>/reviews")
 def business_reviews(business_id):
     with get_session() as session:
-        business = session.query(Business).get(business_id)
+        business = session.get(Business, business_id)
         if not business:
             return "Business not found", 404
 
@@ -383,7 +400,7 @@ def business_reviews(business_id):
 @bp.route("/business/<int:business_id>/scrape", methods=["POST"])
 def trigger_scrape(business_id):
     with get_session() as session:
-        business = session.query(Business).get(business_id)
+        business = session.get(Business, business_id)
         if not business:
             return jsonify({"success": False, "error": "Business not found"}), 404
 
@@ -533,7 +550,7 @@ def api_create_business():
 @bp.route("/api/business/<int:business_id>", methods=["GET"])
 def api_get_business(business_id):
     with get_session() as session:
-        business = session.query(Business).get(business_id)
+        business = session.get(Business, business_id)
         if not business:
             return jsonify({"success": False, "error": "Business not found"}), 404
 
@@ -580,7 +597,7 @@ def api_update_business(business_id):
         return jsonify({"success": False, "error": "; ".join(errors)}), 400
 
     with get_session() as session:
-        business = session.query(Business).get(business_id)
+        business = session.get(Business, business_id)
         if not business:
             return jsonify({"success": False, "error": "Business not found"}), 404
 
@@ -605,7 +622,7 @@ def api_update_business(business_id):
 @bp.route("/api/business/<int:business_id>", methods=["DELETE"])
 def api_delete_business(business_id):
     with get_session() as session:
-        business = session.query(Business).get(business_id)
+        business = session.get(Business, business_id)
         if not business:
             return jsonify({"success": False, "error": "Business not found"}), 404
 
@@ -616,7 +633,7 @@ def api_delete_business(business_id):
 @bp.route("/api/business/<int:business_id>/alerts", methods=["GET"])
 def api_list_alerts(business_id):
     with get_session() as session:
-        business = session.query(Business).get(business_id)
+        business = session.get(Business, business_id)
         if not business:
             return jsonify({"success": False, "error": "Business not found"}), 404
 
@@ -644,8 +661,12 @@ def api_create_alert(business_id):
     if not data or not data.get("email"):
         return jsonify({"success": False, "error": "Email is required"}), 400
 
+    threshold_error, threshold = _validate_alert_threshold(data.get("negative_threshold", 3.0))
+    if threshold_error:
+        return jsonify({"success": False, "error": threshold_error}), 400
+
     with get_session() as session:
-        business = session.query(Business).get(business_id)
+        business = session.get(Business, business_id)
         if not business:
             return jsonify({"success": False, "error": "Business not found"}), 404
 
@@ -662,7 +683,7 @@ def api_create_alert(business_id):
             business_id=business_id,
             email=data["email"],
             alert_on_negative=True,
-            negative_threshold=float(data.get("negative_threshold", 3.0)),
+            negative_threshold=threshold,
             enabled=data.get("enabled", True),
         )
         session.add(alert)
@@ -687,15 +708,21 @@ def api_update_alert(alert_id):
     if not data:
         return jsonify({"success": False, "error": "No data provided"}), 400
 
+    threshold = None
+    if "negative_threshold" in data:
+        threshold_error, threshold = _validate_alert_threshold(data["negative_threshold"])
+        if threshold_error:
+            return jsonify({"success": False, "error": threshold_error}), 400
+
     with get_session() as session:
-        alert = session.query(AlertConfig).get(alert_id)
+        alert = session.get(AlertConfig, alert_id)
         if not alert:
             return jsonify({"success": False, "error": "Alert not found"}), 404
 
         if "email" in data:
             alert.email = data["email"]
         if "negative_threshold" in data:
-            alert.negative_threshold = float(data["negative_threshold"])
+            alert.negative_threshold = threshold
         if "enabled" in data:
             alert.enabled = data["enabled"]
 
@@ -705,7 +732,7 @@ def api_update_alert(alert_id):
 @bp.route("/api/alerts/<int:alert_id>", methods=["DELETE"])
 def api_delete_alert(alert_id):
     with get_session() as session:
-        alert = session.query(AlertConfig).get(alert_id)
+        alert = session.get(AlertConfig, alert_id)
         if not alert:
             return jsonify({"success": False, "error": "Alert not found"}), 404
 
@@ -716,7 +743,7 @@ def api_delete_alert(alert_id):
 @bp.route("/business/<int:business_id>/export")
 def export_reviews(business_id):
     with get_session() as session:
-        business = session.query(Business).get(business_id)
+        business = session.get(Business, business_id)
         if not business:
             return "Business not found", 404
 

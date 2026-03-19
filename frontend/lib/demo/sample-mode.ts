@@ -322,11 +322,11 @@ export const SAMPLE_SCRAPE_LOGS: SeedScrapeLogRecord[] = [
 ];
 
 export const SAMPLE_ALERT_CONFIGS: SeedAlertConfigRecord[] = [
-  { businessKey: 'mountain-view', email: 'owner@mountainviewauto.com', alert_on_negative: true, negative_threshold: -0.3, enabled: true },
-  { businessKey: 'acme', email: 'info@acmecoffee.com', alert_on_negative: true, negative_threshold: -0.5, enabled: false },
-  { businessKey: 'riverstone', email: 'ops@riverstonehome.com', alert_on_negative: true, negative_threshold: -0.4, enabled: true },
-  { businessKey: 'summit', email: 'team@summitpetclinic.com', alert_on_negative: true, negative_threshold: -0.2, enabled: true },
-  { businessKey: 'bluebird', email: 'hello@bluebirdyoga.com', alert_on_negative: true, negative_threshold: -0.4, enabled: false },
+  { businessKey: 'mountain-view', email: 'owner@mountainviewauto.com', alert_on_negative: true, negative_threshold: 3, enabled: true },
+  { businessKey: 'acme', email: 'info@acmecoffee.com', alert_on_negative: true, negative_threshold: 2, enabled: false },
+  { businessKey: 'riverstone', email: 'ops@riverstonehome.com', alert_on_negative: true, negative_threshold: 3, enabled: true },
+  { businessKey: 'summit', email: 'team@summitpetclinic.com', alert_on_negative: true, negative_threshold: 3, enabled: true },
+  { businessKey: 'bluebird', email: 'hello@bluebirdyoga.com', alert_on_negative: true, negative_threshold: 4, enabled: false },
 ];
 
 export const SAMPLE_API_CONFIGS: SeedApiConfigRecord[] = [

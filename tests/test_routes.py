@@ -339,6 +339,18 @@ class TestApiCreateAlert:
             assert response.status_code == 400
             assert "exists" in response.json["error"].lower()
 
+    def test_rejects_threshold_outside_star_range(self, app_with_business):
+        """Should reject impossible alert thresholds."""
+        app, business_id = app_with_business
+        with app.test_client() as client:
+            response = client.post(
+                f"/api/business/{business_id}/alerts",
+                json={"email": "bad-threshold@example.com", "negative_threshold": 0.3},
+                content_type="application/json",
+            )
+            assert response.status_code == 400
+            assert "between 1 and 5" in response.json["error"].lower()
+
 
 class TestApiUpdateAlert:
     """Tests for PUT /api/alerts/<id>."""
@@ -368,6 +380,25 @@ class TestApiUpdateAlert:
             )
             assert response.status_code == 200
             assert response.json["success"] is True
+
+    def test_rejects_invalid_threshold(self, app_with_business):
+        """Should reject update when threshold is outside supported range."""
+        app, business_id = app_with_business
+        with app.test_client() as client:
+            create_response = client.post(
+                f"/api/business/{business_id}/alerts",
+                json={"email": "update-threshold@example.com"},
+                content_type="application/json",
+            )
+            alert_id = create_response.json["alert"]["id"]
+
+            response = client.put(
+                f"/api/alerts/{alert_id}",
+                json={"negative_threshold": 8},
+                content_type="application/json",
+            )
+            assert response.status_code == 400
+            assert "between 1 and 5" in response.json["error"].lower()
 
 
 class TestApiDeleteAlert:

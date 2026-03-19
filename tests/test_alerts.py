@@ -106,6 +106,24 @@ class TestFormatReviewAlert:
 
         assert "No text provided" in body
 
+    def test_escapes_html_in_dynamic_fields(self):
+        """Should escape dynamic HTML content in email body."""
+        _, body = format_review_alert(
+            business_name="<Acme>",
+            source="trustpilot<script>",
+            rating=1.0,
+            sentiment_label="negative",
+            text="<script>alert(1)</script>",
+            author="O'Hara <b>Test</b>",
+        )
+
+        assert "&lt;Acme&gt;" in body
+        assert "&lt;script&gt;alert(1)&lt;/script&gt;" in body
+        assert "Trustpilot" in body
+        assert "&lt;Script&gt;" in body
+        assert "O&#x27;Hara &lt;b&gt;Test&lt;/b&gt;" in body
+        assert "<script>alert(1)</script>" not in body
+
 
 class TestSendAlert:
     """Tests for send_alert function."""

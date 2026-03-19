@@ -106,7 +106,7 @@ class TestScrapeCommand:
         """Should show error for non-existent business."""
         mock_session = MagicMock()
         mock_get_session.return_value.__enter__.return_value = mock_session
-        mock_session.query.return_value.get.return_value = None
+        mock_session.get.return_value = None
         mock_session.query.return_value.filter.return_value.first.return_value = None
 
         result = runner.invoke(cli, ["scrape", "999"])
@@ -123,7 +123,7 @@ class TestScrapeCommand:
 
         mock_business = MagicMock()
         mock_business.name = "Test Business"
-        mock_session.query.return_value.get.return_value = mock_business
+        mock_session.get.return_value = mock_business
 
         result = runner.invoke(cli, ["scrape", "1"])
 
@@ -139,7 +139,7 @@ class TestReviewsCommand:
         """Should show error for non-existent business."""
         mock_session = MagicMock()
         mock_get_session.return_value.__enter__.return_value = mock_session
-        mock_session.query.return_value.get.return_value = None
+        mock_session.get.return_value = None
 
         result = runner.invoke(cli, ["reviews", "999"])
 
@@ -154,7 +154,7 @@ class TestReviewsCommand:
 
         mock_business = MagicMock()
         mock_business.name = "Test Business"
-        mock_session.query.return_value.get.return_value = mock_business
+        mock_session.get.return_value = mock_business
 
         # Empty reviews
         (
@@ -174,7 +174,7 @@ class TestReviewsCommand:
 
         mock_business = MagicMock()
         mock_business.name = "Test Business"
-        mock_session.query.return_value.get.return_value = mock_business
+        mock_session.get.return_value = mock_business
 
         mock_review = MagicMock()
         mock_review.source = "trustpilot"
@@ -205,7 +205,7 @@ class TestStatsCommand:
         """Should show error for non-existent business."""
         mock_session = MagicMock()
         mock_get_session.return_value.__enter__.return_value = mock_session
-        mock_session.query.return_value.get.return_value = None
+        mock_session.get.return_value = None
 
         result = runner.invoke(cli, ["stats", "999"])
 
@@ -221,7 +221,7 @@ class TestStatsCommand:
 
         mock_business = MagicMock()
         mock_business.name = "Test Business"
-        mock_session.query.return_value.get.return_value = mock_business
+        mock_session.get.return_value = mock_business
         mock_session.query.return_value.filter.return_value.all.return_value = [MagicMock()]
 
         mock_stats.return_value = {
@@ -250,7 +250,7 @@ class TestExportCommand:
         """Should show error for non-existent business."""
         mock_session = MagicMock()
         mock_get_session.return_value.__enter__.return_value = mock_session
-        mock_session.query.return_value.get.return_value = None
+        mock_session.get.return_value = None
 
         result = runner.invoke(cli, ["export", "999"])
 
@@ -265,7 +265,7 @@ class TestExportCommand:
 
         mock_business = MagicMock()
         mock_business.name = "Test Business"
-        mock_session.query.return_value.get.return_value = mock_business
+        mock_session.get.return_value = mock_business
 
         mock_review = MagicMock()
         mock_review.source = "trustpilot"
@@ -332,7 +332,7 @@ class TestAlertCommand:
         """Should show error for non-existent business."""
         mock_session = MagicMock()
         mock_get_session.return_value.__enter__.return_value = mock_session
-        mock_session.query.return_value.get.return_value = None
+        mock_session.get.return_value = None
 
         result = runner.invoke(cli, ["alert", "999", "test@example.com"])
 
@@ -347,13 +347,20 @@ class TestAlertCommand:
 
         mock_business = MagicMock()
         mock_business.name = "Test Business"
-        mock_session.query.return_value.get.return_value = mock_business
+        mock_session.get.return_value = mock_business
         mock_session.query.return_value.filter.return_value.first.return_value = None
 
         result = runner.invoke(cli, ["alert", "1", "test@example.com"])
 
         assert result.exit_code == 0
         assert "created" in result.output.lower() or "configured" in result.output.lower()
+
+    def test_rejects_threshold_outside_star_range(self, runner):
+        """Should reject impossible alert thresholds before touching the DB."""
+        result = runner.invoke(cli, ["alert", "1", "test@example.com", "--threshold", "0.3"])
+
+        assert result.exit_code == 0
+        assert "between 1 and 5" in result.output.lower()
 
 
 class TestHelperFunctions:
@@ -459,7 +466,7 @@ class TestScrapeByName:
         mock_business = MagicMock()
         mock_business.name = "Pizza Palace"
         # int() will raise ValueError for non-numeric string, triggering name search
-        mock_session.query.return_value.get.side_effect = None
+        mock_session.get.side_effect = None
         mock_session.query.return_value.filter.return_value.first.return_value = mock_business
 
         result = runner.invoke(cli, ["scrape", "Pizza Palace"])
@@ -479,7 +486,7 @@ class TestStatsNoReviews:
 
         mock_business = MagicMock()
         mock_business.name = "Empty Business"
-        mock_session.query.return_value.get.return_value = mock_business
+        mock_session.get.return_value = mock_business
         mock_session.query.return_value.filter.return_value.all.return_value = []
 
         result = runner.invoke(cli, ["stats", "1"])
@@ -499,7 +506,7 @@ class TestExportAutoPath:
 
         mock_business = MagicMock()
         mock_business.name = "Test Business"
-        mock_session.query.return_value.get.return_value = mock_business
+        mock_session.get.return_value = mock_business
 
         mock_review = MagicMock()
         mock_review.source = "trustpilot"
@@ -526,7 +533,7 @@ class TestExportAutoPath:
 
         mock_business = MagicMock()
         mock_business.name = "Empty Business"
-        mock_session.query.return_value.get.return_value = mock_business
+        mock_session.get.return_value = mock_business
         mock_session.query.return_value.filter.return_value.all.return_value = []
 
         result = runner.invoke(cli, ["export", "1"])
@@ -546,7 +553,7 @@ class TestAlertUpdateAndDisable:
 
         mock_business = MagicMock()
         mock_business.name = "Test Business"
-        mock_session.query.return_value.get.return_value = mock_business
+        mock_session.get.return_value = mock_business
 
         mock_existing = MagicMock()
         mock_session.query.return_value.filter.return_value.first.return_value = mock_existing
@@ -564,7 +571,7 @@ class TestAlertUpdateAndDisable:
 
         mock_business = MagicMock()
         mock_business.name = "Test Business"
-        mock_session.query.return_value.get.return_value = mock_business
+        mock_session.get.return_value = mock_business
         mock_session.query.return_value.filter.return_value.first.return_value = None
 
         result = runner.invoke(cli, ["alert", "1", "test@example.com", "--disable"])
@@ -580,7 +587,7 @@ class TestAlertUpdateAndDisable:
 
         mock_business = MagicMock()
         mock_business.name = "Test Business"
-        mock_session.query.return_value.get.return_value = mock_business
+        mock_session.get.return_value = mock_business
 
         mock_existing = MagicMock()
         mock_session.query.return_value.filter.return_value.first.return_value = mock_existing
