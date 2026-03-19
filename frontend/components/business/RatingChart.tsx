@@ -1,5 +1,5 @@
 'use client';
-import { useEffect, useState, useRef } from 'react';
+import { useEffect, useMemo, useState, useRef, useSyncExternalStore } from 'react';
 import { Line } from 'react-chartjs-2';
 import {
   Chart as ChartJS,
@@ -41,6 +41,19 @@ function getChartColors() {
   };
 }
 
+function subscribeToTheme(callback: () => void) {
+  const observer = new MutationObserver(callback);
+  observer.observe(document.documentElement, {
+    attributes: true,
+    attributeFilter: ['class'],
+  });
+  return () => observer.disconnect();
+}
+
+function getThemeSnapshot() {
+  return document.documentElement.className;
+}
+
 interface RatingChartProps {
   businessId: number;
 }
@@ -49,8 +62,14 @@ export function RatingChart({ businessId }: RatingChartProps) {
   const storage = useStorage();
   const [chartData, setChartData] = useState<ChartData | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [colors, setColors] = useState<ReturnType<typeof getChartColors> | null>(null);
   const chartRef = useRef<ChartJS<'line'> | null>(null);
+
+  const themeSnapshot = useSyncExternalStore(subscribeToTheme, getThemeSnapshot, () => '');
+  const colors = useMemo(
+    () => (typeof document === 'undefined' ? null : getChartColors()),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [themeSnapshot],
+  );
 
   useEffect(() => {
     storage.getChartData(businessId)
@@ -60,18 +79,6 @@ export function RatingChart({ businessId }: RatingChartProps) {
         setError('Could not load rating history.');
       });
   }, [businessId, storage]);
-
-  useEffect(() => {
-    setColors(getChartColors());
-    const observer = new MutationObserver(() => {
-      setColors(getChartColors());
-    });
-    observer.observe(document.documentElement, {
-      attributes: true,
-      attributeFilter: ['class'],
-    });
-    return () => observer.disconnect();
-  }, []);
 
   if (error) {
     return (

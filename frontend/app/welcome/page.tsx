@@ -1,5 +1,4 @@
-import Link from 'next/link';
-import { ArrowRight, ExternalLink } from 'lucide-react';
+import { ExternalLink } from 'lucide-react';
 import { LightboxImage } from '@/components/welcome/Lightbox';
 import { HeroVideo } from '@/components/welcome/HeroVideo';
 import { Button } from '@/components/ui/button';

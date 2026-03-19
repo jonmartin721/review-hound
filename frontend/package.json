@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "concurrently -n flask,next -c magenta,cyan \"..\\.venv\\Scripts\\python -m reviewhound web\" \"next dev\"",
+    "dev": "concurrently -n flask,next -c magenta,cyan \"python -m reviewhound web\" \"next dev\"",
     "dev:next": "next dev",
     "dev:demo": "cross-env NEXT_PUBLIC_DEMO_MODE=true next dev",
     "build": "next build",

@@ -11,7 +11,7 @@ import { clearLocalWorkspace, getWorkspaceMode, setWorkspaceMode, type Workspace
 import { seedDemoData } from '@/lib/db/seed';
 
 export function WorkspaceSelector() {
-  const [mode, setMode] = useState<WorkspaceMode>(getWorkspaceMode);
+  const [mode] = useState<WorkspaceMode>(getWorkspaceMode);
 
   async function handleStartEmpty() {
     try {
