@@ -1,4 +1,15 @@
 {
   "private": true,
-  "workspaces": ["frontend"]
+  "workspaces": ["frontend"],
+  "scripts": {
+    "dev": "npm run dev -w frontend",
+    "dev:demo": "npm run dev:demo -w frontend",
+    "build": "npm run build -w frontend",
+    "start": "npm run start -w frontend",
+    "test": "npm run test -w frontend",
+    "test:unit": "npm run test:unit -w frontend",
+    "test:e2e": "npm run test:e2e -w frontend",
+    "lint": "npm run lint -w frontend",
+    "screenshots": "npm run screenshots:readme -w frontend"
+  }
 }

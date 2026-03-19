@@ -1,9 +1,24 @@
 'use client';
 import { useState, useEffect } from 'react';
-import { Modal } from '@/components/ui/Modal';
-import { Button } from '@/components/ui/Button';
-import { Input } from '@/components/ui/Input';
-import { Select } from '@/components/ui/Select';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import { Switch } from '@/components/ui/switch';
+import { cn } from '@/lib/utils';
 import { useStorage } from '@/lib/storage/hooks';
 import type { AlertConfig } from '@/lib/storage/types';
 
@@ -62,7 +77,8 @@ export function AlertModal({
 
       onSaved();
       onClose();
-    } catch {
+    } catch (err) {
+      console.error('Failed to save alert:', err);
       setError('Failed to save alert. Please try again.');
     } finally {
       setSaving(false);
@@ -70,65 +86,71 @@ export function AlertModal({
   }
 
   return (
-    <Modal
-      isOpen={isOpen}
-      onClose={onClose}
-      title={editingAlert ? 'Edit Alert' : 'Add Alert'}
-    >
-      <form onSubmit={handleSubmit}>
-        <div className="space-y-4">
-          <Input
-            label="Email Address *"
-            type="email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            required
-            readOnly={!!editingAlert}
-            className={editingAlert ? 'opacity-70 cursor-not-allowed' : ''}
-          />
+    <Dialog open={isOpen} onOpenChange={(open) => { if (!open) onClose(); }}>
+      <DialogContent className="sm:max-w-md">
+        <DialogHeader>
+          <DialogTitle>{editingAlert ? 'Edit Alert' : 'Add Alert'}</DialogTitle>
+          <DialogDescription>
+            Configure an email notification when new reviews fall at or below a rating threshold.
+          </DialogDescription>
+        </DialogHeader>
+        <form onSubmit={handleSubmit}>
+          <div className="space-y-4">
+            <div>
+              <Label htmlFor="alert-email">Email Address *</Label>
+              <Input
+                id="alert-email"
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
+                readOnly={!!editingAlert}
+                className={cn("mt-1.5", editingAlert && "opacity-70 cursor-not-allowed")}
+              />
+            </div>
 
-          <div>
-            <Select
-              label="Rating Threshold"
-              value={threshold}
-              onChange={(e) => setThreshold(e.target.value)}
-              className="w-full"
-            >
-              <option value="1">1 star</option>
-              <option value="2">2 stars</option>
-              <option value="3">3 stars</option>
-              <option value="4">4 stars</option>
-            </Select>
-            <p className="text-xs text-[var(--text-muted)] mt-1.5">
-              Alert when rating is at or below this value
-            </p>
+            <div>
+              <Label>Rating Threshold</Label>
+              <Select value={threshold} onValueChange={setThreshold}>
+                <SelectTrigger className="mt-1.5 w-full">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="1">1 star</SelectItem>
+                  <SelectItem value="2">2 stars</SelectItem>
+                  <SelectItem value="3">3 stars</SelectItem>
+                  <SelectItem value="4">4 stars</SelectItem>
+                </SelectContent>
+              </Select>
+              <p className="text-xs text-muted-foreground mt-1.5">
+                Alert when rating is at or below this value
+              </p>
+            </div>
+
+            <div className="flex items-center gap-2">
+              <Switch
+                id="alertEnabled"
+                checked={enabled}
+                onCheckedChange={setEnabled}
+              />
+              <Label htmlFor="alertEnabled" className="text-sm text-muted-foreground font-normal">
+                Enabled
+              </Label>
+            </div>
+
+            {error && <p className="text-sm text-negative">{error}</p>}
           </div>
 
-          <div className="flex items-center gap-2">
-            <input
-              type="checkbox"
-              id="alertEnabled"
-              checked={enabled}
-              onChange={(e) => setEnabled(e.target.checked)}
-              className="rounded-none text-[var(--accent)] w-4 h-4"
-            />
-            <label htmlFor="alertEnabled" className="text-sm text-[var(--text-secondary)]">
-              Enabled
-            </label>
+          <div className="flex justify-end gap-3 mt-6">
+            <Button type="button" variant="outline" onClick={onClose}>
+              Cancel
+            </Button>
+            <Button type="submit" disabled={saving}>
+              {saving ? 'Saving...' : 'Save'}
+            </Button>
           </div>
-
-          {error && <p className="text-sm text-[var(--negative)]">{error}</p>}
-        </div>
-
-        <div className="flex justify-end gap-3 mt-6">
-          <Button type="button" variant="secondary" onClick={onClose}>
-            Cancel
-          </Button>
-          <Button type="submit" variant="primary" loading={saving}>
-            Save
-          </Button>
-        </div>
-      </form>
-    </Modal>
+        </form>
+      </DialogContent>
+    </Dialog>
   );
 }

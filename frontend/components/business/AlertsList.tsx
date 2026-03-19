@@ -1,6 +1,18 @@
 'use client';
 import { useEffect, useState } from 'react';
-import { Button } from '@/components/ui/Button';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent } from '@/components/ui/card';
+import {
+  AlertDialog,
+  AlertDialogContent,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogCancel,
+  AlertDialogAction,
+} from '@/components/ui/alert-dialog';
+import { cn } from '@/lib/utils';
 import { useStorage } from '@/lib/storage/hooks';
 import type { AlertConfig } from '@/lib/storage/types';
 
@@ -16,6 +28,8 @@ export function AlertsList({ businessId, onAdd, onEdit, refreshKey }: AlertsList
   const [alerts, setAlerts] = useState<AlertConfig[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [deleteError, setDeleteError] = useState<string | null>(null);
+  const [confirmDeleteId, setConfirmDeleteId] = useState<number | null>(null);
 
   const fetchKey = `${businessId}-${refreshKey}`;
   const [prevFetchKey, setPrevFetchKey] = useState(fetchKey);
@@ -38,77 +52,102 @@ export function AlertsList({ businessId, onAdd, onEdit, refreshKey }: AlertsList
       .finally(() => setLoading(false));
   }, [businessId, storage, refreshKey]);
 
-  async function handleDelete(alertId: number) {
-    if (!confirm('Delete this alert?')) return;
+  async function handleDelete() {
+    if (confirmDeleteId === null) return;
     try {
-      await storage.deleteAlert(alertId);
-      setAlerts((prev) => prev.filter((a) => a.id !== alertId));
+      await storage.deleteAlert(confirmDeleteId);
+      setAlerts((prev) => prev.filter((a) => a.id !== confirmDeleteId));
+      setDeleteError(null);
     } catch (err) {
       console.error('Failed to delete alert:', err);
-      alert('Error deleting alert');
+      setDeleteError('Failed to delete alert.');
+    } finally {
+      setConfirmDeleteId(null);
     }
   }
 
   return (
-    <div className="panel-shell rounded-none p-6 mt-6">
-      <div className="flex justify-between items-center mb-4">
-        <h2 className="text-lg font-semibold text-[var(--text-primary)]">Email Alerts</h2>
-        <Button variant="primary" className="text-sm px-3 py-1.5" onClick={onAdd}>
-          + Add Alert
-        </Button>
-      </div>
-      <p className="text-sm text-[var(--text-muted)] mb-4">
-        Get notified when negative reviews are detected.
-      </p>
-
-      {loading ? (
-        <p className="text-[var(--text-muted)] text-center py-4">Loading alerts...</p>
-      ) : error ? (
-        <p className="text-[var(--negative)] text-center py-4">{error}</p>
-      ) : alerts.length === 0 ? (
-        <p className="text-[var(--text-muted)] text-center py-4">
-          No alerts configured. Click &quot;+ Add Alert&quot; to get notified about negative reviews.
-        </p>
-      ) : (
-        <div>
-          {alerts.map((alert) => (
-            <div
-              key={alert.id}
-              className="flex justify-between items-center py-3 border-b border-[var(--border)] last:border-b-0"
-            >
-              <div className="flex items-center gap-2 flex-wrap">
-                <span className="font-medium text-[var(--text-primary)]">{alert.email}</span>
-                <span className="text-sm text-[var(--text-muted)]">
-                  Alert on ≤{alert.negative_threshold}★
-                </span>
-                <span
-                  className={`px-2 py-0.5 text-xs rounded-none ${
-                    alert.enabled
-                      ? 'bg-(--positive)/10 text-[var(--positive)]'
-                      : 'bg-[var(--bg-elevated)] text-[var(--text-muted)]'
-                  }`}
-                >
-                  {alert.enabled ? 'Active' : 'Disabled'}
-                </span>
-              </div>
-              <div className="flex gap-3">
-                <button
-                  onClick={() => onEdit(alert)}
-                  className="accent-link text-sm font-medium"
-                >
-                  Edit
-                </button>
-                <button
-                  onClick={() => handleDelete(alert.id)}
-                  className="text-[var(--negative)] hover:opacity-80 transition-opacity text-sm font-medium"
-                >
-                  Delete
-                </button>
-              </div>
-            </div>
-          ))}
+    <>
+      <Card className="mt-6"><CardContent>
+        <div className="flex justify-between items-center mb-4">
+          <h2 className="text-lg font-semibold text-foreground">Email Alerts</h2>
+          <Button variant="default" size="sm" onClick={onAdd}>
+            + Add Alert
+          </Button>
         </div>
-      )}
-    </div>
+        <p className="text-sm text-muted-foreground mb-4">
+          Get notified when negative reviews are detected.
+        </p>
+
+        {deleteError && (
+          <p className="text-negative text-sm mb-4">{deleteError}</p>
+        )}
+
+        {loading ? (
+          <p className="text-muted-foreground text-center py-4">Loading alerts...</p>
+        ) : error ? (
+          <p className="text-negative text-center py-4">{error}</p>
+        ) : alerts.length === 0 ? (
+          <p className="text-muted-foreground text-center py-4">
+            No alerts configured. Click &quot;+ Add Alert&quot; to get notified about negative reviews.
+          </p>
+        ) : (
+          <div>
+            {alerts.map((alert) => (
+              <div
+                key={alert.id}
+                className="flex justify-between items-center py-3 border-b border-border last:border-b-0"
+              >
+                <div className="flex items-center gap-2 flex-wrap">
+                  <span className="font-medium text-foreground">{alert.email}</span>
+                  <span className="text-sm text-muted-foreground">
+                    Alert on ≤{alert.negative_threshold}★
+                  </span>
+                  <span
+                    className={cn(
+                      "px-2 py-0.5 text-xs rounded-lg",
+                      alert.enabled
+                        ? "bg-positive/10 text-positive"
+                        : "bg-muted text-muted-foreground"
+                    )}
+                  >
+                    {alert.enabled ? 'Active' : 'Disabled'}
+                  </span>
+                </div>
+                <div className="flex gap-3">
+                  <button
+                    onClick={() => onEdit(alert)}
+                    className="text-primary hover:text-primary/80 transition text-sm font-medium cursor-pointer"
+                  >
+                    Edit
+                  </button>
+                  <button
+                    onClick={() => setConfirmDeleteId(alert.id)}
+                    className="text-negative hover:opacity-80 transition-opacity text-sm font-medium cursor-pointer"
+                  >
+                    Delete
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </CardContent></Card>
+
+      <AlertDialog open={confirmDeleteId !== null} onOpenChange={(open) => { if (!open) setConfirmDeleteId(null); }}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete alert?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This will permanently remove this alert configuration. This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={handleDelete} variant="destructive">Delete</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </>
   );
 }

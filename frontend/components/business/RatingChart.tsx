@@ -1,5 +1,5 @@
 'use client';
-import { useEffect, useState, useRef } from 'react';
+import { useEffect, useMemo, useState, useRef, useSyncExternalStore } from 'react';
 import { Line } from 'react-chartjs-2';
 import {
   Chart as ChartJS,
@@ -15,18 +15,43 @@ import type { ChartData } from '@/lib/storage/types';
 
 ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Filler, Tooltip);
 
-function getCssVar(name: string) {
-  return getComputedStyle(document.documentElement).getPropertyValue(name).trim();
+/** Resolve a CSS color value (including oklch) to an rgb() string Canvas2D can use. */
+function resolveColor(value: string): string {
+  const el = document.createElement('div');
+  el.style.color = value;
+  document.body.appendChild(el);
+  const resolved = getComputedStyle(el).color;
+  document.body.removeChild(el);
+  return resolved;
 }
 
 function getChartColors() {
-  const accent = getCssVar('--accent');
+  const style = getComputedStyle(document.documentElement);
+  const borderColor = resolveColor(style.getPropertyValue('--chart-1').trim());
+  // Build a transparent variant from the resolved rgb value
+  const match = borderColor.match(/^rgb\((\d+),\s*(\d+),\s*(\d+)\)$/);
+  const backgroundColor = match
+    ? `rgba(${match[1]}, ${match[2]}, ${match[3]}, 0.25)`
+    : borderColor;
   return {
-    borderColor: accent,
-    backgroundColor: accent + '26',
-    gridColor: getCssVar('--border'),
-    textColor: getCssVar('--text-secondary'),
+    borderColor,
+    backgroundColor,
+    gridColor: resolveColor(style.getPropertyValue('--border').trim()),
+    textColor: resolveColor(style.getPropertyValue('--muted-foreground').trim()),
   };
+}
+
+function subscribeToTheme(callback: () => void) {
+  const observer = new MutationObserver(callback);
+  observer.observe(document.documentElement, {
+    attributes: true,
+    attributeFilter: ['class'],
+  });
+  return () => observer.disconnect();
+}
+
+function getThemeSnapshot() {
+  return document.documentElement.className;
 }
 
 interface RatingChartProps {
@@ -37,17 +62,14 @@ export function RatingChart({ businessId }: RatingChartProps) {
   const storage = useStorage();
   const [chartData, setChartData] = useState<ChartData | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [colors, setColors] = useState(() =>
-    typeof window !== 'undefined'
-      ? getChartColors()
-      : {
-          borderColor: '#E5A84B',
-          backgroundColor: 'rgba(229, 168, 75, 0.15)',
-          gridColor: '#2A2A2A',
-          textColor: '#8A8A8A',
-        }
-  );
   const chartRef = useRef<ChartJS<'line'> | null>(null);
+
+  const themeSnapshot = useSyncExternalStore(subscribeToTheme, getThemeSnapshot, () => '');
+  const colors = useMemo(
+    () => (typeof document === 'undefined' ? null : getChartColors()),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [themeSnapshot],
+  );
 
   useEffect(() => {
     storage.getChartData(businessId)
@@ -58,28 +80,17 @@ export function RatingChart({ businessId }: RatingChartProps) {
       });
   }, [businessId, storage]);
 
-  useEffect(() => {
-    const observer = new MutationObserver(() => {
-      setColors(getChartColors());
-    });
-    observer.observe(document.documentElement, {
-      attributes: true,
-      attributeFilter: ['class'],
-    });
-    return () => observer.disconnect();
-  }, []);
-
   if (error) {
     return (
-      <div className="h-32 flex items-center justify-center text-[var(--text-muted)]">
+      <div className="h-32 flex items-center justify-center text-muted-foreground">
         {error}
       </div>
     );
   }
 
-  if (!chartData) {
+  if (!chartData || !colors) {
     return (
-      <div className="h-32 flex items-center justify-center text-[var(--text-muted)]">
+      <div className="h-32 flex items-center justify-center text-muted-foreground">
         Loading chart...
       </div>
     );

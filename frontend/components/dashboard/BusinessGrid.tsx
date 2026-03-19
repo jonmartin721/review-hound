@@ -3,6 +3,9 @@
 import type { BusinessWithStats } from '@/lib/storage/types';
 import { BusinessCard } from './BusinessCard';
 import { IS_PORTFOLIO_MODE } from '@/lib/portfolio';
+import { Card } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Building2, Plus } from 'lucide-react';
 
 interface BusinessGridProps {
   businesses: BusinessWithStats[];
@@ -14,30 +17,23 @@ interface BusinessGridProps {
 export function BusinessGrid({ businesses, onEdit, onDelete, onAddBusiness }: BusinessGridProps) {
   if (businesses.length === 0) {
     return (
-      <div className="panel-shell rounded-none p-12 text-center">
-        <div className="mx-auto w-16 h-16 bg-[var(--bg-elevated)] rounded-none flex items-center justify-center mb-4">
-          <svg className="w-8 h-8 text-[var(--text-muted)]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
-          </svg>
+      <Card className="p-12 text-center items-center">
+        <div className="mx-auto w-16 h-16 bg-muted rounded-lg flex items-center justify-center mb-4">
+          <Building2 className="w-8 h-8 text-muted-foreground" />
         </div>
-        <p className="text-[var(--text-primary)] font-medium text-lg">No businesses tracked yet</p>
-        <p className="text-[var(--text-muted)] mt-1">
+        <p className="text-foreground font-medium text-lg">No businesses tracked yet</p>
+        <p className="text-muted-foreground mt-1">
           {IS_PORTFOLIO_MODE
             ? 'Start a local workspace in this browser, then add sources to scrape reviews or clone the full app for always-on monitoring.'
             : 'Get started by adding your first business to track reviews.'}
         </p>
         {onAddBusiness && (
-          <button
-            onClick={onAddBusiness}
-            className="mt-6 bg-[var(--accent)] text-[var(--accent-contrast)] px-5 py-2.5 rounded-none hover:brightness-105 transition font-medium inline-flex items-center gap-2"
-          >
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-            </svg>
+          <Button onClick={onAddBusiness} className="mt-6">
+            <Plus />
             Add Business
-          </button>
+          </Button>
         )}
-      </div>
+      </Card>
     );
   }
 

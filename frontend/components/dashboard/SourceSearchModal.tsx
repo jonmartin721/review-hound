@@ -1,8 +1,16 @@
 'use client';
 
 import { useState } from 'react';
-import { Modal } from '@/components/ui/Modal';
-import { Button } from '@/components/ui/Button';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { cn } from '@/lib/utils';
 import { Spinner } from '@/components/ui/Spinner';
 import type { SearchResult } from '@/lib/storage/types';
 
@@ -45,18 +53,18 @@ function SourceSection({ source, label, dotColor, results, isLoading, selectedUr
 
   return (
     <div className="mb-6">
-      <h3 className="font-semibold text-[var(--text-primary)] mb-2 flex items-center">
-        <span className={`w-3 h-3 ${dotColor} rounded-full mr-2`} />
+      <h3 className="font-semibold text-foreground mb-2 flex items-center">
+        <span className={cn("w-3 h-3 rounded-full mr-2", dotColor)} />
         {label}
       </h3>
-      <div className="border border-[var(--border)] rounded-none p-3 bg-[var(--bg-elevated)]">
+      <div className="border border-border rounded-lg p-3 bg-muted">
         {isLoading ? (
-          <div className="text-center text-[var(--text-muted)] py-4 flex items-center justify-center gap-2">
+          <div className="text-center text-muted-foreground py-4 flex items-center justify-center gap-2">
             <Spinner size="sm" />
             <span>Searching...</span>
           </div>
         ) : results.length === 0 ? (
-          <p className="text-[var(--text-muted)] py-2">No results found.</p>
+          <p className="text-muted-foreground py-2">No results found.</p>
         ) : (
           <div className="space-y-2">
             {results.map((result, index) => {
@@ -65,7 +73,7 @@ function SourceSection({ source, label, dotColor, results, isLoading, selectedUr
               return (
                 <label
                   key={index}
-                  className="flex items-start p-2 rounded-none hover:bg-[var(--bg-surface-hover)] cursor-pointer"
+                  className="flex items-start p-2 rounded-lg hover:bg-accent cursor-pointer transition"
                 >
                   <input
                     type="radio"
@@ -73,20 +81,20 @@ function SourceSection({ source, label, dotColor, results, isLoading, selectedUr
                     value={result.url}
                     checked={selectedUrl === result.url && !manualUrl}
                     onChange={() => handleRadioChange(result.url)}
-                    className="mt-1 mr-3"
+                    className="mt-1 mr-3 accent-primary cursor-pointer"
                   />
                   <div className="flex-1">
-                    <div className="font-medium text-[var(--text-primary)]">{result.name}</div>
+                    <div className="font-medium text-foreground">{result.name}</div>
                     {result.address && (
-                      <div className="text-sm text-[var(--text-muted)]">{result.address}</div>
+                      <div className="text-sm text-muted-foreground">{result.address}</div>
                     )}
                     {result.rating != null && (
                       <div className="text-sm">
-                        <span className="rating-stars">
+                        <span className="text-primary">
                           {'★'.repeat(filledStars)}{'☆'.repeat(emptyStars)}
                         </span>
                         {' '}
-                        <span className="text-[var(--text-secondary)]">
+                        <span className="text-muted-foreground">
                           {result.rating.toFixed(1)}
                           {result.review_count ? ` (${result.review_count} reviews)` : ''}
                         </span>
@@ -100,22 +108,21 @@ function SourceSection({ source, label, dotColor, results, isLoading, selectedUr
         )}
 
         {/* Manual URL entry */}
-        <div className="mt-3 pt-3 border-t border-[var(--border)]">
+        <div className="mt-3 pt-3 border-t border-border">
           <button
             type="button"
             onClick={() => setShowManual((v) => !v)}
-            className="accent-link text-sm"
+            className="text-primary hover:text-primary/80 transition text-sm cursor-pointer"
           >
             Enter URL manually
           </button>
           {showManual && (
             <div className="mt-2">
-              <input
+              <Input
                 type="url"
                 value={manualUrl}
                 onChange={(e) => handleManualChange(e.target.value)}
                 placeholder="https://..."
-                className="w-full border border-[var(--border)] bg-[var(--bg-surface)] text-[var(--text-primary)] rounded-none px-3 py-2 text-sm focus:ring-2 focus:ring-[var(--accent)] focus:outline-none"
               />
             </div>
           )}
@@ -149,53 +156,56 @@ export function SourceSearchModal({
   };
 
   return (
-    <Modal
-      isOpen={isOpen}
-      onClose={onClose}
-      title={`Find Review Sources for "${businessName}"`}
-      maxWidth="max-w-2xl"
-    >
-      <p className="text-[var(--text-muted)] mb-4">Select the correct business listing from each platform, or enter URLs manually.</p>
+    <Dialog open={isOpen} onOpenChange={(open) => { if (!open) onClose(); }}>
+      <DialogContent className="sm:max-w-2xl">
+        <DialogHeader>
+          <DialogTitle>Find Review Sources for &quot;{businessName}&quot;</DialogTitle>
+          <DialogDescription>
+            Select the correct business listing from each platform, or enter URLs manually.
+          </DialogDescription>
+        </DialogHeader>
 
-      {searchError && (
-        <p className="text-sm text-[var(--negative)] mb-4">{searchError}</p>
-      )}
+        {searchError && (
+          <p className="text-sm text-destructive">{searchError}</p>
+        )}
 
-      <div className="overflow-y-auto max-h-[60vh] pr-1">
-        <SourceSection
-          source="trustpilot"
-          label="TrustPilot"
-          dotColor="bg-[var(--positive)]"
-          results={trustpilotResults}
-          isLoading={isLoading}
-          selectedUrl={trustpilotUrl}
-          onSelect={setTrustpilotUrl}
-        />
-        <SourceSection
-          source="bbb"
-          label="BBB"
-          dotColor="bg-[var(--accent)]"
-          results={bbbResults}
-          isLoading={isLoading}
-          selectedUrl={bbbUrl}
-          onSelect={setBbbUrl}
-        />
-      </div>
+        <div className="overflow-y-auto max-h-[60vh] pr-1">
+          <SourceSection
+            source="trustpilot"
+            label="TrustPilot"
+            dotColor="bg-positive"
+            results={trustpilotResults}
+            isLoading={isLoading}
+            selectedUrl={trustpilotUrl}
+            onSelect={setTrustpilotUrl}
+          />
+          <SourceSection
+            source="bbb"
+            label="BBB"
+            dotColor="bg-primary"
+            results={bbbResults}
+            isLoading={isLoading}
+            selectedUrl={bbbUrl}
+            onSelect={setBbbUrl}
+          />
+        </div>
 
-      {saveError && (
-        <p className="text-sm text-[var(--negative)] mt-4">{saveError}</p>
-      )}
+        {saveError && (
+          <p className="text-sm text-destructive mt-2">{saveError}</p>
+        )}
 
-      <div className="flex justify-end gap-3 mt-6 border-t border-[var(--border)] pt-4">
-        <Button variant="secondary" onClick={handleSkip} disabled={isSaving}>
-          Skip for now
-        </Button>
-        <Button onClick={handleSave} loading={isSaving}>
-          {isSaving
-            ? (trustpilotUrl || bbbUrl ? 'Saving & scraping reviews...' : 'Saving...')
-            : 'Save Business'}
-        </Button>
-      </div>
-    </Modal>
+        <div className="flex justify-end gap-3 border-t border-border pt-4">
+          <Button variant="outline" onClick={handleSkip} disabled={isSaving}>
+            Skip for now
+          </Button>
+          <Button onClick={handleSave} disabled={isSaving}>
+            {isSaving && <Spinner size="sm" className="mr-1" />}
+            {isSaving
+              ? (trustpilotUrl || bbbUrl ? 'Saving & scraping reviews...' : 'Saving...')
+              : 'Save Business'}
+          </Button>
+        </div>
+      </DialogContent>
+    </Dialog>
   );
 }

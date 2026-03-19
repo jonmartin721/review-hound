@@ -1,8 +1,17 @@
 'use client';
 
 import { useState } from 'react';
-import { Select } from '@/components/ui/Select';
-import { Button } from '@/components/ui/Button';
+import { Download } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent } from '@/components/ui/card';
+import { Label } from '@/components/ui/label';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 
 interface ReviewFiltersProps {
   source: string;
@@ -20,33 +29,41 @@ export function ReviewFilters({ source, sentiment, onFilter, onExport }: ReviewF
   };
 
   return (
-    <div className="bg-[var(--bg-surface)] rounded-none border border-[var(--border)] p-4 mb-6">
+    <Card className="mb-6"><CardContent>
       <div className="flex flex-wrap gap-4 items-end">
-        <Select
-          label="Source"
-          value={localSource}
-          onChange={e => setLocalSource(e.target.value)}
-        >
-          <option value="">All Sources</option>
-          <option value="trustpilot">TrustPilot</option>
-          <option value="bbb">BBB</option>
-          <option value="yelp">Yelp</option>
-          <option value="google_places">Google Places</option>
-          <option value="yelp_api">Yelp API</option>
-        </Select>
+        <div className="flex flex-col gap-1.5">
+          <Label>Source</Label>
+          <Select value={localSource || '__all__'} onValueChange={(v) => setLocalSource(v === '__all__' ? '' : v)}>
+            <SelectTrigger className="w-40">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="__all__">All Sources</SelectItem>
+              <SelectItem value="trustpilot">TrustPilot</SelectItem>
+              <SelectItem value="bbb">BBB</SelectItem>
+              <SelectItem value="yelp">Yelp</SelectItem>
+              <SelectItem value="google_places">Google Places</SelectItem>
+              <SelectItem value="yelp_api">Yelp API</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
 
-        <Select
-          label="Sentiment"
-          value={localSentiment}
-          onChange={e => setLocalSentiment(e.target.value)}
-        >
-          <option value="">All Sentiments</option>
-          <option value="positive">Positive</option>
-          <option value="neutral">Neutral</option>
-          <option value="negative">Negative</option>
-        </Select>
+        <div className="flex flex-col gap-1.5">
+          <Label>Sentiment</Label>
+          <Select value={localSentiment || '__all__'} onValueChange={(v) => setLocalSentiment(v === '__all__' ? '' : v)}>
+            <SelectTrigger className="w-40">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="__all__">All Sentiments</SelectItem>
+              <SelectItem value="positive">Positive</SelectItem>
+              <SelectItem value="neutral">Neutral</SelectItem>
+              <SelectItem value="negative">Negative</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
 
-        <Button variant="primary" onClick={handleFilter}>
+        <Button onClick={handleFilter}>
           Filter
         </Button>
 
@@ -54,12 +71,10 @@ export function ReviewFilters({ source, sentiment, onFilter, onExport }: ReviewF
           variant="success"
           onClick={onExport}
         >
-          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
-          </svg>
+          <Download className="h-4 w-4" />
           Export CSV
         </Button>
       </div>
-    </div>
+    </CardContent></Card>
   );
 }

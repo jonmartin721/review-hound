@@ -1,6 +1,6 @@
 'use client';
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { Button } from '@/components/ui/Button';
+import { Button } from '@/components/ui/button';
 import { useStorage } from '@/lib/storage/hooks';
 
 interface ScrapeButtonProps {
@@ -39,7 +39,8 @@ export function ScrapeButton({ businessId, onComplete }: ScrapeButtonProps) {
         setErrorMsg('Scrape failed');
         timeoutRef.current = setTimeout(() => setState('idle'), 2000);
       }
-    } catch {
+    } catch (err) {
+      console.error('Scrape request failed:', err);
       setState('error');
       setErrorMsg('Error connecting to server');
       timeoutRef.current = setTimeout(() => setState('idle'), 2000);
@@ -55,18 +56,24 @@ export function ScrapeButton({ businessId, onComplete }: ScrapeButtonProps) {
       ? 'Failed'
       : 'Scrape Now';
 
+  const variant =
+    state === 'done'
+      ? 'success'
+      : state === 'error'
+      ? 'destructive'
+      : 'default';
+
   return (
     <div className="flex flex-col items-end gap-1">
       <Button
-        variant="primary"
-        loading={state === 'loading'}
+        variant={variant}
         disabled={state === 'loading' || state === 'done'}
         onClick={handleScrape}
       >
         {label}
       </Button>
       {errorMsg && (
-        <p className="text-xs text-[var(--accent)] max-w-48 text-right">
+        <p className="text-xs text-destructive max-w-48 text-right">
           {errorMsg}
         </p>
       )}

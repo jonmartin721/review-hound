@@ -1,13 +1,13 @@
 import { expect, test } from '@playwright/test';
 
-test('loads the sample workspace and navigates into a seeded business', async ({ page }) => {
+test('loads the demo workspace and navigates into a seeded business', async ({ page }) => {
   await page.goto('/');
 
   await expect(page.getByRole('heading', { name: 'Business Dashboard' })).toBeVisible();
-  await expect(page.getByText('Sample workspace only')).toBeVisible();
+  await expect(page.getByText('Demo workspace only')).toBeVisible();
   await expect(page.getByText('Acme Coffee Co.')).toBeVisible();
 
-  const acmeCard = page.locator('div.panel-shell', {
+  const acmeCard = page.locator('[data-testid="business-card"]', {
     has: page.getByRole('heading', { name: 'Acme Coffee Co.' }),
   }).first();
   await acmeCard.getByRole('link', { name: 'View Details' }).click();
@@ -21,12 +21,13 @@ test('loads the sample workspace and navigates into a seeded business', async ({
   await expect(page.getByRole('heading', { name: 'Reviews for Acme Coffee Co.' })).toBeVisible();
 });
 
-test('can start an empty workspace and add a browser-local business without backend search results', async ({
+test('can switch to local mode and add a browser-local business without backend search results', async ({
   page,
 }) => {
-  await page.goto('/');
+  await page.goto('/welcome');
 
-  await page.getByRole('button', { name: 'Start empty workspace' }).click();
+  await page.getByRole('button', { name: 'Switch to Local Mode' }).click();
+  await page.waitForURL('/');
   await expect(page.getByText('No businesses tracked yet')).toBeVisible();
 
   await page.getByRole('button', { name: 'Add Business' }).first().click();
@@ -44,7 +45,7 @@ test('can start an empty workspace and add a browser-local business without back
   await expect(page.getByText('Test Bakery')).toBeVisible();
 
   const detailHref = await page
-    .locator('div.panel-shell', {
+    .locator('[data-testid="business-card"]', {
       has: page.getByRole('heading', { name: 'Test Bakery' }),
     })
     .first()

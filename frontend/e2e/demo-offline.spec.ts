@@ -40,7 +40,7 @@ test('sample mode can scrape seeded mixed-source businesses with the backend off
 
   await page.goto('/');
 
-  const riverstoneCard = page.locator('div.panel-shell', {
+  const riverstoneCard = page.locator('[data-testid="business-card"]', {
     has: page.getByRole('heading', { name: 'Riverstone Home Services' }),
   }).first();
   await riverstoneCard.getByRole('link', { name: 'View Details' }).click();

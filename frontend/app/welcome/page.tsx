@@ -1,41 +1,17 @@
-import Image from 'next/image';
-import Link from 'next/link';
-import { LightboxImage } from '@/components/ui/Lightbox';
-import { HeroVideo } from '@/components/ui/HeroVideo';
+import { ExternalLink } from 'lucide-react';
+import { LightboxImage } from '@/components/welcome/Lightbox';
+import { HeroVideo } from '@/components/welcome/HeroVideo';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent } from '@/components/ui/card';
+import { WorkspaceSelector } from '@/components/layout/WorkspaceSelector';
 import { GITHUB_REPO_URL } from '@/lib/portfolio';
 
 export default function WelcomePage() {
   return (
-    <div className="max-w-4xl mx-auto fade-in">
-      {/* Header */}
-      <div className="text-center mb-16">
-        <Image src="/logo.png" alt="Review Hound" width={160} height={160} className="mx-auto mb-6" priority />
-        <h1 className="text-3xl font-semibold text-[var(--text-primary)] mb-3">Welcome to Review Hound</h1>
-        <p className="text-lg text-[var(--text-muted)] mb-6">
-          Explore a browser-local sample workspace, then switch to an empty local workspace if you want to click around with your own data.
-        </p>
-        <div className="flex flex-wrap items-center justify-center gap-3">
-          <Link
-            href="/"
-            className="inline-flex items-center gap-2 bg-[var(--accent)] text-[var(--accent-contrast)] px-6 py-3 rounded-none hover:brightness-105 transition font-medium"
-          >
-            Open Sample Workspace
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-            </svg>
-          </Link>
-          <a
-            href={GITHUB_REPO_URL}
-            target="_blank"
-            rel="noreferrer"
-            className="inline-flex items-center gap-2 border border-[var(--border)] px-6 py-3 text-[var(--text-primary)] hover:bg-[var(--bg-surface-hover)] transition font-medium"
-          >
-            View Full Project
-          </a>
-        </div>
-        <p className="text-sm text-[var(--text-muted)] mt-4">
-          This hosted version keeps data in your browser only. Scrapes and alerts can run while you are using it, but always-on monitoring still lives in the full project.
-        </p>
+    <div className="max-w-4xl mx-auto animate-fade-in">
+      {/* Workspace selector */}
+      <div className="mb-10">
+        <WorkspaceSelector />
       </div>
 
       {/* Hero video */}
@@ -47,8 +23,8 @@ export default function WelcomePage() {
       <div className="grid md:grid-cols-2 gap-8 items-center mb-16">
         <LightboxImage src="/screenshots/add-business.png" alt="Add business modal with source search results" width={1280} height={800} />
         <div>
-          <h2 className="text-xl font-semibold text-[var(--text-primary)] mb-3">Add a Business</h2>
-          <p className="text-[var(--text-secondary)]">
+          <h2 className="text-xl font-semibold text-foreground mb-3">Add a Business</h2>
+          <p className="text-muted-foreground">
             Search for Trustpilot and BBB profiles, save businesses locally in your browser, and kick off an initial scrape without standing up your own backend database.
           </p>
         </div>
@@ -60,8 +36,8 @@ export default function WelcomePage() {
           <LightboxImage src="/screenshots/dashboard.png" alt="Dashboard with business cards showing ratings and sentiment" width={1280} height={800} />
         </div>
         <div className="md:order-1">
-          <h2 className="text-xl font-semibold text-[var(--text-primary)] mb-3">Dashboard Overview</h2>
-          <p className="text-[var(--text-secondary)]">
+          <h2 className="text-xl font-semibold text-foreground mb-3">Dashboard Overview</h2>
+          <p className="text-muted-foreground">
             See all your businesses at a glance with average ratings, review counts, and sentiment analysis. Color-coded bars show the balance of positive and negative feedback.
           </p>
         </div>
@@ -71,8 +47,8 @@ export default function WelcomePage() {
       <div className="grid md:grid-cols-2 gap-8 items-center mb-16">
         <LightboxImage src="/screenshots/business-detail.png" alt="Business detail page with rating trend chart and reviews" width={1280} height={800} />
         <div>
-          <h2 className="text-xl font-semibold text-[var(--text-primary)] mb-3">Review Details</h2>
-          <p className="text-[var(--text-secondary)]">
+          <h2 className="text-xl font-semibold text-foreground mb-3">Review Details</h2>
+          <p className="text-muted-foreground">
             Track rating trends over time with interactive charts. Browse individual reviews, filter by source or sentiment, and export data to CSV for further analysis.
           </p>
         </div>
@@ -84,8 +60,8 @@ export default function WelcomePage() {
           <LightboxImage src="/screenshots/alerts.png" alt="Alert configuration modal with email and threshold settings" width={1280} height={800} />
         </div>
         <div className="md:order-1">
-          <h2 className="text-xl font-semibold text-[var(--text-primary)] mb-3">Alerts</h2>
-          <p className="text-[var(--text-secondary)]">
+          <h2 className="text-xl font-semibold text-foreground mb-3">Alerts</h2>
+          <p className="text-muted-foreground">
             Save local alert rules and send email notifications for newly found reviews. Background checks still depend on the browser tab being open in hosted mode.
           </p>
         </div>
@@ -95,25 +71,40 @@ export default function WelcomePage() {
       <div className="grid md:grid-cols-2 gap-8 items-center mb-16">
         <LightboxImage src="/screenshots/settings.png" alt="Settings page with API keys and sentiment analysis configuration" width={1280} height={800} />
         <div>
-          <h2 className="text-xl font-semibold text-[var(--text-primary)] mb-3">Settings</h2>
-          <p className="text-[var(--text-secondary)]">
+          <h2 className="text-xl font-semibold text-foreground mb-3">Settings</h2>
+          <p className="text-muted-foreground">
             Manage local API keys, tune sentiment scoring, reset the browser workspace, and jump to the full GitHub project when you want always-on monitoring.
           </p>
         </div>
       </div>
 
-      {/* Footer CTA */}
-      <div className="text-center py-8 border-t border-[var(--border)]">
-        <Link
-          href="/"
-          className="inline-flex items-center gap-2 bg-[var(--accent)] text-[var(--accent-contrast)] px-6 py-3 rounded-none hover:brightness-105 transition font-medium"
-        >
-          Open Sample Workspace
-          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-          </svg>
-        </Link>
-      </div>
+      {/* Open Source Footer */}
+      <Card className="mb-10">
+        <CardContent>
+          <h2 className="text-xl font-semibold text-foreground mb-3">Open Source</h2>
+          <p className="text-muted-foreground mb-5 leading-relaxed">
+            Review Hound is fully open source under the MIT license. Clone the repo to self-host with always-on monitoring, a real database, and background scraping. Contributions, issues, and feature requests are welcome.
+          </p>
+          <div className="flex flex-wrap items-center gap-3">
+            <Button asChild>
+              <a href={GITHUB_REPO_URL} target="_blank" rel="noreferrer">
+                View on GitHub
+                <ExternalLink className="h-4 w-4" />
+              </a>
+            </Button>
+            <Button variant="outline" asChild>
+              <a href={`${GITHUB_REPO_URL}/issues`} target="_blank" rel="noreferrer">
+                Report an Issue
+              </a>
+            </Button>
+            <Button variant="outline" asChild>
+              <a href={`${GITHUB_REPO_URL}/pulls`} target="_blank" rel="noreferrer">
+                Contribute
+              </a>
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
     </div>
   );
 }

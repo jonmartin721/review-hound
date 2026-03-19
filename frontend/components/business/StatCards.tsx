@@ -1,3 +1,5 @@
+import { Card, CardContent } from '@/components/ui/card';
+
 interface StatCardsProps {
   stats: {
     total_reviews: number;
@@ -10,33 +12,41 @@ interface StatCardsProps {
 export function StatCards({ stats }: StatCardsProps) {
   return (
     <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-6">
-      <div className="bg-[var(--bg-elevated)] rounded-none p-4 text-center">
-        <div className="text-3xl font-bold text-[var(--accent)] font-code">
-          {stats.total_reviews}
-        </div>
-        <div className="text-xs uppercase tracking-wider text-[var(--text-muted)]">Total Reviews</div>
-      </div>
+      <Card>
+        <CardContent className="p-4 text-center">
+          <div className="text-3xl font-bold text-primary font-mono">
+            {stats.total_reviews}
+          </div>
+          <div className="text-xs uppercase tracking-wider text-muted-foreground">Total Reviews</div>
+        </CardContent>
+      </Card>
 
-      <div className="bg-[var(--bg-elevated)] rounded-none p-4 text-center">
-        <div className="text-3xl font-bold text-[var(--accent)] font-code">
-          {stats.avg_rating.toFixed(1)}★
-        </div>
-        <div className="text-xs uppercase tracking-wider text-[var(--text-muted)]">Avg Rating</div>
-      </div>
+      <Card>
+        <CardContent className="p-4 text-center">
+          <div className="text-3xl font-bold text-primary font-mono">
+            {stats.avg_rating.toFixed(1)}★
+          </div>
+          <div className="text-xs uppercase tracking-wider text-muted-foreground">Avg Rating</div>
+        </CardContent>
+      </Card>
 
-      <div className="bg-[var(--bg-elevated)] rounded-none p-4 text-center">
-        <div className="text-3xl font-bold text-[var(--positive)] font-code">
-          {Math.round(stats.positive_pct)}%
-        </div>
-        <div className="text-xs uppercase tracking-wider text-[var(--text-muted)]">Positive</div>
-      </div>
+      <Card>
+        <CardContent className="p-4 text-center">
+          <div className="text-3xl font-bold text-positive font-mono">
+            {Math.round(stats.positive_pct)}%
+          </div>
+          <div className="text-xs uppercase tracking-wider text-muted-foreground">Positive</div>
+        </CardContent>
+      </Card>
 
-      <div className="bg-[var(--bg-elevated)] rounded-none p-4 text-center">
-        <div className="text-3xl font-bold text-[var(--negative)] font-code">
-          {Math.round(stats.negative_pct)}%
-        </div>
-        <div className="text-xs uppercase tracking-wider text-[var(--text-muted)]">Negative</div>
-      </div>
+      <Card>
+        <CardContent className="p-4 text-center">
+          <div className="text-3xl font-bold text-negative font-mono">
+            {Math.round(stats.negative_pct)}%
+          </div>
+          <div className="text-xs uppercase tracking-wider text-muted-foreground">Negative</div>
+        </CardContent>
+      </Card>
     </div>
   );
 }

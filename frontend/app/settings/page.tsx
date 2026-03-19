@@ -1,14 +1,16 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
+import { KeyRound, SlidersHorizontal, FolderOpen, ExternalLink } from 'lucide-react';
 import { useStorage } from '@/lib/storage/hooks';
 import type { ApiKeyInfo } from '@/lib/storage/types';
 import { ApiKeyCard } from '@/components/settings/ApiKeyCard';
 import { SentimentSliders } from '@/components/settings/SentimentSliders';
 import { Spinner } from '@/components/ui/Spinner';
-import { Button } from '@/components/ui/Button';
-import { clearLocalWorkspace, getWorkspaceMode, GITHUB_REPO_URL, IS_PORTFOLIO_MODE, setWorkspaceMode, type WorkspaceMode } from '@/lib/portfolio';
-import { seedDemoData } from '@/lib/db/seed';
+import { Card, CardContent } from '@/components/ui/card';
+import { WorkspaceSelector } from '@/components/layout/WorkspaceSelector';
+import { cn } from '@/lib/utils';
+import { GITHUB_REPO_URL, IS_PORTFOLIO_MODE } from '@/lib/portfolio';
 
 interface ProviderConfig {
   provider: string;
@@ -57,12 +59,21 @@ const PROVIDERS: ProviderConfig[] = [
   },
 ];
 
+type SettingsTab = 'workspace' | 'api-keys' | 'sentiment' | 'project';
+
+const TABS: { id: SettingsTab; label: string; icon: React.ElementType; portfolioOnly?: boolean }[] = [
+  ...(IS_PORTFOLIO_MODE ? [{ id: 'workspace' as SettingsTab, label: 'Workspace', icon: FolderOpen, portfolioOnly: true }] : []),
+  { id: 'api-keys', label: 'API Keys', icon: KeyRound },
+  { id: 'sentiment', label: 'Sentiment', icon: SlidersHorizontal },
+  ...(IS_PORTFOLIO_MODE ? [{ id: 'project' as SettingsTab, label: 'Full Project', icon: ExternalLink, portfolioOnly: true }] : []),
+];
+
 export default function SettingsPage() {
   const storage = useStorage();
   const [apiKeys, setApiKeys] = useState<Record<string, ApiKeyInfo>>({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [workspaceMode] = useState<WorkspaceMode>(() => (IS_PORTFOLIO_MODE ? getWorkspaceMode() : 'sample'));
+  const [activeTab, setActiveTab] = useState<SettingsTab>(TABS[0].id);
 
   const loadData = useCallback(async () => {
     try {
@@ -96,28 +107,13 @@ export default function SettingsPage() {
     await loadData();
   }
 
-  async function handleStartEmptyWorkspace() {
-    await clearLocalWorkspace();
-    setWorkspaceMode('blank');
-    window.location.reload();
-  }
-
-  async function handleReloadSample() {
-    await clearLocalWorkspace();
-    setWorkspaceMode('sample');
-    await seedDemoData();
-    window.location.reload();
-  }
-
   return (
-    <div className="max-w-3xl space-y-6">
-      <div>
-        <h1 className="text-2xl font-semibold text-[var(--text-primary)]">
-          Settings
-        </h1>
-        <p className="text-[var(--text-muted)] mt-1">
+    <div className="max-w-4xl mx-auto">
+      <div className="mb-6">
+        <h1 className="text-2xl font-semibold text-foreground">Settings</h1>
+        <p className="text-muted-foreground mt-1">
           {IS_PORTFOLIO_MODE
-            ? 'Manage this browser-local workspace, optional API keys, and alert-related settings.'
+            ? 'Manage your workspace, API keys, and analysis settings.'
             : 'Configure API keys and sentiment analysis'}
         </p>
       </div>
@@ -127,92 +123,113 @@ export default function SettingsPage() {
           <Spinner size="lg" />
         </div>
       ) : error ? (
-        <div className="bg-[var(--bg-surface)] border border-[var(--border)] border-t-2 border-t-[var(--negative)] rounded-none p-8 text-center max-w-2xl">
-          <p className="text-[var(--negative)] font-medium mb-2">Connection Error</p>
-          <p className="text-[var(--text-muted)] text-sm">{error}</p>
-        </div>
+        <Card className="border-t-2 border-t-negative">
+          <CardContent className="text-center">
+            <p className="text-negative font-medium mb-2">Connection Error</p>
+            <p className="text-muted-foreground text-sm">{error}</p>
+          </CardContent>
+        </Card>
       ) : (
-        <>
-          {IS_PORTFOLIO_MODE && (
-            <div className="panel-shell-info rounded-none p-6">
-              <h2 className="text-lg font-semibold text-[var(--text-primary)] mb-3">
-                Workspace Storage
-              </h2>
-              <p className="text-sm text-[var(--text-muted)] mb-5">
-                {workspaceMode === 'sample'
-                  ? 'Sample data is currently loaded in this browser.'
-                  : 'You are using a blank local workspace in this browser.'}{' '}
-                Resetting here only affects this device and browser profile.
-              </p>
-              <div className="flex flex-wrap gap-3">
-                <Button
-                  onClick={workspaceMode === 'sample' ? handleStartEmptyWorkspace : handleReloadSample}
-                >
-                  {workspaceMode === 'sample' ? 'Start Empty Workspace' : 'Reload Sample Data'}
-                </Button>
-              </div>
-            </div>
-          )}
+        <div className="flex gap-8">
+          {/* Sidebar */}
+          <nav className="w-48 shrink-0">
+            <ul className="space-y-1">
+              {TABS.map(({ id, label, icon: Icon }) => (
+                <li key={id}>
+                  <button
+                    onClick={() => setActiveTab(id)}
+                    className={cn(
+                      "w-full flex items-center gap-2 text-sm font-medium px-3 py-2 rounded-md transition-colors cursor-pointer text-left",
+                      activeTab === id
+                        ? "bg-primary/10 text-primary"
+                        : "text-muted-foreground hover:text-foreground hover:bg-muted"
+                    )}
+                  >
+                    <Icon className="h-4 w-4" />
+                    {label}
+                  </button>
+                </li>
+              ))}
+            </ul>
+          </nav>
 
-          <div className="panel-shell rounded-none p-6 max-w-2xl">
-            <h2 className="text-lg font-semibold text-[var(--text-primary)] mb-4">
-              API Keys
-            </h2>
-            <p className="text-[var(--text-muted)] text-sm mb-6">
-              {IS_PORTFOLIO_MODE
-                ? 'Optional. Values are stored only in this browser profile. Google and Yelp keys are used for lookups, and Resend credentials are used only when sending alert emails from your own account.'
-                : 'Add API keys to fetch reviews from official APIs instead of web scraping. This is more reliable and provides access to more reviews.'}
-            </p>
+          {/* Content */}
+          <div className="flex-1 min-w-0">
+            {activeTab === 'workspace' && IS_PORTFOLIO_MODE && (
+              <WorkspaceSelector />
+            )}
 
-            {PROVIDERS.map((p, idx) => (
-              <div key={p.provider}>
-                <div className={idx < PROVIDERS.length - 1 ? 'mb-6 pb-6 border-b border-[var(--border)]' : 'mb-2'}>
-                  <ApiKeyCard
-                    label={p.label}
-                    description={p.description}
-                    helpUrl={p.helpUrl}
-                    helpLinkText={p.helpLinkText}
-                    keyInfo={apiKeys[p.provider] ?? null}
-                    onSave={(key) => handleSave(p.provider, key)}
-                    onDelete={() => handleDelete(p.provider)}
-                    onToggle={() => handleToggle(p.provider)}
-                    inputType={p.inputType}
-                    placeholder={p.placeholder}
-                  />
-                </div>
-              </div>
-            ))}
+            {activeTab === 'api-keys' && (
+              <Card>
+                <CardContent>
+                  <h2 className="text-lg font-semibold text-foreground mb-4">
+                    API Keys
+                  </h2>
+                  <p className="text-muted-foreground text-sm mb-6">
+                    {IS_PORTFOLIO_MODE
+                      ? 'Optional. Values are stored only in this browser profile. Google and Yelp keys are used for lookups, and Resend credentials are used only when sending alert emails from your own account.'
+                      : 'Add API keys to fetch reviews from official APIs instead of web scraping. This is more reliable and provides access to more reviews.'}
+                  </p>
+
+                  {PROVIDERS.map((p, idx) => (
+                    <div key={p.provider}>
+                      <div className={idx < PROVIDERS.length - 1 ? 'mb-6 pb-6 border-b border-border' : 'mb-2'}>
+                        <ApiKeyCard
+                          label={p.label}
+                          description={p.description}
+                          helpUrl={p.helpUrl}
+                          helpLinkText={p.helpLinkText}
+                          keyInfo={apiKeys[p.provider] ?? null}
+                          onSave={(key) => handleSave(p.provider, key)}
+                          onDelete={() => handleDelete(p.provider)}
+                          onToggle={() => handleToggle(p.provider)}
+                          inputType={p.inputType}
+                          placeholder={p.placeholder}
+                        />
+                      </div>
+                    </div>
+                  ))}
+                </CardContent>
+              </Card>
+            )}
+
+            {activeTab === 'sentiment' && (
+              <Card>
+                <CardContent>
+                  <h2 className="text-lg font-semibold text-foreground mb-4">
+                    Sentiment Analysis
+                  </h2>
+                  <p className="text-muted-foreground text-sm mb-6">
+                    Configure how sentiment scores are calculated. The final score combines the star rating and text analysis based on the weights below.
+                  </p>
+                  <SentimentSliders />
+                </CardContent>
+              </Card>
+            )}
+
+            {activeTab === 'project' && IS_PORTFOLIO_MODE && (
+              <Card>
+                <CardContent>
+                  <h2 className="text-lg font-semibold text-foreground mb-3">
+                    Full Project
+                  </h2>
+                  <p className="text-sm text-muted-foreground mb-4">
+                    This hosted mode keeps all workspace data in your browser and can scrape or send alerts while you are actively using it. Always-on background monitoring and the full self-hosted workflow still live in the cloned project.
+                  </p>
+                  <a
+                    href={GITHUB_REPO_URL}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="text-primary hover:text-primary/80 transition inline-flex items-center gap-2 font-medium"
+                  >
+                    View or clone the GitHub repo
+                    <ExternalLink className="h-4 w-4" />
+                  </a>
+                </CardContent>
+              </Card>
+            )}
           </div>
-
-          <div className="panel-shell rounded-none p-6 max-w-2xl mt-6">
-            <h2 className="text-lg font-semibold text-[var(--text-primary)] mb-4">
-              Sentiment Analysis
-            </h2>
-            <p className="text-[var(--text-muted)] text-sm mb-6">
-              Configure how sentiment scores are calculated. The final score combines the star rating and text analysis based on the weights below.
-            </p>
-            <SentimentSliders />
-          </div>
-
-          {IS_PORTFOLIO_MODE && (
-            <div className="panel-shell rounded-none p-6">
-              <h2 className="text-lg font-semibold text-[var(--text-primary)] mb-3">
-                Full Project
-              </h2>
-              <p className="text-sm text-[var(--text-muted)] mb-4">
-                This hosted mode keeps all workspace data in your browser and can scrape or send alerts while you are actively using it. Always-on background monitoring and the full self-hosted workflow still live in the cloned project.
-              </p>
-              <a
-                href={GITHUB_REPO_URL}
-                target="_blank"
-                rel="noreferrer"
-                className="accent-link inline-flex items-center gap-2 font-medium"
-              >
-                View or clone the GitHub repo
-              </a>
-            </div>
-          )}
-        </>
+        </div>
       )}
     </div>
   );

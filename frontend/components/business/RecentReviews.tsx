@@ -1,5 +1,6 @@
 'use client';
 import Link from 'next/link';
+import { Card, CardContent } from '@/components/ui/card';
 import { RatingStars } from '@/components/ui/RatingStars';
 import { SentimentBadge } from '@/components/ui/SentimentBadge';
 import { SourceBadge } from '@/components/ui/SourceBadge';
@@ -13,12 +14,12 @@ interface RecentReviewsProps {
 
 export function RecentReviews({ reviews, businessId }: RecentReviewsProps) {
   return (
-    <div className="panel-shell rounded-none p-6">
+    <Card><CardContent>
       <div className="flex justify-between items-center mb-4">
-        <h2 className="text-lg font-semibold text-[var(--text-primary)]">Recent Reviews</h2>
+        <h2 className="text-lg font-semibold text-foreground">Recent Reviews</h2>
         <Link
           href={`/business/${businessId}/reviews`}
-          className="accent-link font-medium"
+          className="text-primary hover:text-primary/80 transition font-medium"
         >
           View All →
         </Link>
@@ -27,10 +28,10 @@ export function RecentReviews({ reviews, businessId }: RecentReviewsProps) {
       {reviews.length > 0 ? (
         <div className="space-y-4">
           {reviews.slice(0, 5).map((review) => (
-            <div key={review.id} className="border-b border-[var(--border)] pb-4 last:border-b-0">
+            <div key={review.id} className="border-b border-border pb-4 last:border-b-0">
               <div className="flex justify-between items-start">
                 <div className="flex items-center gap-2 flex-wrap">
-                  <span className="font-medium text-[var(--text-primary)]">
+                  <span className="font-medium text-foreground">
                     {review.author_name || 'Anonymous'}
                   </span>
                   <RatingStars rating={review.rating} size="sm" />
@@ -38,20 +39,20 @@ export function RecentReviews({ reviews, businessId }: RecentReviewsProps) {
                 </div>
                 <SourceBadge source={review.source} url={review.review_url} size="sm" />
               </div>
-              <p className="text-[var(--text-secondary)] mt-2">
+              <p className="text-muted-foreground mt-2">
                 {truncateText(review.text, 200)}
               </p>
-              <p className="text-xs text-[var(--text-muted)] mt-1">
+              <p className="text-xs text-muted-foreground mt-1">
                 {formatDate(review.review_date || review.scraped_at)}
               </p>
             </div>
           ))}
         </div>
       ) : (
-        <p className="text-[var(--text-muted)] text-center py-4">
+        <p className="text-muted-foreground text-center py-4">
           No reviews yet. Click &quot;Scrape Now&quot; to fetch reviews.
         </p>
       )}
-    </div>
+    </CardContent></Card>
   );
 }
