@@ -20,10 +20,9 @@ Stop checking review sites one by one. Review Hound pulls from TrustPilot, BBB, 
 - **Source search**: Find business pages on TrustPilot and BBB directly from the web UI
 - **Sentiment scoring**: Flags negative reviews automatically so you know what needs attention
 - **Web dashboard**: Next.js frontend with per-business stats, rating trends, and scrape controls
-- **TUI dashboard**: Full terminal UI built with Textual—manage businesses, trigger scrapes, and monitor services without leaving the terminal
 - **Email alerts**: Get notified via SMTP or the Resend API when someone leaves a bad review
 - **Encrypted API keys**: API credentials are encrypted at rest with Fernet symmetric encryption
-- **CLI, web, or TUI**: Use whichever fits your workflow
+- **CLI or web**: Use whichever fits your workflow
 - **Scheduled scraping**: Set it and forget it—runs every few hours
 - **CSV export**: Pull data out for spreadsheets or reporting
 
@@ -163,15 +162,6 @@ reviewhound watch --interval 2
 reviewhound web --with-scheduler
 ```
 
-### TUI Dashboard
-
-```bash
-# Launch the terminal UI
-reviewhound tui
-```
-
-Full-screen Textual app with a sidebar, live logs, service health monitoring, and scrape controls—all from the terminal.
-
 ## Configuration
 
 Create a `.env` file in the project root:
@@ -243,7 +233,6 @@ The public web deployment is a limited browser-local demo of Review Hound, not t
 - No server-side persistent workspace storage
 - No always-on background monitoring when the browser tab is closed
 - No CLI workflows
-- No TUI workflows
 - No Docker or self-hosted runtime controls
 - No built-in server-managed email delivery
 
@@ -259,7 +248,6 @@ review-hound/
 │   ├── scrapers/          # TrustPilot, BBB, Yelp, Google Places, Yelp Fusion
 │   ├── analysis/          # Sentiment scoring
 │   ├── alerts/            # SMTP + Resend email alerts
-│   ├── tui/               # Terminal UI (Textual)
 │   └── web/               # Flask UI
 ├── frontend/              # Next.js web app
 ├── api/                   # Vercel serverless functions
@@ -300,7 +288,6 @@ npx playwright test
 
 ## What's Next?
 
-- Try the TUI dashboard: `reviewhound tui`
 - Set up email alerts: `reviewhound alert 1 you@email.com`
 - Run the scheduler for hands-off monitoring: `reviewhound watch`
 - Found a bug? [Open an issue](https://github.com/jonmartin721/review-hound/issues)

@@ -2,7 +2,6 @@ import os
 from datetime import date
 
 import pytest
-from click.testing import CliRunner
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
@@ -146,11 +145,6 @@ def sample_sentiment_config(db_session):
     db_session.flush()
     return config
 
-
-@pytest.fixture
-def cli_runner():
-    """Click CLI test runner."""
-    return CliRunner()
 
 
 @pytest.fixture

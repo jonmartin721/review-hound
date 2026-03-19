@@ -364,14 +364,6 @@ def watch(interval):
     run_scheduler()
 
 
-@cli.command()
-def tui():
-    """Launch the TUI dashboard."""
-    from reviewhound.tui import ReviewHoundApp
-
-    app = ReviewHoundApp()
-    app.run()
-
 
 @cli.command()
 @click.option("--host", default="127.0.0.1", help="Host to bind to")
