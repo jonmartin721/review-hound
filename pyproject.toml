@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "reviewhound"
-version = "1.0.0"
+version = "1.1.0"
 description = "Business review aggregator and monitoring tool with sentiment analysis"
 readme = "README.md"
 license = "MIT"
